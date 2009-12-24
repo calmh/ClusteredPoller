@@ -8,15 +8,15 @@ objs := $(SOURCES:.cpp=.o)
 OS := $(shell uname -s | awk '{print toupper($$0)}')
 os := $(shell uname -s | awk '{print tolower($$0)}')
 arch := $(shell arch)
-platformtarget := betterpoller.$(os)-$(arch)
+target := betterpoller
 
-all: $(platformtarget)
+all: $(target)
 
-$(platformtarget): $(objs)
+$(target): $(objs)
 	g++ $^ $($(OS)_LIBS) -o $@
 
 clean:
-	rm -f *.o ${platformtarget}
+	rm -f *.o ${target}
 
 
 
