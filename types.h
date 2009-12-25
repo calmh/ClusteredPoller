@@ -1,3 +1,21 @@
+#ifndef _TYPES_H
+#define _TYPES_H
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <pthread.h>
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <list>
+#include <map>
+#include <vector>
+
+#include <net-snmp/net-snmp-config.h>
+#include <net-snmp/net-snmp-includes.h>
+
 struct RTGConf {
 	unsigned interval;
 	unsigned threads;
@@ -7,6 +25,13 @@ struct RTGConf {
 	std::string database;
 	std::string dbuser;
 	std::string dbpass;
+
+	RTGConf() {
+		interval = 300;
+		threads = 2;
+		high_skew_slop = 3.0;
+		low_skew_slop = 0.5;
+	}
 };
 
 struct ResultCache {
@@ -72,3 +97,4 @@ struct QueryHost {
 	}
 };
 
+#endif

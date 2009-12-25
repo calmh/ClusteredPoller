@@ -1,5 +1,5 @@
 # Main sources list
-SOURCES = main.cpp
+SOURCES = main.cpp query.cpp
 
 # Find out which OS we are compiling under
 OS := $(shell uname -s | awk '{print tolower($$0)}')
@@ -23,4 +23,5 @@ clean:
 	rm -f *.o ${target}
 
 # Extra dependencies
-main.o: types.h
+main.o: types.h globals.h query.h
+query.o: types.h globals.h query.h
