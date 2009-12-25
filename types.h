@@ -16,6 +16,10 @@
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/net-snmp-includes.h>
 
+#ifdef USE_MYSQL
+#include <mysql++.h>
+#endif
+
 struct RTGConf {
 	unsigned interval;
 	unsigned threads;

@@ -1,10 +1,6 @@
 #include "types.h"
 #include "query.h"
 
-#ifdef USE_MYSQL
-#include <mysql++.h>
-#endif
-
 using namespace std;
 
 // Global variables.
