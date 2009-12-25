@@ -30,8 +30,11 @@ are:
 + Database rows are dated based on when the result was read, not when it was
   inserted into the database.
 
-- It only supports MySQL backend. [1] - Clustered polls potentially increases
-  load on monitored devices.
+- It only supports MySQL backend. [1]
+
+- Clustered polls potentially increases load on monitored devices.
+
+- Less testing so probably more bugs. :)
 
 In all other aspects, clpoll strives to be backwards compatible with rtgpoll.
 In particalar, it should be able to read the same configuration files and
