@@ -1,5 +1,4 @@
 #define STATISTICS
-#define USE_MYSQL
 #define MAXERRORSPERHOST 4
 
 #include <iostream>
@@ -19,7 +18,6 @@
 #endif
 
 using namespace std;
-
 
 // Global variables.
 vector<QueryHost> hosts;
