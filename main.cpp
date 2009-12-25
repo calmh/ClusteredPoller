@@ -12,6 +12,9 @@
 #include <mysql++.h>
 #endif
 
+#include "types.h"
+
+#define STATISTICS
 #define INTERVAL 30
 #define THREADS 16
 #define DB "rtg"
@@ -19,70 +22,16 @@
 #define USER "rtg"
 #define PASS "password"
 
-typedef unsigned long long counter_t;
-
-struct ResultCache {
-	std::map<std::pair<std::string, int>, counter_t> counters;
-	std::map<std::pair<std::string, int>, time_t> times;
-};
-
-struct ResultRow {
-	int id;
-	counter_t counter;
-	counter_t rate;
-	unsigned bits;
-
-	ResultRow(int iid, counter_t icounter, counter_t irate, unsigned ibits) {
-		id = iid;
-		counter = icounter;
-		rate = irate;
-		bits = ibits;
-	}
-};
-
-struct ResultSet {
-	std::string table;
-	std::list<ResultRow> rows;
-
-	ResultSet() {}
-	ResultSet(std::string itable) {
-		table = itable;
-	}
-};
-
-struct QueryRow {
-	std::string oid;
-	std::string table;
-	int id;
-	int bits;
-
-	QueryRow() {}
-	QueryRow(std::string ioid, std::string itable, int iid, int ibits) {
-		oid = ioid;
-		table = itable;
-		id = iid;
-		bits = ibits;
-	}
-};
-
-struct QueryHost {
-	std::string host;
-	std::string community;
-	int snmpver;
-	std::list<QueryRow> rows;
-
-	QueryHost() {
-		host = "none";
-	}
-	QueryHost(std::string ihost, std::string icommunity, int isnmpver) {
-		host = ihost;
-		community = icommunity;
-		snmpver = isnmpver;
-	}
-};
-
+// Global variables.
 std::vector<QueryHost> hosts;
 std::vector<ResultCache> cache;
+#ifdef STATISTICS
+pthread_mutex_t global_lock = PTHREAD_MUTEX_INITIALIZER;
+unsigned active_threads = 0;
+unsigned stat_inserts = 0;
+unsigned stat_queries = 0;
+unsigned stat_iterations = 0;
+#endif
 
 std::map<std::string, ResultSet> query(QueryHost qh)
 {
@@ -93,7 +42,6 @@ std::map<std::string, ResultSet> query(QueryHost qh)
 	struct snmp_pdu *response;
 	oid anOID[MAX_OID_LEN];
 	size_t anOID_len = MAX_OID_LEN;
-	struct variable_list *vars;
 	int status;
 	void *sessp;
 
@@ -124,26 +72,50 @@ std::map<std::string, ResultSet> query(QueryHost qh)
 		snmp_add_null_var(pdu, anOID, anOID_len);
 
 		status = snmp_sess_synch_response(sessp, pdu, &response);
+		time_t response_time = time(NULL);
 
 		if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR) {
-			for(vars = response->variables; vars; vars = vars->next_variable) {
-				counter_t i = 0;
-				if (vars->type == ASN_INTEGER || vars->type == ASN_GAUGE || vars->type == ASN_UINTEGER) {
-					i = *vars->val.integer;
-				} else if (vars->type == ASN_COUNTER64) {
-					i = (((counter_t)(*vars->val.counter64).high) << 32) + (*vars->val.counter64).low;
-				}
-				if (i != 0) {
-					ResultRow r(row.id, i, 0, row.bits);
-					rs[row.table].rows.push_back(r);
-				}
+			struct variable_list *vars = response->variables;
+			int got_value = 0;
+			counter_t value = 0;
+			switch (vars->type) {
+				case SNMP_NOSUCHOBJECT:
+				case SNMP_NOSUCHINSTANCE:
+					// Do nothing
+					break;
+
+				case ASN_INTEGER:
+				case ASN_COUNTER:
+				case ASN_GAUGE:
+				case ASN_OPAQUE:
+					// Regular integer
+					value = *vars->val.integer;
+					got_value = 1;
+					break;
+
+				case ASN_COUNTER64:
+					// Get high and low 32 bits and shift them together
+					value = (((counter_t)(*vars->val.counter64).high) << 32) + (*vars->val.counter64).low;
+					got_value = 1;
+					break;
+
+				default:
+					// Notify unknown type
+					std::cerr << "SNMP get for " << qh.host << " OID " << row.oid
+						<< " returned unknown variable type " << (unsigned) vars->type << std::endl;
+			}
+
+			// If we got a value, put it in the result set.
+			if (got_value) {
+				ResultRow r(row.id, value, 0, row.bits, response_time);
+				rs[row.table].rows.push_back(r);
 			}
 		} else {
+			std::cerr << "SNMP get for " << qh.host << " OID " << row.oid << " failed." << std::endl;
 			if (status == STAT_SUCCESS)
-				fprintf(stderr, "Error in packet\nReason: %s\n",
-				snmp_errstring(response->errstat));
+				std::cerr << "  Error in packet: " << snmp_errstring(response->errstat) << std::endl;
 			else
-				snmp_sess_perror("snmpget", ss);
+				snmp_sess_perror("  Communication error: ", ss);
 		}
 
 
@@ -161,24 +133,32 @@ void process_host(QueryHost &host, ResultCache &cache) {
 	mysqlpp::Connection conn(false);
 	if (!conn.connect(DB, SERVER, USER, PASS)) {}
 #endif
-	time_t now_time = time(NULL);
+
+	// Query all values specified in the QueryHost and get back a list of ResultSets.
+	// Each ResultSet represents one table in the database.
 	std::map<std::string, ResultSet> results = query(host);
+
+	// Iterate over all the ResultSets we got back.
 	std::map<std::string, ResultSet>::iterator it;
 	for (it = results.begin(); it != results.end(); it++) {
-		std::pair<std::string, ResultSet> p = *it;
-		ResultSet r = p.second;
+		ResultSet r = it->second;
 		if (r.rows.size() > 0) {
-			// std::cout << "LOCK TABLE " << r.table << std::endl;
+			std::stringstream insert_query;
+			std::stringstream query_values;
+			insert_query << "INSERT INTO " << r.table << " (id, dtime, counter, rate) VALUES ";
+			int inserted_rows = 0;
+
+			// Iterate over all the ResultRows in this ResultSet
 			std::list<ResultRow>::iterator ri;
-			std::stringstream query;
-			query << "INSERT INTO " << r.table << " (id, dtime, counter, rate) VALUES ";
-			int i = 0;
 			for (ri = r.rows.begin(); ri != r.rows.end(); ri++) {
 				ResultRow row = *ri;
 				std::pair<std::string, int> key = std::pair<std::string, int>(r.table, row.id);
+
+				// If we have a previous measurement, calculate counter_diff and rate
+				// and create an insert statement
 				time_t prev_time = cache.times[key];
 				if (prev_time != 0) {
-					time_t time_diff = now_time - prev_time;
+					time_t time_diff = row.dtime - prev_time;
 					counter_t prev_counter = cache.counters[key];
 					counter_t counter_diff = row.counter - prev_counter;
 					counter_t rate = 0;
@@ -186,20 +166,34 @@ void process_host(QueryHost &host, ResultCache &cache) {
 						rate = row.counter;
 					else
 						rate = counter_diff / time_diff;
-					if (i > 0)
-						query << ", ";
-					query << "(" << row.id << ", now(), " << counter_diff << ", " << rate << ")";
-					i++;
+					if (inserted_rows > 0)
+						query_values << ", ";
+					query_values << "(" << row.id << ", now(), " << counter_diff << ", " << rate << ")";
+					inserted_rows++;
 				}
+
+				// Update the cache for next iteration
 				cache.counters[key] = row.counter;
-				cache.times[key] = now_time;
+				cache.times[key] = row.dtime;
 			}
-#ifdef MYSQL
-			mysqlpp::Query q = conn.query(query.str());
-#else
-			query.flush();
-			std::cout << query.str() << std::endl;
+
+			// If we have at least one row to insert, push it to the database.
+			if (inserted_rows > 0) {
+#ifdef STATISTICS
+				// Update statistics
+				pthread_mutex_lock(&global_lock);
+				stat_inserts += inserted_rows;
+				stat_queries ++;
+				pthread_mutex_unlock(&global_lock);
 #endif
+
+				insert_query << query_values.str();
+#ifdef MYSQL
+				mysqlpp::Query q = conn.query(insert_query.str());
+#else
+				std::cout << insert_query.str() << std::endl;
+#endif
+			}
 		}
 	}
 }
@@ -252,8 +246,15 @@ void* thread_loop(void *ptr) {
 	unsigned offset = *((unsigned*) ptr);
 	unsigned stride = THREADS;
 	std::cerr << "Starting thread with offset " << offset << " and stride " << stride << "." << std::endl;
-	std::cerr << "We have " << hosts.size() << " hosts to handle." << std::endl;
+	unsigned iterations = 0;
 	while (1) {
+#ifdef STATISTICS
+		// Mark ourself active
+		pthread_mutex_lock(&global_lock);
+		active_threads++;
+		pthread_mutex_unlock(&global_lock);
+#endif
+
 		time_t start = time(NULL);
 		for (unsigned i = offset; i < hosts.size(); i += stride) {
 			QueryHost host = hosts[i];
@@ -262,6 +263,28 @@ void* thread_loop(void *ptr) {
 		time_t end = time(NULL);
 		time_t sleep_time = INTERVAL - (end - start);
 		std::cerr << "Thread " << offset << " sleeping " << sleep_time << " seconds." << std::endl;
+
+#ifdef STATISTICS
+		// Mark ourself sleeping
+		pthread_mutex_lock(&global_lock);
+		active_threads--;
+		if (iterations < stat_iterations) {
+			std::cerr << "Thread " << offset << " is behind schedule!" << std::endl;
+			std::cerr << "  My iteration counter: " << iterations << std::endl;
+			std::cerr << "  Global iteration counter: " << stat_iterations << std::endl;
+		}
+		if (active_threads == 0) {
+			stat_iterations++;
+			std::cerr << "Iteration " << stat_iterations << " completed." << std::endl;
+			std::cerr << "  Rows inserted: " << stat_inserts << std::endl;
+			std::cerr << "  Queries executed: " << stat_queries << std::endl;
+			stat_inserts = 0;
+			stat_queries = 0;
+		}
+		pthread_mutex_unlock(&global_lock);
+#endif
+
+		iterations++;
 		sleep(sleep_time);
 	}
 	return NULL;
@@ -270,7 +293,12 @@ void* thread_loop(void *ptr) {
 int main (int argc, char * const argv[]) {
 	init_snmp("betterpoller");
 
-	std::cerr << "Counter_t is " << sizeof(counter_t)*8 << " bits." << std::endl;
+	unsigned counter_size = sizeof(counter_t)*8;
+	if (counter_size != 64) {
+		std::cerr << "Counter_t is " << counter_size << " bits." << std::endl;
+		std::cerr << "Unfortunately, we need a long long to be 64 bits, or nothing works." << std::endl;
+		exit(-1);
+	}
 
 	hosts = load_hosts();
 	cache = std::vector<ResultCache>(hosts.size());
