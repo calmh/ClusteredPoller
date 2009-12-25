@@ -32,6 +32,8 @@ void* start_thread(void *ptr);
 RTGConf read_rtg_conf(string filename);
 vector<QueryHost> read_rtg_targets(string filename);
 void help();
+template <typename Iter> void range_tolower (Iter beg, Iter end);
+void string_tolower (std::string & str);
 
 /*
  * Setup and initialization.
@@ -176,21 +178,22 @@ RTGConf read_rtg_conf(string filename)
 	string token;
 	RTGConf conf;
 	while (rtgconf >> token) {
-		if (token == "Interval")
+		string_tolower(token);
+		if (token == "interval")
 			rtgconf >> conf.interval;
-		else if (token == "HighSkewSlop")
+		else if (token == "highskewslop")
 			rtgconf >> conf.high_skew_slop;
-		else if (token == "LowSkewSlop")
+		else if (token == "lowskewslop")
 			rtgconf >> conf.low_skew_slop;
-		else if (token == "DB_Host")
+		else if (token == "db_host")
 			rtgconf >> conf.dbhost;
-		else if (token == "DB_Database")
+		else if (token == "db_database")
 			rtgconf >> conf.database;
-		else if (token == "DB_User")
+		else if (token == "db_user")
 			rtgconf >> conf.dbuser;
-		else if (token == "DB_Pass")
+		else if (token == "db_pass")
 			rtgconf >> conf.dbpass;
-		else if (token == "Threads")
+		else if (token == "threads")
 			rtgconf >> conf.threads;
 	}
 	return conf;
@@ -208,6 +211,7 @@ vector<QueryHost> read_rtg_targets(string filename)
 	int ntargs = 0;
 	while (targets >> token) {
 		token = no_semi(token);
+		string_tolower(token);
 		if (state == 0) {
 			if (token == "host")
 				targets >> host.host;
@@ -306,3 +310,14 @@ string no_semi(string token)
 	return token;
 }
 
+template <typename Iter> void range_tolower (Iter beg, Iter end)
+{
+	for( Iter iter = beg; iter != end; ++iter ) {
+		*iter = std::tolower( *iter );
+	}
+}
+
+void string_tolower (std::string & str)
+{
+	range_tolower(str.begin(), str.end());
+}
