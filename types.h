@@ -1,18 +1,27 @@
-typedef unsigned long long counter_t;
+struct RTGConf {
+	unsigned interval;
+	unsigned threads;
+	double high_skew_slop;
+	double low_skew_slop;
+	std::string dbhost;
+	std::string database;
+	std::string dbuser;
+	std::string dbpass;
+};
 
 struct ResultCache {
-	std::map<std::pair<std::string, int>, counter_t> counters;
+	std::map<std::pair<std::string, int>, uint64_t> counters;
 	std::map<std::pair<std::string, int>, time_t> times;
 };
 
 struct ResultRow {
 	int id;
-	counter_t counter;
-	counter_t rate;
+	uint64_t counter;
+	uint64_t rate;
 	int bits;
 	time_t dtime;
 
-	ResultRow(int iid, counter_t icounter, counter_t irate, int ibits, time_t idtime) {
+	ResultRow(int iid, uint64_t icounter, uint64_t irate, int ibits, time_t idtime) {
 		id = iid;
 		counter = icounter;
 		rate = irate;
@@ -34,8 +43,9 @@ struct ResultSet {
 struct QueryRow {
 	std::string oid;
 	std::string table;
-	int id;
-	int bits;
+	unsigned id;
+	unsigned bits;
+	uint64_t speed;
 
 	QueryRow() {}
 	QueryRow(std::string ioid, std::string itable, int iid, int ibits) {
