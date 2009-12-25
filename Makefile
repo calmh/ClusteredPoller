@@ -20,8 +20,12 @@ $(target): $(objs)
 	g++ $^ $(LIBS) -o $@
 
 clean:
-	rm -f *.o ${target}
+	rm -f *.o ${target} version.h
 
 # Extra dependencies
-main.o: types.h globals.h query.h
+main.o: version.h types.h globals.h query.h
 query.o: types.h globals.h query.h
+
+# Version magic
+version.h: ${SOURCES}
+	echo \#define CLPOLL_VERSION \"`git describe --always`\" > version.h

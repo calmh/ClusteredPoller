@@ -1,5 +1,6 @@
 #include "types.h"
 #include "query.h"
+#include "version.h"
 
 using namespace std;
 
@@ -37,12 +38,14 @@ void help();
  */
 
 void help() {
+	cerr << "clpoll version " << CLPOLL_VERSION << endl;
 	cerr << " -c <file>   Specify configuration file [" << rtgconf << "]" << endl;
 	cerr << " -D          Don't detach, run in foreground" << endl;
 	cerr << " -d          Disable database inserts" << endl;
 	cerr << " -t <file>   Specify target file [" << targets << "]" << endl;
 	cerr << " -v          Increase verbosity" << endl;
 	cerr << " -z          Database zero delta inserts" << endl;
+	cerr <<  " Copyright (c) 2009-2010 Jakob Borg" << endl;
 }
 
 int main (int argc, char * const argv[])
@@ -55,10 +58,8 @@ int main (int argc, char * const argv[])
 		string arg = string(argv[i]);
 		if (arg == "-v")
 			verbosity++;
-		else if (arg == "-D") {
+		else if (arg == "-D")
 			detach = 0;
-			verbosity++;
-		}
 		else if (arg == "-d")
 			use_db = 0;
 		else if (arg == "-z")
