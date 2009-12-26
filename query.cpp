@@ -3,6 +3,7 @@
 #include "types.h"
 #include "query.h"
 #include "globals.h"
+#include "util.h"
 
 using namespace std;
 
@@ -198,4 +199,156 @@ void process_host(QueryHost &host, ResultCache &cache)
 			}
 		}
 	}
+}
+
+void thread_loop()
+{
+	unsigned stride = config.threads;
+	pthread_mutex_lock(&global_lock);
+	unsigned offset = thread_id++;
+	pthread_mutex_unlock(&global_lock);
+	unsigned iterations = 0;
+	while (1) {
+		// Mark ourself active
+		pthread_mutex_lock(&global_lock);
+		active_threads++;
+		pthread_mutex_unlock(&global_lock);
+
+		time_t start = time(NULL);
+		for (unsigned i = offset; i < hosts.size(); i += stride) {
+			QueryHost host = hosts[i];
+			process_host(host, cache[i]);
+		}
+		sleep(1);
+		time_t end = time(NULL);
+		time_t sleep_time = config.interval - (end - start);
+		pthread_mutex_lock(&global_lock);
+
+		// Mark ourself sleeping
+		active_threads--;
+		if (verbosity >= 1) {
+			if (iterations < stat_iterations) {
+				cerr << "Thread " << offset << " is behind schedule!" << endl;
+				cerr << "  My iteration counter: " << iterations << endl;
+				cerr << "  Global iteration counter: " << stat_iterations << endl;
+			}
+			if (active_threads == 0) {
+				stat_iterations++;
+				cerr << "Iteration " << stat_iterations << " completed." << endl;
+				cerr << "  Rows inserted: " << stat_inserts << endl;
+				cerr << "  Queries executed: " << stat_queries << endl;
+				stat_inserts = 0;
+				stat_queries = 0;
+			}
+		}
+		pthread_mutex_unlock(&global_lock);
+
+		iterations++;
+		sleep(sleep_time);
+	}
+}
+
+void* start_thread(void *ptr)
+{
+	thread_loop();
+	return NULL;
+}
+
+/*
+ * Configuration reading.
+ */
+
+RTGConf read_rtg_conf(string filename)
+{
+	ifstream rtgconf(filename.c_str());
+	string token;
+	RTGConf conf;
+	while (rtgconf >> token) {
+		string_tolower(token);
+		if (token == "interval")
+			rtgconf >> conf.interval;
+		else if (token == "highskewslop")
+			rtgconf >> conf.high_skew_slop;
+		else if (token == "lowskewslop")
+			rtgconf >> conf.low_skew_slop;
+		else if (token == "db_host")
+			rtgconf >> conf.dbhost;
+		else if (token == "db_database")
+			rtgconf >> conf.database;
+		else if (token == "db_user")
+			rtgconf >> conf.dbuser;
+		else if (token == "db_pass")
+			rtgconf >> conf.dbpass;
+		else if (token == "threads")
+			rtgconf >> conf.threads;
+	}
+	return conf;
+}
+
+vector<QueryHost> read_rtg_targets(string filename)
+{
+	vector<QueryHost> hosts;
+	ifstream targets(filename.c_str());
+	string token;
+	QueryHost host;
+	QueryRow row;
+	int state = 0;
+	int nhosts = 0;
+	int ntargs = 0;
+	while (targets >> token) {
+		token = no_semi(token);
+		string_tolower(token);
+		if (state == 0) {
+			if (token == "host")
+				targets >> host.host;
+			else if (token == "{")
+				state = 1;
+		}
+		else if (state == 1) {
+			if (token == "community") {
+				targets >> token;
+				host.community = no_semi(token);
+			}
+			else if (token == "snmpver") {
+				targets >> host.snmpver;
+			}
+			else if (token == "target") {
+				targets >> token;
+				row.oid = no_semi(token);
+			}
+			else if (token == "{") {
+				state = 2;
+			}
+			else if (token == "}") {
+				hosts.push_back(host);
+				nhosts++;
+				host = QueryHost();
+				state = 0;
+			}
+		}
+		else if (state == 2) {
+			if (token == "bits")
+				targets >> row.bits;
+			else if (token == "table") {
+				targets >> token;
+				row.table = no_semi(token);
+			}
+			else if (token == "id") {
+				targets >> row.id;
+			}
+			else if (token == "speed") {
+				targets >> row.speed;
+			}
+			else if (token == "}") {
+				host.rows.push_back(row);
+				ntargs++;
+				row = QueryRow();
+				state = 1;
+			}
+		}
+	}
+
+	targets.close();
+	cout << "Read " << ntargs << " targets in " << nhosts << " hosts." << endl;
+	return hosts;
 }

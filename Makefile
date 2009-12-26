@@ -1,5 +1,6 @@
 # Main sources list
-SOURCES = main.cpp query.cpp
+SOURCES = main.cpp query.cpp util.cpp globals.cpp
+TESTSOURCES = tests.cpp query.cpp util.cpp globals.cpp
 
 # Find out which OS we are compiling under
 OS := $(shell uname -s | awk '{print tolower($$0)}')
@@ -13,14 +14,21 @@ else ifeq ($(OS),darwin)
 	LIBS = -lnetsnmp
 endif
 
+all: $(target) test
+
 objs := $(SOURCES:.cpp=.o)
+testobjs := $(TESTSOURCES:.cpp=.o)
 target := clpoll
 
 $(target): $(objs)
 	g++ $^ $(LIBS) -o $@
 
+test: ${testobjs}
+	g++ $^ $(LIBS) CppUnitLite/cppunitlite.a -o testrunner
+	./testrunner
+
 clean:
-	rm -f *.o ${target} version.h
+	rm -f *.o ${target} version.h testrunner
 
 # Extra dependencies
 main.o: version.h types.h globals.h query.h
