@@ -1,6 +1,6 @@
 # Main sources list
-SOURCES = main.cpp query.cpp util.cpp globals.cpp
-TESTSOURCES = tests.cpp query.cpp util.cpp globals.cpp
+SOURCES = main.cpp query.cpp util.cpp globals.cpp snmp.cpp
+TESTSOURCES = tests.cpp query.cpp util.cpp globals.cpp snmp-mock.cpp
 
 # Find out which OS we are compiling under
 OS := $(shell uname -s | awk '{print tolower($$0)}')
@@ -14,16 +14,20 @@ else ifeq ($(OS),darwin)
 	LIBS = -lnetsnmp
 endif
 
-all: $(target) test
+OBJS := $(SOURCES)
+OBJS := $(OBJS:.cpp=.o)
+OBJS := $(OBJS:.c=.o)
+TESTOBJS := $(TESTSOURCES)
+TESTOBJS := $(TESTOBJS:.cpp=.o)
+TESTOBJS := $(TESTOBJS:.c=.o)
+TARGET := clpoll
 
-objs := $(SOURCES:.cpp=.o)
-testobjs := $(TESTSOURCES:.cpp=.o)
-target := clpoll
+all: $(TARGET) test
 
-$(target): $(objs)
+$(TARGET): $(OBJS)
 	g++ $^ $(LIBS) -o $@
 
-test: ${testobjs}
+test: ${TESTOBJS}
 	g++ $^ $(LIBS) CppUnitLite/cppunitlite.a -o testrunner
 	./testrunner
 

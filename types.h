@@ -13,9 +13,6 @@
 #include <map>
 #include <vector>
 
-#include <net-snmp/net-snmp-config.h>
-#include <net-snmp/net-snmp-includes.h>
-
 #ifdef USE_MYSQL
 #include <mysql++.h>
 #endif

@@ -4,6 +4,7 @@
 #include "query.h"
 #include "globals.h"
 #include "util.h"
+#include "snmp.h"
 
 using namespace std;
 
@@ -11,28 +12,9 @@ map<string, ResultSet> query(QueryHost qh)
 {
 	map<string, ResultSet> rs;
 
-	struct snmp_session session, *ss;
-	struct snmp_pdu *pdu;
-	struct snmp_pdu *response;
-	oid anOID[MAX_OID_LEN];
-	size_t anOID_len = MAX_OID_LEN;
-	int status;
-	void *sessp;
-
-	snmp_sess_init(&session);
-	session.peername = (char*) qh.host.c_str();
-	session.version = SNMP_VERSION_2c;
-	session.community = (u_char*) qh.community.c_str();
-	session.community_len = qh.community.length();
-	sessp = snmp_sess_open(&session);
-
-	if (!sessp) {
-		snmp_perror("ack");
-		snmp_log(LOG_ERR, "something horrible happened!!!\n");
+	void *sessp = snmp_init_session(qh.host, qh.community);
+	if (!sessp)
 		return rs;
-	}
-
-	ss = snmp_sess_session(sessp);
 
 	int errors = 0;
 	list<QueryRow>::iterator it;
@@ -42,61 +24,16 @@ map<string, ResultSet> query(QueryHost qh)
 			ResultSet r(row.table);
 			rs[row.table] = r;
 		}
-		pdu = snmp_pdu_create(SNMP_MSG_GET);
-		read_objid(row.oid.c_str(), anOID, &anOID_len);
-		snmp_add_null_var(pdu, anOID, anOID_len);
 
-		status = snmp_sess_synch_response(sessp, pdu, &response);
-		time_t response_time = time(NULL);
-
-		if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR) {
-			struct variable_list *vars = response->variables;
-			int got_value = 0;
-			uint64_t value = 0;
-			switch (vars->type) {
-				case SNMP_NOSUCHOBJECT:
-				case SNMP_NOSUCHINSTANCE:
-				// Do nothing
-				break;
-
-				case ASN_INTEGER:
-				case ASN_COUNTER:
-				case ASN_GAUGE:
-				case ASN_OPAQUE:
-				// Regular integer
-				value = *vars->val.integer;
-				got_value = 1;
-				break;
-
-				case ASN_COUNTER64:
-				// Get high and low 32 bits and shift them together
-				value = (((uint64_t)(*vars->val.counter64).high) << 32) + (*vars->val.counter64).low;
-				got_value = 1;
-				break;
-
-				default:
-				// Notify unknown type
-				if (verbosity >= 1) {
-					pthread_mutex_lock(&global_lock);
-					cerr << "SNMP get for " << qh.host << " OID " << row.oid
-						<< " returned unknown variable type " << (unsigned) vars->type << endl;
-					pthread_mutex_unlock(&global_lock);
-				}
-			}
-
-			// If we got a value, put it in the result set.
-			if (got_value) {
-				ResultRow r(row.id, value, 0, row.bits, response_time);
-				rs[row.table].rows.push_back(r);
-			}
+		uint64_t value;
+		time_t response_time;
+		if (snmp_get(sessp, row.oid, &value, &response_time)) {
+			ResultRow r(row.id, value, 0, row.bits, response_time);
+			rs[row.table].rows.push_back(r);
 		} else {
 			if (verbosity >= 1) {
 				pthread_mutex_lock(&global_lock);
 				cerr << "SNMP get for " << qh.host << " OID " << row.oid << " failed." << endl;
-				if (status == STAT_SUCCESS)
-					cerr << "  Error in packet: " << snmp_errstring(response->errstat) << endl;
-				else
-					snmp_sess_perror("  Communication error: ", ss);
 				pthread_mutex_unlock(&global_lock);
 			}
 			errors++;
@@ -110,11 +47,9 @@ map<string, ResultSet> query(QueryHost qh)
 			}
 		}
 
-		if (response)
-			snmp_free_pdu(response);
 	}
 
-	snmp_sess_close(sessp);
+	snmp_close_session(sessp);
 
 	return rs;
 }
@@ -194,7 +129,7 @@ void process_host(QueryHost &host, ResultCache &cache)
 					q.exec();
 				}
 #else
-				cout << insert_query.str() << endl;
+				cerr << insert_query.str() << endl;
 #endif
 			}
 		}
@@ -255,10 +190,10 @@ void* start_thread(void *ptr)
 }
 
 /*
- * Configuration reading.
- */
+* Configuration reading.
+*/
 
-RTGConf read_rtg_conf(string filename)
+	RTGConf read_rtg_conf(string filename)
 {
 	ifstream rtgconf(filename.c_str());
 	string token;

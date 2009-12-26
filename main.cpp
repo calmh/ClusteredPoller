@@ -2,6 +2,8 @@
 #include "query.h"
 #include "util.h"
 #include "version.h"
+#include "globals.h"
+#include "snmp.h"
 
 using namespace std;
 
@@ -55,7 +57,7 @@ int main (int argc, char * const argv[])
 	if (detach)
 		daemonize();
 
-	init_snmp("clpoll");
+	global_snmp_init();
 	config = read_rtg_conf(rtgconf);
 	hosts = read_rtg_targets(targets);
 

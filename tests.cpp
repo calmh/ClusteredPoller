@@ -1,4 +1,6 @@
 #include "CppUnitLite/TestHarness.h"
+#include "types.h"
+#include "query.h"
 
 int main()
 {
@@ -8,10 +10,13 @@ int main()
   return 0;
 }
 
-/*
-TEST(Foo, bar)
+TEST(RTGConf, example)
 {
-  long i = 43;
-  LONGS_EQUAL(42, i);
+	RTGConf conf = read_rtg_conf("example-rtg.conf");
+	LONGS_EQUAL(600, conf.interval);
+	LONGS_EQUAL(2, conf.threads);
+	STRINGS_EQUAL("rtguser", conf.dbuser.c_str());
+	STRINGS_EQUAL("password", conf.dbpass.c_str());
+	STRINGS_EQUAL("sql-server", conf.dbhost.c_str());
+	STRINGS_EQUAL("rtgdb", conf.database.c_str());
 }
-*/
