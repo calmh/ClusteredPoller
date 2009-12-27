@@ -94,8 +94,8 @@ vector<string> process_host(QueryHost &host, ResultCache &cache)
 			for (ri = r.rows.begin(); ri != r.rows.end(); ri++) {
 				ResultRow row = *ri;
 				pair<string, int> key = pair<string, int>(r.table, row.id);
-				time_t prev_time = cache.times[key];
-				if (prev_time > 0) {
+				if (cache.times.find(key) != cache.times.end()) {
+					time_t prev_time = cache.times[key];
 					uint64_t prev_counter = cache.counters[key];
 					pair<uint64_t, uint64_t> rate = calculate_rate(prev_time, prev_counter, row.dtime, row.counter, row.bits);
 
