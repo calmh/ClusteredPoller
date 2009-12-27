@@ -1,5 +1,5 @@
 # Main sources list
-SOURCES = main.cpp query.cpp util.cpp globals.cpp snmp.cpp
+SOURCES = main.cpp query.cpp util.cpp globals.cpp snmp-mock.cpp
 TESTSOURCES = query.cpp util.cpp globals.cpp snmp-mock.cpp
 
 # Find out which OS we are compiling under

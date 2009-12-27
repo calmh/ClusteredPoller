@@ -94,6 +94,17 @@ TEST(CalculateRate, one_kbps_counter_wrap_64_bits)
 	UINT64_EQUAL(1000/8, rate.second);
 }
 
+TEST(CalculateRate, gauge)
+{
+	time_t cur_time = time(NULL);
+	time_t prev_time = cur_time - 60;
+	uint64_t prev_counter = 1e6;
+	uint64_t cur_counter = 1e6 + 1000;
+	std::pair<uint64_t, uint64_t> rate = calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 0);
+	UINT64_EQUAL(1e6 + 1000, rate.first);
+	UINT64_EQUAL(1e6 + 1000, rate.second);
+}
+
 TEST(Query, one_host)
 {
 	std::vector<QueryHost> hosts = read_rtg_targets("example-targets.cfg");

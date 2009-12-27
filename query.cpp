@@ -64,12 +64,11 @@ pair<uint64_t, uint64_t> calculate_rate(time_t prev_time, uint64_t prev_counter,
 		else
 			counter_diff += 4294967296ull; // 2^32
 	}
-	uint64_t rate = 0;
+
 	if (bits == 0)
-		rate = cur_counter;
+		return pair<uint64_t, uint64_t>(cur_counter, cur_counter);
 	else
-		rate = counter_diff / time_diff;
-	return pair<uint64_t, uint64_t>(counter_diff, rate);
+		return pair<uint64_t, uint64_t>(counter_diff, counter_diff / time_diff);
 }
 
 vector<string> process_host(QueryHost &host, ResultCache &cache)
