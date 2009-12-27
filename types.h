@@ -9,7 +9,6 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <list>
 #include <map>
 #include <vector>
 
@@ -58,7 +57,7 @@ struct ResultRow {
 
 struct ResultSet {
 	std::string table;
-	std::list<ResultRow> rows;
+	std::vector<ResultRow> rows;
 
 	ResultSet() {}
 	ResultSet(std::string itable) {
@@ -86,7 +85,7 @@ struct QueryHost {
 	std::string host;
 	std::string community;
 	int snmpver;
-	std::list<QueryRow> rows;
+	std::vector<QueryRow> rows;
 
 	QueryHost() {
 		host = "none";

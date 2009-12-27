@@ -1,14 +1,19 @@
 #include "types.h"
 
+// Global variables are instantiated here.
+
 using namespace std;
 
-// Global variables.
+// All hosts that we are to poll.
 vector<QueryHost> hosts;
+// Cache of latest values and times for rate calculation.
 vector<ResultCache> cache;
+// Configuration data (database information etc.)
 RTGConf config;
+// USed for assigning thread ID:s at startup.
 unsigned thread_id = 0;
 
-// Command line flags
+// Configuration variables that are modified by command line flags.
 string rtgconf = "/usr/local/rtg/etc/rtg.conf";
 string targets = "/usr/local/rtg/etc/targets.cfg";
 int verbosity = 0;

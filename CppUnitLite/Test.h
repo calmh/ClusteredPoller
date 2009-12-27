@@ -47,13 +47,9 @@ protected:
     testGroup##testName##Instance; \
 	void testGroup##testName##Test::run (TestResult& result_)
 
-
-
 #define CHECK(condition)\
 { if (!(condition)) \
 { result_.addFailure (Failure (name_, __FILE__,__LINE__, #condition)); return; } }
-
-
 
 #define CHECK_EQUAL(expected,actual)\
 { if ((expected) == (actual)) return; result_.addFailure(Failure(name_, __FILE__, __LINE__, StringFrom(expected), StringFrom(actual))); }
@@ -68,7 +64,12 @@ protected:
 { result_.addFailure (Failure (name_, __FILE__, __LINE__, StringFrom(expectedTemp), \
 StringFrom(actualTemp))); return; } }
 
-
+#define UINT64_EQUAL(expected,actual)\
+{ uint64_t actualTemp = actual; \
+  uint64_t expectedTemp = expected; \
+  if ((expectedTemp) != (actualTemp)) \
+{ result_.addFailure (Failure (name_, __FILE__, __LINE__, StringFrom((long int)expectedTemp), \
+StringFrom((long int)actualTemp))); return; } }
 
 #define DOUBLES_EQUAL(expected,actual,threshold)\
 { double actualTemp = actual; \
@@ -76,8 +77,6 @@ StringFrom(actualTemp))); return; } }
   if (fabs ((expectedTemp)-(actualTemp)) > threshold) \
 { result_.addFailure (Failure (name_, __FILE__, __LINE__, \
 StringFrom((double)expectedTemp), StringFrom((double)actualTemp))); return; } }
-
-
 
 #define FAIL(text) \
 { result_.addFailure (Failure (name_, __FILE__, __LINE__,(text))); return; }

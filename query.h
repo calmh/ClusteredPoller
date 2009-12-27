@@ -3,10 +3,11 @@
 
 #include "types.h"
 
+std::pair<uint64_t, uint64_t> calculate_rate(time_t prev_time, uint64_t prev_counter, time_t cur_time, uint64_t cur_counter, int bits);
 void* snmp_init(std::string host, std::string community);
 bool snmp_get(void* sessp, std::string oid, uint64_t* counter, time_t* response_time);
 std::map<std::string, ResultSet> query(QueryHost qh);
-void process_host(QueryHost &host, ResultCache &cache);
+std::vector<std::string> process_host(QueryHost &host, ResultCache &cache);
 void thread_loop();
 void* start_thread(void *ptr);
 RTGConf read_rtg_conf(std::string filename);

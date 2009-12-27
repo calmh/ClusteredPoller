@@ -3,5 +3,5 @@ targets.cfg
 *.o
 clpoll
 version.h
-
 testrunner
+quicktestrunner

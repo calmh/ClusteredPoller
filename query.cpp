@@ -17,7 +17,7 @@ map<string, ResultSet> query(QueryHost qh)
 		return rs;
 
 	int errors = 0;
-	list<QueryRow>::iterator it;
+	vector<QueryRow>::iterator it;
 	for (it = qh.rows.begin(); it != qh.rows.end(); it++) {
 		QueryRow row = *it;
 		if (rs.find(row.table) == rs.end()) {
@@ -54,14 +54,28 @@ map<string, ResultSet> query(QueryHost qh)
 	return rs;
 }
 
-void process_host(QueryHost &host, ResultCache &cache)
+pair<uint64_t, uint64_t> calculate_rate(time_t prev_time, uint64_t prev_counter, time_t cur_time, uint64_t cur_counter, int bits)
 {
-#ifdef USE_MYSQL
-	mysqlpp::Connection conn(true);
-	if (use_db) {
-		conn.connect(config.database.c_str(), config.dbhost.c_str(), config.dbuser.c_str(), config.dbpass.c_str());
+	time_t time_diff = cur_time - prev_time;
+	uint64_t counter_diff = cur_counter - prev_counter;
+	if (prev_counter > cur_counter) {
+		if (bits == 64)
+			counter_diff += 18446744073709551615ull + 1; // 2^64-1 + 1
+		else
+			counter_diff += 4294967296; // 2^32
 	}
-#endif
+	uint64_t rate = 0;
+	if (bits == 0)
+		rate = cur_counter;
+	else
+		rate = counter_diff / time_diff;
+	return pair<uint64_t, uint64_t>(counter_diff, rate);
+}
+
+vector<string> process_host(QueryHost &host, ResultCache &cache)
+{
+	// Store all database queries here for later processing.
+	vector<string> queries;
 
 	// Query all values specified in the QueryHost and get back a list of ResultSets.
 	// Each ResultSet represents one table in the database.
@@ -73,67 +87,41 @@ void process_host(QueryHost &host, ResultCache &cache)
 		ResultSet r = it->second;
 		if (r.rows.size() > 0) {
 			stringstream insert_query;
-			stringstream query_values;
 			insert_query << "INSERT INTO " << r.table << " (id, dtime, counter, rate) VALUES ";
 			int inserted_rows = 0;
 
 			// Iterate over all the ResultRows in this ResultSet
-			list<ResultRow>::iterator ri;
+			vector<ResultRow>::iterator ri;
 			for (ri = r.rows.begin(); ri != r.rows.end(); ri++) {
 				ResultRow row = *ri;
 				pair<string, int> key = pair<string, int>(r.table, row.id);
-
-				// If we have a previous measurement, calculate counter_diff and rate
-				// and create an insert statement
 				time_t prev_time = cache.times[key];
-				if (prev_time != 0) {
-					time_t time_diff = row.dtime - prev_time;
+				if (prev_time > 0) {
 					uint64_t prev_counter = cache.counters[key];
-					uint64_t counter_diff = row.counter - prev_counter;
-					if (prev_counter > row.counter) {
-						if (row.bits == 64)
-							counter_diff -= (uint64_t)(-1);
-						else
-							counter_diff -= (uint32_t)(-1);
-					}
-					uint64_t rate = 0;
-					if (row.bits == 0)
-						rate = row.counter;
-					else
-						rate = counter_diff / time_diff;
-					if (allow_db_zero || rate > 0) {
+					pair<uint64_t, uint64_t> rate = calculate_rate(prev_time, prev_counter, row.dtime, row.counter, row.bits);
+
+					if (allow_db_zero || rate.second > 0) {
 						if (inserted_rows > 0)
-							query_values << ", ";
-						query_values << "(" << row.id << ", FROM_UNIXTIME(" << row.dtime << "), " << counter_diff << ", " << rate << ")";
+							insert_query << ", ";
+						insert_query << "(" << row.id << ", FROM_UNIXTIME(" << row.dtime << "), " << rate.first << ", " << rate.second << ")";
 						inserted_rows++;
 					}
 				}
-
 				// Update the cache for next iteration
 				cache.counters[key] = row.counter;
 				cache.times[key] = row.dtime;
 			}
 
-			// If we have at least one row to insert, push it to the database.
 			if (inserted_rows > 0) {
-				// Update statistics
 				pthread_mutex_lock(&global_lock);
 				stat_inserts += inserted_rows;
 				stat_queries ++;
 				pthread_mutex_unlock(&global_lock);
-
-				insert_query << query_values.str();
-#ifdef USE_MYSQL
-				if (use_db) {
-					mysqlpp::Query q = conn.query(insert_query.str());
-					q.exec();
-				}
-#else
-				cerr << insert_query.str() << endl;
-#endif
+				queries.push_back(insert_query.str());
 			}
 		}
 	}
+	return queries;
 }
 
 void thread_loop()
@@ -152,34 +140,44 @@ void thread_loop()
 		time_t start = time(NULL);
 		for (unsigned i = offset; i < hosts.size(); i += stride) {
 			QueryHost host = hosts[i];
-			process_host(host, cache[i]);
-		}
-		sleep(1);
-		time_t end = time(NULL);
-		time_t sleep_time = config.interval - (end - start);
-		pthread_mutex_lock(&global_lock);
+			vector<string> queries = process_host(host, cache[i]);
 
+#ifdef USE_MYSQL
+			if (queries.size() > 0 && use_db) {
+				mysqlpp::Connection conn(true);
+				conn.connect(config.database.c_str(), config.dbhost.c_str(), config.dbuser.c_str(), config.dbpass.c_str());
+
+				mysqlpp::Query q = conn.query(insert_query.str());
+				q.exec();
+			}
+#endif
+			sleep(1);
+			time_t end = time(NULL);
+			time_t sleep_time = config.interval - (end - start);
+
+			pthread_mutex_lock(&global_lock);
 		// Mark ourself sleeping
-		active_threads--;
-		if (verbosity >= 1) {
-			if (iterations < stat_iterations) {
-				cerr << "Thread " << offset << " is behind schedule!" << endl;
-				cerr << "  My iteration counter: " << iterations << endl;
-				cerr << "  Global iteration counter: " << stat_iterations << endl;
+			active_threads--;
+			if (verbosity >= 1) {
+				if (iterations < stat_iterations) {
+					cerr << "Thread " << offset << " is behind schedule!" << endl;
+					cerr << "  My iteration counter: " << iterations << endl;
+					cerr << "  Global iteration counter: " << stat_iterations << endl;
+				}
+				if (active_threads == 0) {
+					stat_iterations++;
+					cerr << "Iteration " << stat_iterations << " completed." << endl;
+					cerr << "  Rows inserted: " << stat_inserts << endl;
+					cerr << "  Queries executed: " << stat_queries << endl;
+					stat_inserts = 0;
+					stat_queries = 0;
+				}
 			}
-			if (active_threads == 0) {
-				stat_iterations++;
-				cerr << "Iteration " << stat_iterations << " completed." << endl;
-				cerr << "  Rows inserted: " << stat_inserts << endl;
-				cerr << "  Queries executed: " << stat_queries << endl;
-				stat_inserts = 0;
-				stat_queries = 0;
-			}
-		}
-		pthread_mutex_unlock(&global_lock);
+			pthread_mutex_unlock(&global_lock);
 
-		iterations++;
-		sleep(sleep_time);
+			iterations++;
+			sleep(sleep_time);
+		}
 	}
 }
 
@@ -189,11 +187,9 @@ void* start_thread(void *ptr)
 	return NULL;
 }
 
-/*
-* Configuration reading.
-*/
+// Configuration reading.
 
-	RTGConf read_rtg_conf(string filename)
+RTGConf read_rtg_conf(string filename)
 {
 	ifstream rtgconf(filename.c_str());
 	string token;
@@ -284,6 +280,7 @@ vector<QueryHost> read_rtg_targets(string filename)
 	}
 
 	targets.close();
-	cout << "Read " << ntargs << " targets in " << nhosts << " hosts." << endl;
+	if (verbosity >= 1)
+		cerr << "Read " << ntargs << " targets in " << nhosts << " hosts." << endl;
 	return hosts;
 }

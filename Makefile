@@ -1,6 +1,6 @@
 # Main sources list
 SOURCES = main.cpp query.cpp util.cpp globals.cpp snmp.cpp
-TESTSOURCES = tests.cpp query.cpp util.cpp globals.cpp snmp-mock.cpp
+TESTSOURCES = query.cpp util.cpp globals.cpp snmp-mock.cpp
 
 # Find out which OS we are compiling under
 OS := $(shell uname -s | awk '{print tolower($$0)}')
@@ -22,17 +22,21 @@ TESTOBJS := $(TESTOBJS:.cpp=.o)
 TESTOBJS := $(TESTOBJS:.c=.o)
 TARGET := clpoll
 
-all: $(TARGET) test
+all: $(TARGET) quicktest
 
 $(TARGET): $(OBJS)
 	g++ $^ $(LIBS) -o $@
 
-test: ${TESTOBJS}
-	g++ $^ $(LIBS) CppUnitLite/cppunitlite.a -o testrunner
+test: ${TESTOBJS} tests.cpp
+	g++ -DLONGTESTS $^ $(LIBS) CppUnitLite/cppunitlite.a -o testrunner
 	./testrunner
 
+quicktest: ${TESTOBJS} tests.cpp
+	g++ $^ $(LIBS) CppUnitLite/cppunitlite.a -o quicktestrunner
+	./quicktestrunner
+
 clean:
-	rm -f *.o ${target} version.h testrunner
+	rm -f *.o ${TARGET} version.h testrunner
 
 # Extra dependencies
 main.o: version.h types.h globals.h query.h
