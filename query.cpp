@@ -99,9 +99,7 @@ vector<string> process_host(QueryHost &host, ResultCache &cache)
 					uint64_t prev_counter = cache.counters[key];
 					pair<uint64_t, uint64_t> rate = calculate_rate(prev_time, prev_counter, row.dtime, row.counter, row.bits);
 
-					if (allow_db_zero
-						|| (row.bits != 0 && rate.second > 0)
-					|| (row.bits == 0 && row.counter != prev_counter)) {
+					if (allow_db_zero || (row.bits != 0 && rate.second > 0) || (row.bits == 0 && row.counter != prev_counter)) {
 						if (inserted_rows > 0)
 							insert_query << ", ";
 						insert_query << "(" << row.id << ", FROM_UNIXTIME(" << row.dtime << "), " << rate.first << ", " << rate.second << ")";
