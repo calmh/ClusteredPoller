@@ -101,7 +101,7 @@ vector<string> process_host(QueryHost &host, ResultCache &cache)
 
 					if (allow_db_zero
 						|| (row.bits != 0 && rate.second > 0)
-						|| (row.bits == 0 && row.counter != prev_counter)) {
+					|| (row.bits == 0 && row.counter != prev_counter)) {
 						if (inserted_rows > 0)
 							insert_query << ", ";
 						insert_query << "(" << row.id << ", FROM_UNIXTIME(" << row.dtime << "), " << rate.first << ", " << rate.second << ")";
@@ -163,33 +163,33 @@ void thread_loop()
 				}
 #endif
 			}
-			sleep(1);
-			time_t end = time(NULL);
-			time_t sleep_time = config.interval - (end - start);
-
-			pthread_mutex_lock(&global_lock);
-		// Mark ourself sleeping
-			active_threads--;
-			if (verbosity >= 1) {
-				if (iterations < stat_iterations) {
-					cerr << "Thread " << offset << " is behind schedule!" << endl;
-					cerr << "  My iteration counter: " << iterations << endl;
-					cerr << "  Global iteration counter: " << stat_iterations << endl;
-				}
-				if (active_threads == 0) {
-					stat_iterations++;
-					cerr << "Iteration " << stat_iterations << " completed." << endl;
-					cerr << "  Rows inserted: " << stat_inserts << endl;
-					cerr << "  Queries executed: " << stat_queries << endl;
-					stat_inserts = 0;
-					stat_queries = 0;
-				}
-			}
-			pthread_mutex_unlock(&global_lock);
-
-			iterations++;
-			sleep(sleep_time);
 		}
+		sleep(1);
+		time_t end = time(NULL);
+		time_t sleep_time = config.interval - (end - start);
+
+		pthread_mutex_lock(&global_lock);
+		// Mark ourself sleeping
+		active_threads--;
+		if (verbosity >= 1) {
+			if (iterations < stat_iterations) {
+				cerr << "Thread " << offset << " is behind schedule!" << endl;
+				cerr << "  My iteration counter: " << iterations << endl;
+				cerr << "  Global iteration counter: " << stat_iterations << endl;
+			}
+			if (active_threads == 0) {
+				stat_iterations++;
+				cerr << "Iteration " << stat_iterations << " completed." << endl;
+				cerr << "  Rows inserted: " << stat_inserts << endl;
+				cerr << "  Queries executed: " << stat_queries << endl;
+				stat_inserts = 0;
+				stat_queries = 0;
+			}
+		}
+		pthread_mutex_unlock(&global_lock);
+
+		iterations++;
+		sleep(sleep_time);
 	}
 }
 
