@@ -28,15 +28,18 @@ $(TARGET): $(OBJS)
 	g++ $^ $(LIBS) -o $@
 
 test: ${TESTOBJS} tests.cpp
+	make -C CppUnitLite
 	g++ -DLONGTESTS $^ $(LIBS) CppUnitLite/cppunitlite.a -o testrunner
 	./testrunner
 
 quicktest: ${TESTOBJS} tests.cpp
+	make -C CppUnitLite
 	g++ $^ $(LIBS) CppUnitLite/cppunitlite.a -o quicktestrunner
 	./quicktestrunner
 
 clean:
 	rm -f *.o ${TARGET} version.h testrunner
+	make -C CppUnitLite clean
 
 # Extra dependencies
 main.o: version.h types.h globals.h query.h

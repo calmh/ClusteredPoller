@@ -1,6 +1,7 @@
 rtg.conf
 targets.cfg
 *.o
+*.a
 clpoll
 version.h
 testrunner
