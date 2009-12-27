@@ -142,17 +142,26 @@ void thread_loop()
 			QueryHost host = hosts[i];
 			vector<string> queries = process_host(host, cache[i]);
 
+			if (queries.size() > 0) {
 #ifdef USE_MYSQL
-			if (queries.size() > 0 && use_db) {
-				mysqlpp::Connection conn(true);
-				conn.connect(config.database.c_str(), config.dbhost.c_str(), config.dbuser.c_str(), config.dbpass.c_str());
-				vector<string>::iterator it;
-				for (it = queries.begin(); it != queries.end(); it++)	 {
-					mysqlpp::Query q = conn.query(*it);
-					q.exec();
-				}
-			}
+				if (use_db) {
+					mysqlpp::Connection conn(true);
+					conn.connect(config.database.c_str(), config.dbhost.c_str(), config.dbuser.c_str(), config.dbpass.c_str());
+					vector<string>::iterator it;
+					for (it = queries.begin(); it != queries.end(); it++)	 {
+						mysqlpp::Query q = conn.query(*it);
+						q.exec();
+					}
+				} else {
 #endif
+					vector<string>::iterator it;
+					for (it = queries.begin(); it != queries.end(); it++)	 {
+						cerr << *it << endl;
+					}
+#ifdef USE_MYSQL
+				}
+#endif
+			}
 			sleep(1);
 			time_t end = time(NULL);
 			time_t sleep_time = config.interval - (end - start);
