@@ -54,7 +54,7 @@ TEST(CalculateRate, zero_rate_with_32_bits)
 {
 	time_t cur_time = time(NULL);
 	time_t prev_time = cur_time - 60;
-	uint64_t prev_counter = rand();
+	uint64_t prev_counter = 1e6;
 	uint64_t cur_counter = prev_counter;
 	std::pair<uint64_t, uint64_t> rate = calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 32);
 	UINT64_EQUAL(0, rate.first);
@@ -76,7 +76,7 @@ TEST(CalculateRate, one_kbps_counter_wrap_32_bits)
 {
 	time_t cur_time = time(NULL);
 	time_t prev_time = cur_time - 60;
-	uint32_t prev_counter = 4294967000;
+	uint32_t prev_counter = 4294967000ul;
 	uint32_t cur_counter = prev_counter + 60 * 1000 / 8;
 	std::pair<uint64_t, uint64_t> rate = calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 32);
 	UINT64_EQUAL(60 * 1000/8, rate.first);

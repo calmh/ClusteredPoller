@@ -62,7 +62,7 @@ pair<uint64_t, uint64_t> calculate_rate(time_t prev_time, uint64_t prev_counter,
 		if (bits == 64)
 			counter_diff += 18446744073709551615ull + 1; // 2^64-1 + 1
 		else
-			counter_diff += 4294967296; // 2^32
+			counter_diff += 4294967296ull; // 2^32
 	}
 	uint64_t rate = 0;
 	if (bits == 0)
@@ -146,9 +146,11 @@ void thread_loop()
 			if (queries.size() > 0 && use_db) {
 				mysqlpp::Connection conn(true);
 				conn.connect(config.database.c_str(), config.dbhost.c_str(), config.dbuser.c_str(), config.dbpass.c_str());
-
-				mysqlpp::Query q = conn.query(insert_query.str());
-				q.exec();
+				vector<string>::iterator it;
+				for (it = queries.begin(); it != queries.end(); it++)	 {
+					mysqlpp::Query q = conn.query(*it);
+					q.exec();
+				}
 			}
 #endif
 			sleep(1);
