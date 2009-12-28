@@ -42,6 +42,6 @@ clean:
 	make -C CppUnitLite clean
 
 # Version magic
-main.cpp: version.h
+main.o: version.h
 version.h: ${SOURCES}
 	echo \#define CLPOLL_VERSION \"`git describe --always`\" > version.h
