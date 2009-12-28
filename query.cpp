@@ -285,7 +285,10 @@ vector<QueryHost> read_rtg_targets(string filename, RTGConf &conf)
 			else if (token == "speed") {
 				uint64_t max_counter_diff;
 				targets >> max_counter_diff;
-				row.speed = max_counter_diff / conf.interval;
+				if (row.bits == 0)
+					row.speed = max_counter_diff;
+				else
+					row.speed = max_counter_diff / conf.interval;
 			}
 			else if (token == "}") {
 				host.rows.push_back(row);
