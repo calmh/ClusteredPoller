@@ -100,13 +100,13 @@ vector<string> process_host(QueryHost &host, ResultCache &cache)
 
 					pair<uint64_t, uint64_t> rate = calculate_rate(prev_time, prev_counter, row.dtime, row.counter, row.bits);
 
-					if (rate.second > row.speed)
-						continue;
-					if (allow_db_zero || (row.bits != 0 && rate.second > 0) || (row.bits == 0 && row.counter != prev_counter)) {
-						if (inserted_rows > 0)
-							insert_query << ", ";
-						insert_query << "(" << row.id << ", FROM_UNIXTIME(" << row.dtime << "), " << rate.first << ", " << rate.second << ")";
-						inserted_rows++;
+					if (rate.second <= row.speed) {
+						if (allow_db_zero || (row.bits != 0 && rate.second > 0) || (row.bits == 0 && row.counter != prev_counter)) {
+							if (inserted_rows > 0)
+								insert_query << ", ";
+							insert_query << "(" << row.id << ", FROM_UNIXTIME(" << row.dtime << "), " << rate.first << ", " << rate.second << ")";
+							inserted_rows++;
+						}
 					}
 				}
 				// Update the cache for next iteration
