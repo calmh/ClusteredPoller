@@ -5,6 +5,8 @@
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/net-snmp-includes.h>
 
+// See snmp.cpp for comments.
+
 void global_snmp_init();
 void* snmp_init_session(std::string host, std::string community);
 void snmp_close_session(void* sessp);

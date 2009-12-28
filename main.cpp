@@ -9,10 +9,9 @@ using namespace std;
 
 void help();
 
-/*
- * Setup and initialization.
- */
+// Setup and initialization.
 
+// Display usage.
 void help() {
 	cerr << "clpoll version " << CLPOLL_VERSION << endl;
 	cerr << " -c <file>   Specify configuration file [" << rtgconf << "]" << endl;
@@ -24,6 +23,7 @@ void help() {
 	cerr <<  " Copyright (c) 2009-2010 Jakob Borg" << endl;
 }
 
+// Parse command line, load caonfiguration and start threads.
 int main (int argc, char * const argv[])
 {
 	if (argc < 2) {
@@ -58,7 +58,10 @@ int main (int argc, char * const argv[])
 		daemonize();
 
 	global_snmp_init();
+
+	// Read rtg.conf
 	config = read_rtg_conf(rtgconf);
+	// Read targets.cfg
 	hosts = read_rtg_targets(targets, config);
 
 	if (hosts.size() == 0) {
@@ -66,7 +69,9 @@ int main (int argc, char * const argv[])
 		exit(-1);
 	}
 
+	// Allocate result cache for the number of hosts in targets.cfg
 	cache = vector<ResultCache>(hosts.size());
+	// Allocate the number of threads specified in rtg.conf
 	pthread_t threads[config.threads];
 
 	if (verbosity >= 1) {
@@ -74,10 +79,12 @@ int main (int argc, char * const argv[])
 		cerr << "Starting poll with " << config.threads << " threads." << endl;
 	}
 
+	// Start the threads
 	for (unsigned i = 0; i < config.threads; i++) {
 		pthread_create(&threads[i], NULL, start_thread, NULL);
 	}
 
+	// Wait for them (forever, currently)
 	for (unsigned i = 0; i < config.threads; i++) {
 		pthread_join(threads[i], NULL);
 	}

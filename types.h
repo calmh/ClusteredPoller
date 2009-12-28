@@ -16,6 +16,11 @@
 #include <mysql++.h>
 #endif
 
+//
+// Config stuff.
+//
+
+// Holds information from rtg.conf.
 struct RTGConf {
 	unsigned interval;
 	unsigned threads;
@@ -29,16 +34,24 @@ struct RTGConf {
 	RTGConf() {
 		interval = 300;
 		threads = 2;
-		high_skew_slop = 3.0;
-		low_skew_slop = 0.5;
 	}
 };
 
+//
+// Cache stuff.
+//
+
+// Holds cache data for one host.
 struct ResultCache {
 	std::map<std::pair<std::string, int>, uint64_t> counters;
 	std::map<std::pair<std::string, int>, time_t> times;
 };
 
+//
+// Result stuff.
+//
+
+// Holds result data for one row (table+id).
 struct ResultRow {
 	int id;
 	uint64_t counter;
@@ -57,6 +70,7 @@ struct ResultRow {
 	}
 };
 
+// Holds result data for one host.
 struct ResultSet {
 	std::string table;
 	std::vector<ResultRow> rows;
@@ -67,6 +81,11 @@ struct ResultSet {
 	}
 };
 
+//
+// Query instructions stuff.
+//
+
+// Holds query instructions for one row (table+id).
 struct QueryRow {
 	std::string oid;
 	std::string table;
@@ -83,6 +102,7 @@ struct QueryRow {
 	}
 };
 
+// Holds query instructions for one host.
 struct QueryHost {
 	std::string host;
 	std::string community;

@@ -5,11 +5,14 @@
 
 using namespace std;
 
+// Initialize the SNMP engine. This should be called once at startup.
+// It's a separate one-line method just so that it can be mocked out for testing.
 void global_snmp_init()
 {
 	init_snmp("clpoll");
 }
 
+// Initialize a session. This should be called from each thread before processing a host.
 void* snmp_init_session(string host, string community)
 {
 	struct snmp_session session;
@@ -31,11 +34,14 @@ void* snmp_init_session(string host, string community)
 	return sessp;
 }
 
+// Close a session. This should be called matching snmp_init_session.
 void snmp_close_session(void* sessp)
 {
 	snmp_sess_close(sessp);
 }
 
+// Do an SNMP GET for a value, and return true if successfull.
+// Updates the counter and response_time parameters.
 bool snmp_get(void* sessp, string oid_str, uint64_t* counter, time_t* response_time)
 {
 	struct snmp_pdu *pdu;
@@ -57,20 +63,20 @@ bool snmp_get(void* sessp, string oid_str, uint64_t* counter, time_t* response_t
 		switch (vars->type) {
 			case SNMP_NOSUCHOBJECT:
 			case SNMP_NOSUCHINSTANCE:
-		// Do nothing
+			// Do nothing
 			break;
 
 			case ASN_INTEGER:
 			case ASN_COUNTER:
 			case ASN_GAUGE:
 			case ASN_OPAQUE:
-		// Regular integer
+			// Regular integer
 			*counter = *vars->val.integer;
 			success = true;
 			break;
 
 			case ASN_COUNTER64:
-		// Get high and low 32 bits and shift them together
+			// Get high and low 32 bits and shift them together
 			*counter = (((uint64_t)(*vars->val.counter64).high) << 32) + (*vars->val.counter64).low;
 			success = true;
 			break;
@@ -82,4 +88,3 @@ bool snmp_get(void* sessp, string oid_str, uint64_t* counter, time_t* response_t
 
 	return success;
 }
-

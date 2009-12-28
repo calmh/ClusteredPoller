@@ -3,6 +3,8 @@
 
 #include "types.h"
 
+// See util.cpp for comments.
+
 void daemonize(void);
 std::string no_semi(std::string token);
 template <typename Iter> void range_tolower (Iter beg, Iter end);

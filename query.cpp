@@ -8,18 +8,25 @@
 
 using namespace std;
 
+// Query all targets for the specified host and return a collection of result sets.
 map<string, ResultSet> query(QueryHost qh)
 {
+	// Allocate our resultsets.
+	// We map from table name to result set.
 	map<string, ResultSet> rs;
 
+	// Start a new SNMP session.
 	void *sessp = snmp_init_session(qh.host, qh.community);
 	if (!sessp)
 		return rs;
 
 	int errors = 0;
+	// Iterate over all targets in the host.
 	vector<QueryRow>::iterator it;
 	for (it = qh.rows.begin(); it != qh.rows.end(); it++) {
 		QueryRow row = *it;
+		// Check if there is an existing result set for this table in the map,
+		// or create a new one.
 		if (rs.find(row.table) == rs.end()) {
 			ResultSet r(row.table);
 			rs[row.table] = r;
@@ -28,16 +35,19 @@ map<string, ResultSet> query(QueryHost qh)
 		uint64_t value;
 		time_t response_time;
 		if (snmp_get(sessp, row.oid, &value, &response_time)) {
+			// We got a result from SNMP polling, so insert it into the result set.
 			ResultRow r(row.id, value, 0, row.bits, response_time, row.speed);
 			rs[row.table].rows.push_back(r);
 		} else {
 			if (verbosity >= 1) {
+				// Inform about the failure.
 				pthread_mutex_lock(&global_lock);
 				cerr << "SNMP get for " << qh.host << " OID " << row.oid << " failed." << endl;
 				pthread_mutex_unlock(&global_lock);
 			}
 			errors++;
 			if (errors >= MAXERRORSPERHOST) {
+				// We have done enough attempts with this host, so lets not waste any more time on it.
 				if (verbosity >= 1) {
 					pthread_mutex_lock(&global_lock);
 					cerr << "Too many errors for host " << qh.host << ", aborting." << endl;
@@ -49,16 +59,22 @@ map<string, ResultSet> query(QueryHost qh)
 
 	}
 
+	// Close the SNMP session we started before.
 	snmp_close_session(sessp);
 
 	return rs;
 }
 
+// Calculate the traffic rate between to points, for a given counter size (bits).
+// bits == 0 means it's a 32 bit gauge (RTG legacy).
+// bits == 32 or 64 means it's that size of counter.
 pair<uint64_t, uint64_t> calculate_rate(time_t prev_time, uint64_t prev_counter, time_t cur_time, uint64_t cur_counter, int bits)
 {
 	time_t time_diff = cur_time - prev_time;
 	uint64_t counter_diff = cur_counter - prev_counter;
 	if (prev_counter > cur_counter) {
+		// We seem to have a wrap.
+		// Wrap it back to find the correct rate.
 		if (bits == 64)
 			counter_diff += 18446744073709551615ull + 1; // 2^64-1 + 1
 		else
@@ -66,11 +82,15 @@ pair<uint64_t, uint64_t> calculate_rate(time_t prev_time, uint64_t prev_counter,
 	}
 
 	if (bits == 0)
+		// It's a gauge so just return the value as both counter diff and rate.
 		return pair<uint64_t, uint64_t>(cur_counter, cur_counter);
 	else
+		// Return the calculated rate.
 		return pair<uint64_t, uint64_t>(counter_diff, counter_diff / time_diff);
 }
 
+// Query all targets for a host, process rates compared with cache, and return vector of database queries
+// that are ready to be executed.
 vector<string> process_host(QueryHost &host, ResultCache &cache)
 {
 	// Store all database queries here for later processing.
@@ -93,27 +113,35 @@ vector<string> process_host(QueryHost &host, ResultCache &cache)
 			vector<ResultRow>::iterator ri;
 			for (ri = r.rows.begin(); ri != r.rows.end(); ri++) {
 				ResultRow row = *ri;
+				// Create a hash key from table name and row id.
 				pair<string, int> key = pair<string, int>(r.table, row.id);
 				if (cache.times.find(key) != cache.times.end()) {
+					// We have a cache entry, so we can calculate rate since last measurement.
 					time_t prev_time = cache.times[key];
 					uint64_t prev_counter = cache.counters[key];
 
+					// Get the rate, corrected for wraps etc.
 					pair<uint64_t, uint64_t> rate = calculate_rate(prev_time, prev_counter, row.dtime, row.counter, row.bits);
 
+					// Verify that the resulting value is reasonable, i.e. lower than interface speed.
 					if (rate.second <= row.speed) {
+						// Check if we should insert it, based on whether or not we want db zeroes and whether it's a gauge or not.
 						if (allow_db_zero || (row.bits != 0 && rate.second > 0) || (row.bits == 0 && row.counter != prev_counter)) {
 							if (inserted_rows > 0)
 								insert_query << ", ";
+							// Build on the insert query. We set dtime to the time returned from snmp_get.
 							insert_query << "(" << row.id << ", FROM_UNIXTIME(" << row.dtime << "), " << rate.first << ", " << rate.second << ")";
 							inserted_rows++;
 						}
 					}
 				}
-				// Update the cache for next iteration
+
+				// Update the cache for next iteration.
 				cache.counters[key] = row.counter;
 				cache.times[key] = row.dtime;
 			}
 
+			// Update statistics.
 			if (inserted_rows > 0) {
 				pthread_mutex_lock(&global_lock);
 				stat_inserts += inserted_rows;
@@ -123,32 +151,46 @@ vector<string> process_host(QueryHost &host, ResultCache &cache)
 			}
 		}
 	}
+	// Return all the insert queries for processing.
 	return queries;
 }
 
+// Continuosly loop over all the hosts and do all processing for them.
+// Each thread has an offset (= thread id) and stride (= number of threads).
+// The list of hosts is processed starting at "offset" and then incrementing
+// with "stride" each iteration. This way we avoid having a separate host list
+// for each thread, and the threads keep off each others toes.
 void thread_loop()
 {
+	// Assign our offset and stride values.
 	unsigned stride = config.threads;
 	pthread_mutex_lock(&global_lock);
 	unsigned offset = thread_id++;
 	pthread_mutex_unlock(&global_lock);
+
+	// Start looping.
 	unsigned iterations = 0;
 	while (1) {
-		// Mark ourself active
+		// Mark ourself active.
 		pthread_mutex_lock(&global_lock);
 		active_threads++;
 		pthread_mutex_unlock(&global_lock);
 
+		// Note our start time, so we know how long an iteration takes.
 		time_t start = time(NULL);
+		// Loop over our share of the hosts.
 		for (unsigned i = offset; i < hosts.size(); i += stride) {
 			QueryHost host = hosts[i];
+			// Process the host and get back a list of SQL updates to execute.
 			vector<string> queries = process_host(host, cache[i]);
 
 			if (queries.size() > 0) {
 #ifdef USE_MYSQL
 				if (use_db) {
+					// Connect to the database given the information in rtg.conf.
 					mysqlpp::Connection conn(true);
 					conn.connect(config.database.c_str(), config.dbhost.c_str(), config.dbuser.c_str(), config.dbpass.c_str());
+					// Execute all the updates.
 					vector<string>::iterator it;
 					for (it = queries.begin(); it != queries.end(); it++)	 {
 						mysqlpp::Query q = conn.query(*it);
@@ -156,6 +198,7 @@ void thread_loop()
 					}
 				} else {
 #endif
+					// Print all the updates to stderr.
 					vector<string>::iterator it;
 					for (it = queries.begin(); it != queries.end(); it++)	 {
 						cerr << *it << endl;
@@ -165,7 +208,12 @@ void thread_loop()
 #endif
 			}
 		}
+		// Make sure that processing always takes at least one second.
+		// This guarantees that all threads have time to start up before
+		// anyone is done, this making sure that "someone" is done last
+		// and can do the statistics reporting...
 		sleep(1);
+		// Note how long it took, and thus how long we should sleep to keep to the interval.
 		time_t end = time(NULL);
 		time_t sleep_time = config.interval - (end - start);
 
@@ -173,11 +221,13 @@ void thread_loop()
 		// Mark ourself sleeping
 		active_threads--;
 		if (verbosity >= 1) {
+			// We seem to have missed an iteration. This is usually not good.
 			if (iterations < stat_iterations) {
 				cerr << "Thread " << offset << " is behind schedule!" << endl;
 				cerr << "  My iteration counter: " << iterations << endl;
 				cerr << "  Global iteration counter: " << stat_iterations << endl;
 			}
+			// Print some statistics, if we are the last thread to complete in this iteration.
 			if (active_threads == 0) {
 				stat_iterations++;
 				cerr << "Iteration " << stat_iterations << " completed." << endl;
@@ -189,6 +239,7 @@ void thread_loop()
 		}
 		pthread_mutex_unlock(&global_lock);
 
+		// Prepare for next iteration.
 		iterations++;
 		sleep(sleep_time);
 	}
@@ -211,9 +262,9 @@ RTGConf read_rtg_conf(string filename)
 		string_tolower(token);
 		if (token == "interval")
 			rtgconf >> conf.interval;
-		else if (token == "highskewslop")
+		else if (token == "highskewslop") // Not sure what these are, possibly something for rtgplot to determine when data is too old to plot etc?
 			rtgconf >> conf.high_skew_slop;
-		else if (token == "lowskewslop")
+		else if (token == "lowskewslop") // Not sure what these are, possibly something for rtgplot to determine when data is too old to plot etc?
 			rtgconf >> conf.low_skew_slop;
 		else if (token == "db_host")
 			rtgconf >> conf.dbhost;
@@ -229,6 +280,7 @@ RTGConf read_rtg_conf(string filename)
 	return conf;
 }
 
+// Simple state machine based config reader.
 vector<QueryHost> read_rtg_targets(string filename, RTGConf &conf)
 {
 	vector<QueryHost> hosts;

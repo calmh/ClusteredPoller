@@ -2,6 +2,7 @@
 
 using namespace std;
 
+// Detach from console. Common recipe.
 void daemonize(void)
 {
 	pid_t pid, sid;
@@ -33,6 +34,7 @@ void daemonize(void)
 	freopen( "/dev/null", "w", stderr);
 }
 
+// Remove one semicolon from a string.
 string no_semi(string token)
 {
 	size_t semicolon = token.find(';', 0);
@@ -41,6 +43,7 @@ string no_semi(string token)
 	return token;
 }
 
+// Convert characters in a range to lower case.
 template <typename Iter> void range_tolower (Iter beg, Iter end)
 {
 	for( Iter iter = beg; iter != end; ++iter ) {
@@ -48,6 +51,7 @@ template <typename Iter> void range_tolower (Iter beg, Iter end)
 	}
 }
 
+// Convert an entire string to lower case, in place.
 void string_tolower (std::string & str)
 {
 	range_tolower(str.begin(), str.end());

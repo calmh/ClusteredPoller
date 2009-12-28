@@ -3,6 +3,8 @@
 
 #include "types.h"
 
+// See query.cpp for comments.
+
 std::pair<uint64_t, uint64_t> calculate_rate(time_t prev_time, uint64_t prev_counter, time_t cur_time, uint64_t cur_counter, int bits);
 void* snmp_init(std::string host, std::string community);
 bool snmp_get(void* sessp, std::string oid, uint64_t* counter, time_t* response_time);
