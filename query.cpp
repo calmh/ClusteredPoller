@@ -1,4 +1,4 @@
-#define MAXERRORSPERHOST 4
+#define MAXERRORSPERHOST 3
 
 #include "types.h"
 #include "query.h"
@@ -37,7 +37,7 @@ map<string, ResultSet> query(QueryHost qh)
 				pthread_mutex_unlock(&global_lock);
 			}
 			errors++;
-			if (errors > MAXERRORSPERHOST) {
+			if (errors >= MAXERRORSPERHOST) {
 				if (verbosity >= 1) {
 					pthread_mutex_lock(&global_lock);
 					cerr << "Too many errors for host " << qh.host << ", aborting." << endl;
