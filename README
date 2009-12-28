@@ -37,7 +37,7 @@ are:
 - Less testing so probably more bugs. :)
 
 In all other aspects, clpoll strives to be backwards compatible with rtgpoll.
-In particalar, it should be able to read the same configuration files and
+In particular, it should be able to read the same configuration files and
 produce measurement data in an identical format. It should be a simple drop-in
 replacement.
 
