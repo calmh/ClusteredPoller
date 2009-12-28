@@ -28,7 +28,7 @@ map<string, ResultSet> query(QueryHost qh)
 		uint64_t value;
 		time_t response_time;
 		if (snmp_get(sessp, row.oid, &value, &response_time)) {
-			ResultRow r(row.id, value, 0, row.bits, response_time);
+			ResultRow r(row.id, value, 0, row.bits, response_time, row.speed);
 			rs[row.table].rows.push_back(r);
 		} else {
 			if (verbosity >= 1) {
@@ -97,8 +97,11 @@ vector<string> process_host(QueryHost &host, ResultCache &cache)
 				if (cache.times.find(key) != cache.times.end()) {
 					time_t prev_time = cache.times[key];
 					uint64_t prev_counter = cache.counters[key];
+
 					pair<uint64_t, uint64_t> rate = calculate_rate(prev_time, prev_counter, row.dtime, row.counter, row.bits);
 
+					if (rate.second > row.speed)
+						continue;
 					if (allow_db_zero || (row.bits != 0 && rate.second > 0) || (row.bits == 0 && row.counter != prev_counter)) {
 						if (inserted_rows > 0)
 							insert_query << ", ";
@@ -226,7 +229,7 @@ RTGConf read_rtg_conf(string filename)
 	return conf;
 }
 
-vector<QueryHost> read_rtg_targets(string filename)
+vector<QueryHost> read_rtg_targets(string filename, RTGConf &conf)
 {
 	vector<QueryHost> hosts;
 	ifstream targets(filename.c_str());
@@ -240,8 +243,10 @@ vector<QueryHost> read_rtg_targets(string filename)
 		token = no_semi(token);
 		string_tolower(token);
 		if (state == 0) {
-			if (token == "host")
+			if (token == "host") {
+				host = QueryHost();
 				targets >> host.host;
+			}
 			else if (token == "{")
 				state = 1;
 		}
@@ -255,6 +260,7 @@ vector<QueryHost> read_rtg_targets(string filename)
 			}
 			else if (token == "target") {
 				targets >> token;
+				row = QueryRow();
 				row.oid = no_semi(token);
 			}
 			else if (token == "{") {
@@ -263,7 +269,6 @@ vector<QueryHost> read_rtg_targets(string filename)
 			else if (token == "}") {
 				hosts.push_back(host);
 				nhosts++;
-				host = QueryHost();
 				state = 0;
 			}
 		}
@@ -278,12 +283,13 @@ vector<QueryHost> read_rtg_targets(string filename)
 				targets >> row.id;
 			}
 			else if (token == "speed") {
-				targets >> row.speed;
+				uint64_t max_counter_diff;
+				targets >> max_counter_diff;
+				row.speed = max_counter_diff / conf.interval;
 			}
 			else if (token == "}") {
 				host.rows.push_back(row);
 				ntargs++;
-				row = QueryRow();
 				state = 1;
 			}
 		}

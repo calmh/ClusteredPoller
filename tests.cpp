@@ -2,6 +2,8 @@
 #include "types.h"
 #include "query.h"
 
+void mock_set_speed(unsigned int newspeed); // From snmp-mock.cpp
+
 int main()
 {
     TestResult tr;
@@ -23,7 +25,8 @@ TEST(RTGConf, parse_example)
 
 TEST(Targets, parse_example_1)
 {
-	std::vector<QueryHost> hosts = read_rtg_targets("example-targets.cfg");
+	RTGConf conf = read_rtg_conf("example-rtg.conf");
+	std::vector<QueryHost> hosts = read_rtg_targets("example-targets.cfg", conf);
 	LONGS_EQUAL(2, hosts.size()); // Two hosts
 	LONGS_EQUAL(2, hosts[0].rows.size()); // Two rows for host one
 	LONGS_EQUAL(2, hosts[1].rows.size()); // Two rows for host two
@@ -31,7 +34,8 @@ TEST(Targets, parse_example_1)
 
 TEST(Targets, parse_example_2)
 {
-	std::vector<QueryHost> hosts = read_rtg_targets("example-targets.cfg");
+	RTGConf conf = read_rtg_conf("example-rtg.conf");
+	std::vector<QueryHost> hosts = read_rtg_targets("example-targets.cfg", conf);
 	STRINGS_EQUAL("172.16.1.1", hosts[0].host.c_str());
 	STRINGS_EQUAL("172.16.1.2", hosts[1].host.c_str());
 	STRINGS_EQUAL("c0mmun1ty", hosts[0].community.c_str());
@@ -42,7 +46,8 @@ TEST(Targets, parse_example_2)
 
 TEST(Targets, parse_example_3)
 {
-	std::vector<QueryHost> hosts = read_rtg_targets("example-targets.cfg");
+	RTGConf conf = read_rtg_conf("example-rtg.conf");
+	std::vector<QueryHost> hosts = read_rtg_targets("example-targets.cfg", conf);
 	STRINGS_EQUAL(".1.3.6.1.2.1.2.2.1.16.1001002", hosts[0].rows[0].oid.c_str());
 	STRINGS_EQUAL("ifOutOctets_362", hosts[0].rows[0].table.c_str());
 	LONGS_EQUAL(4309, hosts[0].rows[0].id);
@@ -107,7 +112,8 @@ TEST(CalculateRate, gauge)
 
 TEST(Query, one_host)
 {
-	std::vector<QueryHost> hosts = read_rtg_targets("example-targets.cfg");
+	RTGConf conf = read_rtg_conf("example-rtg.conf");
+	std::vector<QueryHost> hosts = read_rtg_targets("example-targets.cfg", conf);
 	std::map<std::string, ResultSet> rs = query(hosts[0]);
 	LONGS_EQUAL(1, rs.size()); // One table
 	ResultSet set = rs["ifOutOctets_362"];
@@ -117,19 +123,34 @@ TEST(Query, one_host)
 }
 
 #ifdef LONGTESTS
-TEST(ProcessHost, one_host_one_KBps_10_secs)
+TEST(ProcessHost, one_host_one_Mbps_10_secs)
 {
-	// The SNMP stubs respond to any query with time(NULL)*1000, which results in a reading of 1 KBps
-	std::vector<QueryHost> hosts = read_rtg_targets("example-targets.cfg");
+	mock_set_speed(1e6 / 8);
+	RTGConf conf = read_rtg_conf("example-rtg.conf");
+	std::vector<QueryHost> hosts = read_rtg_targets("example-targets.cfg", conf);
 	ResultCache cache;
 	std::vector<std::string> queries = process_host(hosts[0], cache);
 	LONGS_EQUAL(0, queries.size()); // No inserts first iteration
 	sleep(10);
 	queries = process_host(hosts[0], cache);
 	LONGS_EQUAL(1, queries.size()); // One insert next iteration
-	size_t pos = queries[0].find(", 10000, 1000)"); // 10000 bytes passed, 1000 bytes/sec.
+	// std::cerr << queries[0] << std::endl;
+	size_t pos = queries[0].find(", 1250000, 125000)");
 	CHECK(pos != std::string::npos);
-	pos = queries[0].find(", 10000, 1000)", pos+1);
+	pos = queries[0].find(", 1250000, 125000)", pos+1);
 	CHECK(pos != std::string::npos);
+}
+
+TEST(ProcessHost, one_host_hundred_Mbps_one_interval)
+{
+	mock_set_speed(100e6 / 8);
+	RTGConf conf = read_rtg_conf("example-rtg.conf");
+	std::vector<QueryHost> hosts = read_rtg_targets("example-targets.cfg", conf);
+	ResultCache cache;
+	std::vector<std::string> queries = process_host(hosts[0], cache);
+	LONGS_EQUAL(0, queries.size()); // No inserts first iteration
+	sleep(conf.interval);
+	queries = process_host(hosts[0], cache);
+	LONGS_EQUAL(0, queries.size()); // No inserts next iteration due to too high speed
 }
 #endif

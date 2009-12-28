@@ -45,13 +45,15 @@ struct ResultRow {
 	uint64_t rate;
 	int bits;
 	time_t dtime;
+	uint64_t speed;
 
-	ResultRow(int iid, uint64_t icounter, uint64_t irate, int ibits, time_t idtime) {
+	ResultRow(int iid, uint64_t icounter, uint64_t irate, int ibits, time_t idtime, uint64_t ispeed) {
 		id = iid;
 		counter = icounter;
 		rate = irate;
 		bits = ibits;
 		dtime = idtime;
+		speed = ispeed;
 	}
 };
 

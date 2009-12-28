@@ -59,7 +59,7 @@ int main (int argc, char * const argv[])
 
 	global_snmp_init();
 	config = read_rtg_conf(rtgconf);
-	hosts = read_rtg_targets(targets);
+	hosts = read_rtg_targets(targets, config);
 
 	if (hosts.size() == 0) {
 		cerr << "No hosts, so nothing to do." << endl;

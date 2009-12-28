@@ -11,6 +11,6 @@ std::vector<std::string> process_host(QueryHost &host, ResultCache &cache);
 void thread_loop();
 void* start_thread(void *ptr);
 RTGConf read_rtg_conf(std::string filename);
-std::vector<QueryHost> read_rtg_targets(std::string filename);
+std::vector<QueryHost> read_rtg_targets(std::string filename, RTGConf &conf);
 
 #endif
