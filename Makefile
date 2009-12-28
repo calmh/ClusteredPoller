@@ -38,13 +38,10 @@ quicktest: ${TESTOBJS} tests.cpp
 	./quicktestrunner
 
 clean:
-	rm -f *.o ${TARGET} version.h testrunner
+	rm -f *.o ${TARGET} version.h testrunner quicktestrunner
 	make -C CppUnitLite clean
 
-# Extra dependencies
-main.o: version.h types.h globals.h query.h
-query.o: types.h globals.h query.h
-
 # Version magic
+main.cpp: version.h
 version.h: ${SOURCES}
 	echo \#define CLPOLL_VERSION \"`git describe --always`\" > version.h
