@@ -14,6 +14,8 @@ RTGConf config;
 unsigned thread_id = 0;
 // Queue of outstanding database queries.
 list<string> queries;
+// Maximum number of outstanding database queries.
+unsigned query_queue_depth = 0;
 
 // Configuration variables that are modified by command line flags.
 string rtgconf = "/usr/local/rtg/etc/rtg.conf";

@@ -239,6 +239,8 @@ void* poller_thread(void *ptr)
 				for (it = host_queries.begin(); it != host_queries.end(); it++)	 {
 					queries.push_back(*it);
 				}
+				unsigned qd = queries.size();
+				query_queue_depth = query_queue_depth > qd ? query_queue_depth : qd;
 				pthread_mutex_unlock(&db_list_lock);
 
 			}
@@ -258,7 +260,7 @@ void* monitor_thread(void *ptr)
 	time_t interval = 0; //(time(NULL) / config.interval + 1) * config.interval;
 	int in_iteration = 0;
 	while (1) {
-		sleep(1);
+		sleep(2);
 		if (active_threads == 0 && in_iteration) {
 			stat_iterations++;
 			if (verbosity >= 1) {
@@ -266,12 +268,14 @@ void* monitor_thread(void *ptr)
 				cerr << "Monitor sees everyone is complete. Elapsed time for this iteration #" << stat_iterations << " was " << time(NULL) - in_iteration << "s." << endl;
 				cerr << "Time until next iteration is " << interval - time(NULL) << "s." << endl;
 				cerr << "  Rows inserted: " << stat_inserts << endl;
-				cerr << "  Queries executed: " << stat_queries << endl;
+				cerr << "  Queries queued: " << stat_queries << endl;
+				cerr << "  Max queue depth: " << query_queue_depth << endl;
 				pthread_mutex_unlock(&cerr_lock);
 			}
 			stat_inserts = 0;
 			stat_queries = 0;
 			in_iteration = 0;
+			query_queue_depth = 0;
 		}
 
 		pthread_mutex_lock(&global_lock);
@@ -286,12 +290,6 @@ void* monitor_thread(void *ptr)
 			pthread_cond_broadcast(&global_cond);
 		}
 		pthread_mutex_unlock(&global_lock);
-
-		pthread_mutex_lock(&db_list_lock);
-		unsigned dbqueue = queries.size();
-		pthread_mutex_unlock(&db_list_lock);
-		if (dbqueue > 0)
-			cerr << dbqueue << " database queries queued." << endl;
 	}
 	return NULL;
 }
