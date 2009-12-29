@@ -11,7 +11,8 @@ bool snmp_get(void* sessp, std::string oid, uint64_t* counter, time_t* response_
 std::map<std::string, ResultSet> query(QueryHost qh);
 std::vector<std::string> process_host(QueryHost &host, ResultCache &cache);
 void thread_loop();
-void* start_thread(void *ptr);
+void* poller_thread(void *ptr);
+void* monitor_thread(void *ptr);
 RTGConf read_rtg_conf(std::string filename);
 std::vector<QueryHost> read_rtg_targets(std::string filename, RTGConf &conf);
 

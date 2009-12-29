@@ -10,7 +10,7 @@ vector<QueryHost> hosts;
 vector<ResultCache> cache;
 // Configuration data (database information etc.)
 RTGConf config;
-// USed for assigning thread ID:s at startup.
+// Used for assigning thread ID:s at startup.
 unsigned thread_id = 0;
 
 // Configuration variables that are modified by command line flags.
@@ -23,6 +23,7 @@ int allow_db_zero = 0;
 
 // Locking and statistics
 pthread_mutex_t global_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t global_cond = PTHREAD_COND_INITIALIZER;
 unsigned active_threads = 0;
 unsigned stat_inserts = 0;
 unsigned stat_queries = 0;

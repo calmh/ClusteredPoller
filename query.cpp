@@ -96,10 +96,21 @@ vector<string> process_host(QueryHost &host, ResultCache &cache)
 	// Store all database queries here for later processing.
 	vector<string> queries;
 
+	if (verbosity >= 3) {
+		pthread_mutex_lock(&global_lock);
+		cerr << "process_host(" << host.host << ") running query()" << endl;
+		pthread_mutex_unlock(&global_lock);
+	}
+
 	// Query all values specified in the QueryHost and get back a list of ResultSets.
 	// Each ResultSet represents one table in the database.
 	map<string, ResultSet> results = query(host);
 
+	if (verbosity >= 3) {
+		pthread_mutex_lock(&global_lock);
+		cerr << "process_host(" << host.host << ") got " << results.size() << " tables back grom query()" << endl;
+		pthread_mutex_unlock(&global_lock);
+	}
 	// Iterate over all the ResultSets we got back.
 	map<string, ResultSet>::iterator it;
 	for (it = results.begin(); it != results.end(); it++) {
@@ -151,6 +162,12 @@ vector<string> process_host(QueryHost &host, ResultCache &cache)
 			}
 		}
 	}
+
+	if (verbosity >= 3) {
+		pthread_mutex_lock(&global_lock);
+		cerr << "process_host(" << host.host << ") returning " << queries.size() << " queries" << endl;
+		pthread_mutex_unlock(&global_lock);
+	}
 	// Return all the insert queries for processing.
 	return queries;
 }
@@ -171,21 +188,49 @@ void thread_loop()
 	// Start looping.
 	unsigned iterations = 0;
 	while (1) {
+		time_t end, start;
+
+		// Wait for green light.
+		pthread_mutex_lock(&global_lock);
+		// Mark ourself sleeping
+		if (iterations > 0) {
+			if (verbosity >= 2) {
+				cerr << "Thread " << offset << " sleeping after " << end - start << " s processing time." << endl;
+			}
+			active_threads--;
+		}
+		pthread_cond_wait(&global_cond, &global_lock);
+		pthread_mutex_unlock(&global_lock);
+
+
 		// Mark ourself active.
 		pthread_mutex_lock(&global_lock);
+		if (verbosity >= 2) {
+			cerr << "Thread " << offset << " starting." << endl;
+		}
 		active_threads++;
 		pthread_mutex_unlock(&global_lock);
 
 		// Note our start time, so we know how long an iteration takes.
-		time_t start = time(NULL);
+		start = time(NULL);
 		// Loop over our share of the hosts.
 		for (unsigned i = offset; i < hosts.size(); i += stride) {
 			QueryHost host = hosts[i];
+			if (verbosity >= 2) {
+				pthread_mutex_lock(&global_lock);
+				cerr << "Thread " << offset << " picked host #" << i << ": " << host.host << "." << endl;
+				pthread_mutex_unlock(&global_lock);
+			}
 			// Process the host and get back a list of SQL updates to execute.
 			vector<string> queries = process_host(host, cache[i]);
 
 			if (queries.size() > 0) {
 #ifdef USE_MYSQL
+				if (verbosity >= 2) {
+					pthread_mutex_lock(&global_lock);
+					cerr << "Thread " << offset << " executing " << queries.size() << " queries." << endl;
+					pthread_mutex_unlock(&global_lock);
+				}
 				if (use_db) {
 					// Connect to the database given the information in rtg.conf.
 					mysqlpp::Connection conn(true);
@@ -199,55 +244,61 @@ void thread_loop()
 				} else {
 #endif
 					// Print all the updates to stderr.
-					vector<string>::iterator it;
-					for (it = queries.begin(); it != queries.end(); it++)	 {
-						cerr << *it << endl;
+					if (verbosity >= 3) {
+						vector<string>::iterator it;
+						for (it = queries.begin(); it != queries.end(); it++)	 {
+							cerr << *it << endl;
+						}
 					}
 #ifdef USE_MYSQL
 				}
 #endif
 			}
 		}
-		// Make sure that processing always takes at least one second.
-		// This guarantees that all threads have time to start up before
-		// anyone is done, this making sure that "someone" is done last
-		// and can do the statistics reporting...
-		sleep(1);
-		// Note how long it took, and thus how long we should sleep to keep to the interval.
-		time_t end = time(NULL);
-		time_t sleep_time = config.interval - (end - start);
 
-		pthread_mutex_lock(&global_lock);
-		// Mark ourself sleeping
-		active_threads--;
-		if (verbosity >= 1) {
-			// We seem to have missed an iteration. This is usually not good.
-			if (iterations < stat_iterations) {
-				cerr << "Thread " << offset << " is behind schedule!" << endl;
-				cerr << "  My iteration counter: " << iterations << endl;
-				cerr << "  Global iteration counter: " << stat_iterations << endl;
-			}
-			// Print some statistics, if we are the last thread to complete in this iteration.
-			if (active_threads == 0) {
-				stat_iterations++;
-				cerr << "Iteration " << stat_iterations << " completed." << endl;
-				cerr << "  Rows inserted: " << stat_inserts << endl;
-				cerr << "  Queries executed: " << stat_queries << endl;
-				stat_inserts = 0;
-				stat_queries = 0;
-			}
-		}
-		pthread_mutex_unlock(&global_lock);
+		// Note how long it took.
+		end = time(NULL);
 
 		// Prepare for next iteration.
 		iterations++;
-		sleep(sleep_time);
 	}
 }
 
-void* start_thread(void *ptr)
+void* poller_thread(void *ptr)
 {
 	thread_loop();
+	return NULL;
+}
+
+void* monitor_thread(void *ptr)
+{
+	time_t interval = 0; //(time(NULL) / config.interval + 1) * config.interval;
+	int in_iteration = 0;
+	while (1) {
+		sleep(1);
+		pthread_mutex_lock(&global_lock);
+		if (active_threads == 0 && in_iteration) {
+			stat_iterations++;
+			if (verbosity >= 1) {
+				cerr << "Monitor sees everyone is complete. Elapsed time for this iteration #" << stat_iterations << " was " << time(NULL) - in_iteration << "s." << endl;
+				cerr << "Time until next iteration is " << interval - time(NULL) << "s." << endl;
+				cerr << "  Rows inserted: " << stat_inserts << endl;
+				cerr << "  Queries executed: " << stat_queries << endl;
+			}
+			stat_inserts = 0;
+			stat_queries = 0;
+			in_iteration = 0;
+		}
+
+		if (active_threads == 0 && time(NULL) > interval) {
+			interval = (time(NULL) / config.interval + 1) * config.interval;
+			in_iteration = time(NULL);
+			if (verbosity >= 1)
+				cerr << "Monitor signals wakeup." << endl;
+			pthread_cond_broadcast(&global_cond);
+		}
+		pthread_mutex_unlock(&global_lock);
+	}
 	return NULL;
 }
 

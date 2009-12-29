@@ -73,6 +73,7 @@ int main (int argc, char * const argv[])
 	cache = vector<ResultCache>(hosts.size());
 	// Allocate the number of threads specified in rtg.conf
 	pthread_t threads[config.threads];
+	pthread_t monitor;
 
 	if (verbosity >= 1) {
 		cerr << "Polling every " << config.interval << " seconds." << endl;
@@ -81,13 +82,17 @@ int main (int argc, char * const argv[])
 
 	// Start the threads
 	for (unsigned i = 0; i < config.threads; i++) {
-		pthread_create(&threads[i], NULL, start_thread, NULL);
+		pthread_create(&threads[i], NULL, poller_thread, NULL);
 	}
+
+	pthread_create(&monitor, NULL, monitor_thread, NULL);
 
 	// Wait for them (forever, currently)
 	for (unsigned i = 0; i < config.threads; i++) {
 		pthread_join(threads[i], NULL);
 	}
+
+	pthread_join(monitor, NULL);
 
 	return 0;
 }

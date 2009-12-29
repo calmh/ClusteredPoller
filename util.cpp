@@ -56,3 +56,4 @@ void string_tolower (std::string & str)
 {
 	range_tolower(str.begin(), str.end());
 }
+

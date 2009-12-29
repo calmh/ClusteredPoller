@@ -16,6 +16,7 @@ extern int detach;
 extern int use_db;
 extern int allow_db_zero;
 extern pthread_mutex_t global_lock;
+extern pthread_cond_t global_cond;
 extern unsigned active_threads;
 extern unsigned stat_inserts;
 extern unsigned stat_queries;
