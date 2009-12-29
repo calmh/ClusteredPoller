@@ -10,8 +10,8 @@ ifeq ($(OS),linux)
 	CXXFLAGS = -ansi -g -Wall -Werror -DOS_${OS} -O2 -DUSE_MYSQL -I/usr/include/mysql -I/usr/include/mysql++
 	LIBS = -lnetsnmp -lpthread -lmysqlpp
 else ifeq ($(OS),darwin)
-	CXXFLAGS = -ansi -g -Wall -Werror -DOS_${OS}
-	LIBS = -lnetsnmp
+	CXXFLAGS = -ansi -g -Wall -Werror -DOS_${OS} -DUSE_MYSQL -I/usr/local/mysql/include -I/usr/local/include/mysql++
+	LIBS = -lnetsnmp -lmysqlpp
 endif
 
 OBJS := $(SOURCES)
