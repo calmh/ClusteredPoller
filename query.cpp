@@ -260,16 +260,20 @@ void* monitor_thread(void *ptr)
 	time_t interval = 0; //(time(NULL) / config.interval + 1) * config.interval;
 	int in_iteration = 0;
 	while (1) {
-		sleep(2);
+		sleep(1);
 		if (active_threads == 0 && in_iteration) {
 			stat_iterations++;
 			if (verbosity >= 1) {
+				pthread_mutex_lock(&db_list_lock);
+				unsigned qd = queries.size();
+				pthread_mutex_unlock(&db_list_lock);
 				pthread_mutex_lock(&cerr_lock);
 				cerr << "Monitor sees everyone is complete. Elapsed time for this iteration #" << stat_iterations << " was " << time(NULL) - in_iteration << "s." << endl;
 				cerr << "Time until next iteration is " << interval - time(NULL) << "s." << endl;
 				cerr << "  Rows inserted: " << stat_inserts << endl;
 				cerr << "  Queries queued: " << stat_queries << endl;
 				cerr << "  Max queue depth: " << query_queue_depth << endl;
+				cerr << "  Remaining queue: " << qd << endl;
 				pthread_mutex_unlock(&cerr_lock);
 			}
 			stat_inserts = 0;
