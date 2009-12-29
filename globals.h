@@ -7,6 +7,7 @@
 
 extern std::vector<QueryHost> hosts;
 extern std::vector<ResultCache> cache;
+extern std::list<std::string> queries;
 extern RTGConf config;
 extern unsigned thread_id;
 extern std::string rtgconf;
@@ -16,6 +17,8 @@ extern int detach;
 extern int use_db;
 extern int allow_db_zero;
 extern pthread_mutex_t global_lock;
+extern pthread_mutex_t db_list_lock;
+extern pthread_mutex_t cerr_lock;
 extern pthread_cond_t global_cond;
 extern unsigned active_threads;
 extern unsigned stat_inserts;

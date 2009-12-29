@@ -41,17 +41,17 @@ map<string, ResultSet> query(QueryHost qh)
 		} else {
 			if (verbosity >= 1) {
 				// Inform about the failure.
-				pthread_mutex_lock(&global_lock);
+				pthread_mutex_lock(&cerr_lock);
 				cerr << "SNMP get for " << qh.host << " OID " << row.oid << " failed." << endl;
-				pthread_mutex_unlock(&global_lock);
+				pthread_mutex_unlock(&cerr_lock);
 			}
 			errors++;
 			if (errors >= MAXERRORSPERHOST) {
 				// We have done enough attempts with this host, so lets not waste any more time on it.
 				if (verbosity >= 1) {
-					pthread_mutex_lock(&global_lock);
+					pthread_mutex_lock(&cerr_lock);
 					cerr << "Too many errors for host " << qh.host << ", aborting." << endl;
-					pthread_mutex_unlock(&global_lock);
+					pthread_mutex_unlock(&cerr_lock);
 				}
 				break;
 			}
@@ -97,9 +97,9 @@ vector<string> process_host(QueryHost &host, ResultCache &cache)
 	vector<string> queries;
 
 	if (verbosity >= 3) {
-		pthread_mutex_lock(&global_lock);
+		pthread_mutex_lock(&cerr_lock);
 		cerr << "process_host(" << host.host << ") running query()" << endl;
-		pthread_mutex_unlock(&global_lock);
+		pthread_mutex_unlock(&cerr_lock);
 	}
 
 	// Query all values specified in the QueryHost and get back a list of ResultSets.
@@ -107,9 +107,9 @@ vector<string> process_host(QueryHost &host, ResultCache &cache)
 	map<string, ResultSet> results = query(host);
 
 	if (verbosity >= 3) {
-		pthread_mutex_lock(&global_lock);
+		pthread_mutex_lock(&cerr_lock);
 		cerr << "process_host(" << host.host << ") got " << results.size() << " tables back grom query()" << endl;
-		pthread_mutex_unlock(&global_lock);
+		pthread_mutex_unlock(&cerr_lock);
 	}
 	// Iterate over all the ResultSets we got back.
 	map<string, ResultSet>::iterator it;
@@ -164,9 +164,9 @@ vector<string> process_host(QueryHost &host, ResultCache &cache)
 	}
 
 	if (verbosity >= 3) {
-		pthread_mutex_lock(&global_lock);
+		pthread_mutex_lock(&cerr_lock);
 		cerr << "process_host(" << host.host << ") returning " << queries.size() << " queries" << endl;
-		pthread_mutex_unlock(&global_lock);
+		pthread_mutex_unlock(&cerr_lock);
 	}
 	// Return all the insert queries for processing.
 	return queries;
@@ -177,7 +177,7 @@ vector<string> process_host(QueryHost &host, ResultCache &cache)
 // The list of hosts is processed starting at "offset" and then incrementing
 // with "stride" each iteration. This way we avoid having a separate host list
 // for each thread, and the threads keep off each others toes.
-void thread_loop()
+void* poller_thread(void *ptr)
 {
 	// Assign our offset and stride values.
 	unsigned stride = config.threads;
@@ -187,27 +187,30 @@ void thread_loop()
 
 	// Start looping.
 	unsigned iterations = 0;
+	time_t start = 0, end = 0;
 	while (1) {
-		time_t end, start;
+
+		// Mark ourself sleeping
+		if (iterations > 0 && verbosity >= 2) {
+			pthread_mutex_lock(&cerr_lock);
+			cerr << "Thread " << offset << " sleeping after " << end - start << " s processing time." << endl;
+			pthread_mutex_unlock(&cerr_lock);
+		}
 
 		// Wait for green light.
 		pthread_mutex_lock(&global_lock);
-		// Mark ourself sleeping
-		if (iterations > 0) {
-			if (verbosity >= 2) {
-				cerr << "Thread " << offset << " sleeping after " << end - start << " s processing time." << endl;
-			}
+		if (iterations > 0)
 			active_threads--;
-		}
 		pthread_cond_wait(&global_cond, &global_lock);
 		pthread_mutex_unlock(&global_lock);
 
-
+		if (verbosity >= 2) {
+			pthread_mutex_lock(&cerr_lock);
+			cerr << "Thread " << offset << " starting." << endl;
+			pthread_mutex_unlock(&cerr_lock);
+		}
 		// Mark ourself active.
 		pthread_mutex_lock(&global_lock);
-		if (verbosity >= 2) {
-			cerr << "Thread " << offset << " starting." << endl;
-		}
 		active_threads++;
 		pthread_mutex_unlock(&global_lock);
 
@@ -217,42 +220,27 @@ void thread_loop()
 		for (unsigned i = offset; i < hosts.size(); i += stride) {
 			QueryHost host = hosts[i];
 			if (verbosity >= 2) {
-				pthread_mutex_lock(&global_lock);
+				pthread_mutex_lock(&cerr_lock);
 				cerr << "Thread " << offset << " picked host #" << i << ": " << host.host << "." << endl;
-				pthread_mutex_unlock(&global_lock);
+				pthread_mutex_unlock(&cerr_lock);
 			}
 			// Process the host and get back a list of SQL updates to execute.
-			vector<string> queries = process_host(host, cache[i]);
+			vector<string> host_queries = process_host(host, cache[i]);
 
-			if (queries.size() > 0) {
-#ifdef USE_MYSQL
+			if (host_queries.size() > 0) {
 				if (verbosity >= 2) {
-					pthread_mutex_lock(&global_lock);
-					cerr << "Thread " << offset << " executing " << queries.size() << " queries." << endl;
-					pthread_mutex_unlock(&global_lock);
+					pthread_mutex_lock(&cerr_lock);
+					cerr << "Thread " << offset << " queueing " << host_queries.size() << " queries." << endl;
+					pthread_mutex_unlock(&cerr_lock);
 				}
-				if (use_db) {
-					// Connect to the database given the information in rtg.conf.
-					mysqlpp::Connection conn(true);
-					conn.connect(config.database.c_str(), config.dbhost.c_str(), config.dbuser.c_str(), config.dbpass.c_str());
-					// Execute all the updates.
-					vector<string>::iterator it;
-					for (it = queries.begin(); it != queries.end(); it++)	 {
-						mysqlpp::Query q = conn.query(*it);
-						q.exec();
-					}
-				} else {
-#endif
-					// Print all the updates to stderr.
-					if (verbosity >= 3) {
-						vector<string>::iterator it;
-						for (it = queries.begin(); it != queries.end(); it++)	 {
-							cerr << *it << endl;
-						}
-					}
-#ifdef USE_MYSQL
+
+				vector<string>::iterator it;
+				pthread_mutex_lock(&db_list_lock);
+				for (it = host_queries.begin(); it != host_queries.end(); it++)	 {
+					queries.push_back(*it);
 				}
-#endif
+				pthread_mutex_unlock(&db_list_lock);
+
 			}
 		}
 
@@ -262,11 +250,6 @@ void thread_loop()
 		// Prepare for next iteration.
 		iterations++;
 	}
-}
-
-void* poller_thread(void *ptr)
-{
-	thread_loop();
 	return NULL;
 }
 
@@ -276,30 +259,107 @@ void* monitor_thread(void *ptr)
 	int in_iteration = 0;
 	while (1) {
 		sleep(1);
-		pthread_mutex_lock(&global_lock);
 		if (active_threads == 0 && in_iteration) {
 			stat_iterations++;
 			if (verbosity >= 1) {
+				pthread_mutex_lock(&cerr_lock);
 				cerr << "Monitor sees everyone is complete. Elapsed time for this iteration #" << stat_iterations << " was " << time(NULL) - in_iteration << "s." << endl;
 				cerr << "Time until next iteration is " << interval - time(NULL) << "s." << endl;
 				cerr << "  Rows inserted: " << stat_inserts << endl;
 				cerr << "  Queries executed: " << stat_queries << endl;
+				pthread_mutex_unlock(&cerr_lock);
 			}
 			stat_inserts = 0;
 			stat_queries = 0;
 			in_iteration = 0;
 		}
 
+		pthread_mutex_lock(&global_lock);
 		if (active_threads == 0 && time(NULL) > interval) {
 			interval = (time(NULL) / config.interval + 1) * config.interval;
 			in_iteration = time(NULL);
-			if (verbosity >= 1)
+			if (verbosity >= 1) {
+				pthread_mutex_lock(&cerr_lock);
 				cerr << "Monitor signals wakeup." << endl;
+				pthread_mutex_unlock(&cerr_lock);
+			}
 			pthread_cond_broadcast(&global_cond);
 		}
 		pthread_mutex_unlock(&global_lock);
+
+		pthread_mutex_lock(&db_list_lock);
+		unsigned dbqueue = queries.size();
+		pthread_mutex_unlock(&db_list_lock);
+		if (dbqueue > 0)
+			cerr << dbqueue << " database queries queued." << endl;
 	}
 	return NULL;
+}
+
+// Exctract a query from the queue, or an empty string if it's empty.
+string dequeue_query()
+{
+	pthread_mutex_lock(&db_list_lock);
+	unsigned qs = queries.size();
+	if (qs == 0)
+		return "";
+	string q = queries.front();
+	queries.pop_front();
+	pthread_mutex_unlock(&db_list_lock);
+	return q;
+}
+
+void* database_thread(void *ptr)
+{
+	pthread_mutex_lock(&global_lock);
+	unsigned my_id = thread_id++;
+	pthread_mutex_unlock(&global_lock);
+
+#ifdef USE_MYSQL
+	mysqlpp::Connection conn(false);
+	int useless_iterations = 0;
+#endif
+	while (1) {
+		pthread_mutex_lock(&db_list_lock);
+		unsigned qs = queries.size();
+		pthread_mutex_unlock(&db_list_lock);
+		if (qs > 0) {
+#ifdef USE_MYSQL
+			if (!conn.connected()) {
+				if (verbosity >= 2) {
+					pthread_mutex_lock(&cerr_lock);
+					cerr << "DB thread " << my_id << " connecting to MySQL" << endl;
+					pthread_mutex_unlock(&cerr_lock);
+				}
+				conn.connect(config.database.c_str(), config.dbhost.c_str(), config.dbuser.c_str(), config.dbpass.c_str());
+				if (!conn.connected()) {
+					pthread_mutex_lock(&cerr_lock);
+					cerr << "DB thread " << my_id << " !! Connection failed." << endl;
+					pthread_mutex_unlock(&cerr_lock);
+				}
+			} else {
+				useless_iterations = 0;
+				mysqlpp::Query q = conn.query(dequeue_query());
+				q.exec();
+			}
+#else
+			cerr << dequeue_query() << endl;
+#endif
+		} else {
+#ifdef USE_MYSQL
+			useless_iterations++;
+			if (useless_iterations > 10 && conn.connected()) {
+				if (verbosity >= 2) {
+					pthread_mutex_lock(&cerr_lock);
+					cerr << "DB thread " << my_id << " disconnecting from MySQL" << endl;
+					pthread_mutex_unlock(&cerr_lock);
+				}
+				conn.disconnect();
+			}
+#endif
+			sleep(1);
+		}
+	}
 }
 
 // Configuration reading.

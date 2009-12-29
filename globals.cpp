@@ -12,6 +12,8 @@ vector<ResultCache> cache;
 RTGConf config;
 // Used for assigning thread ID:s at startup.
 unsigned thread_id = 0;
+// Queue of outstanding database queries.
+list<string> queries;
 
 // Configuration variables that are modified by command line flags.
 string rtgconf = "/usr/local/rtg/etc/rtg.conf";
@@ -23,6 +25,8 @@ int allow_db_zero = 0;
 
 // Locking and statistics
 pthread_mutex_t global_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t db_list_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t cerr_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t global_cond = PTHREAD_COND_INITIALIZER;
 unsigned active_threads = 0;
 unsigned stat_inserts = 0;

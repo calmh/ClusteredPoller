@@ -69,10 +69,14 @@ int main (int argc, char * const argv[])
 		exit(-1);
 	}
 
+	// Calculate number of database writers needed. This is just a guess.
+	unsigned num_dbthreads = config.threads / 8;
+	num_dbthreads = num_dbthreads ? num_dbthreads : 1;
 	// Allocate result cache for the number of hosts in targets.cfg
 	cache = vector<ResultCache>(hosts.size());
 	// Allocate the number of threads specified in rtg.conf
 	pthread_t threads[config.threads];
+	pthread_t dbthreads[num_dbthreads];
 	pthread_t monitor;
 
 	if (verbosity >= 1) {
@@ -80,16 +84,32 @@ int main (int argc, char * const argv[])
 		cerr << "Starting poll with " << config.threads << " threads." << endl;
 	}
 
-	// Start the threads
+	// Start the pollers
 	for (unsigned i = 0; i < config.threads; i++) {
 		pthread_create(&threads[i], NULL, poller_thread, NULL);
 	}
 
+	// Let them start
+	sleep(1);
+
+	// Start the database writers
+	for (unsigned i = 0; i < num_dbthreads; i++) {
+		pthread_create(&dbthreads[i], NULL, database_thread, NULL);
+	}
+
+	// Let them start
+	sleep(1);
+
+	// Start the monitor
 	pthread_create(&monitor, NULL, monitor_thread, NULL);
 
 	// Wait for them (forever, currently)
 	for (unsigned i = 0; i < config.threads; i++) {
 		pthread_join(threads[i], NULL);
+	}
+
+	for (unsigned i = 0; i < num_dbthreads; i++) {
+		pthread_join(dbthreads[i], NULL);
 	}
 
 	pthread_join(monitor, NULL);

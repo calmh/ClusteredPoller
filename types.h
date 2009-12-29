@@ -11,6 +11,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <list>
 
 #ifdef USE_MYSQL
 #include <mysql++.h>
