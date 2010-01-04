@@ -236,11 +236,16 @@ void* poller_thread(void *ptr)
 
 				vector<string>::iterator it;
 				pthread_mutex_lock(&db_list_lock);
-				for (it = host_queries.begin(); it != host_queries.end(); it++)	 {
+				for (it = host_queries.begin(); it != host_queries.end() && queries.size() < max_queue_length; it++)	 {
 					queries.push_back(*it);
 				}
 				unsigned qd = queries.size();
 				query_queue_depth = query_queue_depth > qd ? query_queue_depth : qd;
+				if (it != host_queries.end() && verbosity > 0) {
+					pthread_mutex_lock(&cerr_lock);
+					cerr << "Thread " << offset << " dropped queries due to database queue full." << endl;
+					pthread_mutex_unlock(&cerr_lock);
+				}
 				pthread_mutex_unlock(&db_list_lock);
 
 			}

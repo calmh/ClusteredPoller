@@ -17,6 +17,7 @@ extern int verbosity;
 extern int detach;
 extern int use_db;
 extern int allow_db_zero;
+extern unsigned max_queue_length;
 extern pthread_mutex_t global_lock;
 extern pthread_mutex_t db_list_lock;
 extern pthread_mutex_t cerr_lock;

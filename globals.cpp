@@ -24,6 +24,7 @@ int verbosity = 0;
 int detach = 1;
 int use_db = 1;
 int allow_db_zero = 0;
+unsigned max_queue_length = 10000;
 
 // Locking and statistics
 pthread_mutex_t global_lock = PTHREAD_MUTEX_INITIALIZER;

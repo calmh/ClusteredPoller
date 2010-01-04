@@ -20,6 +20,7 @@ void help() {
 	cerr << " -t <file>   Specify target file [" << targets << "]" << endl;
 	cerr << " -v          Increase verbosity" << endl;
 	cerr << " -z          Database zero delta inserts" << endl;
+	cerr << " -ql <num>   Maximum database queue length [" << max_queue_length << "]" << endl;
 	cerr <<  " Copyright (c) 2009-2010 Jakob Borg" << endl;
 }
 
@@ -51,6 +52,10 @@ int main (int argc, char * const argv[])
 		else if (arg == "-t") {
 			i++;
 			targets = string(argv[i]);
+		}
+		else if (arg == "-ql") {
+			i++;
+			max_queue_length = atoi(argv[i]);
 		}
 	}
 
