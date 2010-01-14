@@ -1,4 +1,4 @@
-#include "CppUnitLite/TestHarness.h"
+#include "TestHarness.h"
 #include "types.h"
 #include "query.h"
 
