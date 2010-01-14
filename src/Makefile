@@ -1,18 +1,4 @@
-# Main sources list
 SOURCES = main.cpp query.cpp util.cpp globals.cpp snmp.cpp
-
-# Find out which OS we are compiling under
-OS := $(shell uname -s | awk '{print tolower($$0)}')
-
-# Set LIBS and CXXFLAGS accordingly
-ifeq ($(OS),linux)
-	CXXFLAGS = -ansi -g -Wall -Werror -DOS_${OS} -O2 -DUSE_MYSQL -I../include -I/usr/include/mysql -I/usr/include/mysql++
-	LIBS = -lnetsnmp -lpthread -lmysqlpp
-else ifeq ($(OS),darwin)
-	CXXFLAGS = -ansi -g -Wall -Werror -DOS_${OS} -DUSE_MYSQL -I../include -I/usr/local/mysql/include -I/usr/local/include/mysql++
-	LIBS = -lnetsnmp -lmysqlpp
-endif
-
 OBJS := $(SOURCES)
 OBJS := $(OBJS:.cpp=.o)
 OBJS := $(OBJS:.c=.o)
