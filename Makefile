@@ -3,7 +3,7 @@ OS = $(shell uname -s | awk '{print tolower($$0)}')
 CXXFLAGS = -ansi -g -Wall -Werror -DOS_${OS} -DUSE_MYSQL $(INCLUDES)
 ifeq ($(OS),linux)
 	CXXFLAGS := $(CXXFLAGS) -I/usr/include/mysql -I/usr/include/mysql++
-	LIBS = -lnetsnmp -lpthread -lmysqlp
+	LIBS = -lnetsnmp -lpthread -lmysqlpp
 else ifeq ($(OS),darwin)
 	CXXFLAGS := $(CXXFLAGS) -I/usr/local/mysql/include -I/usr/local/include/mysql++
 	LIBS = -lnetsnmp -lmysqlpp
