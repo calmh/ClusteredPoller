@@ -432,6 +432,10 @@ vector<QueryHost> read_rtg_targets(string filename, RTGConf &conf)
 	while (targets >> token) {
 		token = no_semi(token);
 		string_tolower(token);
+		if (token[0] == '#') {
+			targets.ignore(1024, '\n');
+			continue;
+		}
 		if (state == 0) {
 			if (token == "host") {
 				host = QueryHost();

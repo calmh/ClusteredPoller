@@ -59,9 +59,6 @@ int main (int argc, char * const argv[])
 		}
 	}
 
-	if (detach)
-		daemonize();
-
 	global_snmp_init();
 
 	// Read rtg.conf
@@ -88,6 +85,9 @@ int main (int argc, char * const argv[])
 		cerr << "Polling every " << config.interval << " seconds." << endl;
 		cerr << "Starting poll with " << config.threads << " threads." << endl;
 	}
+
+	if (detach)
+		daemonize();
 
 	// Start the pollers
 	for (unsigned i = 0; i < config.threads; i++) {
