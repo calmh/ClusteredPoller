@@ -1,6 +1,9 @@
 RTG Clustered Poller
 ====================
 
+**Database friendly poller for the [RTG](http://rtg.sourceforge.net/)
+traffic statistics system.**
+
 rtgpoll
 -------
 
