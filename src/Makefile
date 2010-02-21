@@ -13,9 +13,35 @@ $(TARGET): $(OBJS)
 	g++ $^ $(LIBS) -o $@
 
 clean:
-	rm -f *.o ${TARGET} version.h
+	rm -f *.o $(TARGET) version.h
 
 # Version magic
 main.o: version.h
-version.h: ${SOURCES}
+version.h: $(SOURCES)
 	echo \#define CLPOLL_VERSION \"`git describe --always`\" > version.h
+
+# DO NOT DELETE
+
+database.o: ../include/database.h ../include/multithread.h
+database.o: ../include/globals.h ../include/types.h ../include/rtgconf.h
+database.o: ../include/rtgtargets.h
+globals.o: ../include/types.h ../include/rtgconf.h ../include/rtgtargets.h
+main.o: ../include/util.h ../include/types.h version.h ../include/globals.h
+main.o: ../include/rtgconf.h ../include/rtgtargets.h ../include/monitor.h
+main.o: ../include/multithread.h ../include/poller.h ../include/database.h
+monitor.o: ../include/monitor.h ../include/multithread.h
+monitor.o: ../include/queryablehost.h ../include/globals.h ../include/types.h
+monitor.o: ../include/rtgconf.h ../include/rtgtargets.h
+multithread.o: ../include/multithread.h
+poller.o: ../include/globals.h ../include/types.h ../include/rtgconf.h
+poller.o: ../include/rtgtargets.h ../include/poller.h
+poller.o: ../include/multithread.h ../include/snmp.h
+poller.o: ../include/queryablehost.h
+queryablehost.o: ../include/rtgtargets.h ../include/types.h
+queryablehost.o: ../include/queryablehost.h ../include/globals.h
+queryablehost.o: ../include/rtgconf.h ../include/util.h ../include/snmp.h
+rtgconf.o: ../include/rtgconf.h ../include/util.h ../include/types.h
+rtgtargets.o: ../include/rtgtargets.h ../include/util.h ../include/types.h
+rtgtargets.o: ../include/globals.h ../include/rtgconf.h
+snmp.o: ../include/snmp.h
+util.o: ../include/util.h ../include/types.h

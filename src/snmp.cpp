@@ -2,7 +2,6 @@
 
 #include <string>
 #include <iostream>
-
 using namespace std;
 
 bool SNMP::global_init_done = false;

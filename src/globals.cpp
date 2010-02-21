@@ -2,9 +2,11 @@
 #include "rtgconf.h"
 #include "rtgtargets.h"
 
-// Global variables are instantiated here.
-
+#include <list>
+#include <string>
 using namespace std;
+
+// Global variables are instantiated here.
 
 // All hosts that we are to poll.
 RTGTargets hosts;

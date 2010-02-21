@@ -1,6 +1,10 @@
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 
+#include <pthread.h>
+#include <list>
+#include <string>
+
 #include "types.h"
 #include "rtgconf.h"
 #include "rtgtargets.h"

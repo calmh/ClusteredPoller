@@ -1,9 +1,9 @@
-#include <iostream>
 #include "globals.h"
 #include "poller.h"
 #include "snmp.h"
 #include "queryablehost.h"
 
+#include <iostream>
 #define MAXERRORSPERHOST 3
 
 using namespace std;

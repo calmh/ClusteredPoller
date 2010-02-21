@@ -1,13 +1,11 @@
-#include "types.h"
 #include "util.h"
 #include "version.h"
 #include "globals.h"
-#include "snmp.h"
-#include "rtgconf.h"
 #include "monitor.h"
 #include "poller.h"
 #include "database.h"
 
+#include <iostream>
 using namespace std;
 
 void help();

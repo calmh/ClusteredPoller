@@ -1,9 +1,10 @@
 #ifndef _RTGTARGETS_H
 #define _RTGTARGETS_H
 
+class RTGConf;
+
 #include <string>
 #include <vector>
-#include "rtgconf.h"
 
 // Holds query instructions for one row (table+id).
 struct QueryRow {

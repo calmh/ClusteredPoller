@@ -2,6 +2,7 @@
 #define DATABASE_H_
 
 #include "multithread.h"
+#include <string>
 
 class Database : public Multithread {
 private:

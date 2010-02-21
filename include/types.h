@@ -1,21 +1,9 @@
 #ifndef _TYPES_H
 #define _TYPES_H
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <pthread.h>
-
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
 #include <map>
 #include <vector>
-#include <list>
-
-#ifdef USE_MYSQL
-#include <mysql++.h>
-#endif
+#include <string>
 
 //
 // Cache stuff.

@@ -3,9 +3,13 @@
 
 #include <map>
 #include <string>
-#include "types.h"
-#include "rtgtargets.h"
-#include "snmp.h"
+#include <vector>
+
+class QueryHost;
+class ResultCache;
+class ResultSet;
+class QueryRow;
+class SNMP;
 
 class QueryableHost {
 private:

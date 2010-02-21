@@ -1,5 +1,6 @@
 #include "util.h"
 
+#include <sys/stat.h>
 using namespace std;
 
 // Detach from console. Common recipe.
