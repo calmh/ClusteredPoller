@@ -1,9 +1,12 @@
 #include "types.h"
-#include "query.h"
 #include "util.h"
 #include "version.h"
 #include "globals.h"
 #include "snmp.h"
+#include "rtgconf.h"
+#include "monitor.h"
+#include "poller.h"
+#include "database.h"
 
 using namespace std;
 
@@ -59,12 +62,10 @@ int main (int argc, char * const argv[])
 		}
 	}
 
-	global_snmp_init();
-
 	// Read rtg.conf
-	config = read_rtg_conf(rtgconf);
+	config = RTGConf(rtgconf);
 	// Read targets.cfg
-	hosts = read_rtg_targets(targets, config);
+	hosts = RTGTargets(targets, config);
 
 	if (hosts.size() == 0) {
 		cerr << "No hosts, so nothing to do." << endl;
@@ -76,10 +77,6 @@ int main (int argc, char * const argv[])
 	num_dbthreads = num_dbthreads ? num_dbthreads : 1;
 	// Allocate result cache for the number of hosts in targets.cfg
 	cache = vector<ResultCache>(hosts.size());
-	// Allocate the number of threads specified in rtg.conf
-	pthread_t threads[config.threads];
-	pthread_t dbthreads[num_dbthreads];
-	pthread_t monitor;
 
 	if (verbosity >= 1) {
 		cerr << "Polling every " << config.interval << " seconds." << endl;
@@ -89,35 +86,18 @@ int main (int argc, char * const argv[])
 	if (detach)
 		daemonize();
 
-	// Start the pollers
-	for (unsigned i = 0; i < config.threads; i++) {
-		pthread_create(&threads[i], NULL, poller_thread, NULL);
-	}
+	Poller pollers(config.threads);
+	pollers.start();
 
-	// Let them start
-	sleep(1);
+	Database database_threads(num_dbthreads);
+	database_threads.start();
 
-	// Start the database writers
-	for (unsigned i = 0; i < num_dbthreads; i++) {
-		pthread_create(&dbthreads[i], NULL, database_thread, NULL);
-	}
+	Monitor monitor;
+	monitor.start();
 
-	// Let them start
-	sleep(1);
-
-	// Start the monitor
-	pthread_create(&monitor, NULL, monitor_thread, NULL);
-
-	// Wait for them (forever, currently)
-	for (unsigned i = 0; i < config.threads; i++) {
-		pthread_join(threads[i], NULL);
-	}
-
-	for (unsigned i = 0; i < num_dbthreads; i++) {
-		pthread_join(dbthreads[i], NULL);
-	}
-
-	pthread_join(monitor, NULL);
+	pollers.join_all();
+	database_threads.join_all();
+	monitor.join_all();
 
 	return 0;
 }

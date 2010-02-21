@@ -2,14 +2,16 @@
 #define _GLOBALS_H
 
 #include "types.h"
+#include "rtgconf.h"
+#include "rtgtargets.h"
 
 // See globals.cpp for documentation on what these are used for.
 
-extern std::vector<QueryHost> hosts;
+extern RTGTargets hosts;
+extern RTGConf config;
 extern std::vector<ResultCache> cache;
 extern std::list<std::string> queries;
 extern unsigned query_queue_depth;
-extern RTGConf config;
 extern unsigned thread_id;
 extern std::string rtgconf;
 extern std::string targets;

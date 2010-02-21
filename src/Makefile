@@ -1,4 +1,4 @@
-SOURCES = main.cpp query.cpp util.cpp globals.cpp snmp.cpp
+SOURCES = main.cpp util.cpp globals.cpp snmp.cpp queryablehost.cpp rtgconf.cpp rtgtargets.cpp multithread.cpp monitor.cpp poller.cpp database.cpp
 OBJS := $(SOURCES)
 OBJS := $(OBJS:.cpp=.o)
 OBJS := $(OBJS:.c=.o)

@@ -1,15 +1,17 @@
 #include "types.h"
+#include "rtgconf.h"
+#include "rtgtargets.h"
 
 // Global variables are instantiated here.
 
 using namespace std;
 
 // All hosts that we are to poll.
-vector<QueryHost> hosts;
-// Cache of latest values and times for rate calculation.
-vector<ResultCache> cache;
+RTGTargets hosts;
 // Configuration data (database information etc.)
 RTGConf config;
+// Cache of latest values and times for rate calculation.
+vector<ResultCache> cache;
 // Used for assigning thread ID:s at startup.
 unsigned thread_id = 0;
 // Queue of outstanding database queries.

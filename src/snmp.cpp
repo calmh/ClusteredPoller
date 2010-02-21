@@ -5,18 +5,14 @@
 
 using namespace std;
 
-// Initialize the SNMP engine. This should be called once at startup.
-// It's a separate one-line method just so that it can be mocked out for testing.
-void global_snmp_init()
-{
-	init_snmp("clpoll");
-}
+bool SNMP::global_init_done = false;
 
-// Initialize a session. This should be called from each thread before processing a host.
-void* snmp_init_session(string host, string community)
+SNMP::SNMP(string host, string community)
 {
-	struct snmp_session session;
-	void *sessp;
+	if (!global_init_done) {
+		init_snmp("clpoll");
+		global_init_done = true;
+	}
 
 	snmp_sess_init(&session);
 	session.peername = (char*) host.c_str();
@@ -27,22 +23,19 @@ void* snmp_init_session(string host, string community)
 
 	if (!sessp) {
 		cerr << "Couldn't create an SNMP session." << endl;
-		return NULL;
 	}
 
 	snmp_sess_session(sessp);
-	return sessp;
 }
 
-// Close a session. This should be called matching snmp_init_session.
-void snmp_close_session(void* sessp)
+SNMP::~SNMP()
 {
 	snmp_sess_close(sessp);
 }
 
 // Do an SNMP GET for a value, and return true if successfull.
 // Updates the counter and response_time parameters.
-bool snmp_get(void* sessp, string oid_str, uint64_t* counter, time_t* response_time)
+bool SNMP::get_counter(string oid_str, uint64_t* counter, time_t* response_time)
 {
 	struct snmp_pdu *pdu;
 	struct snmp_pdu *response;
