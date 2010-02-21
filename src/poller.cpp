@@ -71,7 +71,7 @@ void* Poller::run(void *id_ptr)
 			}
 			// Process the host and get back a list of SQL updates to execute.
 			QueryableHost queryable_host(host, cache[i]);
-			vector<string> host_queries = queryable_host.process();
+			vector<string> host_queries = queryable_host.get_inserts();
 
 			if (host_queries.size() > 0) {
 				if (verbosity >= 2) {

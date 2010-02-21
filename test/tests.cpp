@@ -155,7 +155,7 @@ TEST(Query, one_host)
 	RTGConf conf("example-rtg.conf");
 	RTGTargets hosts("example-targets.cfg", conf);
 	QueryableHost qh(hosts[0], cache);
-	std::map<std::string, ResultSet> rs = qh.query_all_targets();
+	std::map<std::string, ResultSet> rs = qh.get_all_resultsets();
 	LONGS_EQUAL(1, rs.size()); // One table
 	ResultSet set = rs["ifOutOctets_362"];
 	LONGS_EQUAL(2, set.rows.size()); // Two rows
@@ -171,10 +171,10 @@ TEST(ProcessHost, one_host_one_Mbps_10_secs)
 	RTGTargets hosts("example-targets.cfg", conf);
 	ResultCache cache;
 	QueryableHost qh(hosts[0], cache);
-	std::vector<std::string> queries = qh.process();
+	std::vector<std::string> queries = qh.get_inserts();
 	LONGS_EQUAL(0, queries.size()); // No inserts first iteration
 	sleep(10);
-	queries = qh.process();
+	queries = qh.get_inserts();
 	LONGS_EQUAL(1, queries.size()); // One insert next iteration
 	// std::cerr << queries[0] << std::endl;
 	size_t pos = queries[0].find(", 1250000, 125000)");
@@ -190,10 +190,10 @@ TEST(ProcessHost, one_host_hundred_Mbps_one_interval)
 	RTGTargets hosts("example-targets.cfg", conf);
 	ResultCache cache;
 	QueryableHost qh(hosts[0], cache);
-	std::vector<std::string> queries = qh.process();
+	std::vector<std::string> queries = qh.get_inserts();
 	LONGS_EQUAL(0, queries.size()); // No inserts first iteration
 	sleep(conf.interval);
-	queries = qh.process();
+	queries = qh.get_inserts();
 	LONGS_EQUAL(0, queries.size()); // No inserts next iteration due to too high speed
 }
 #endif

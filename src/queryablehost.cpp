@@ -39,7 +39,7 @@ bool QueryableHost::query_snmp(SNMP& snmp_session, QueryRow& row, map<string, Re
 }
 
 // Query all targets for the specified host and return a collection of result sets.
-map<string, ResultSet> QueryableHost::query_all_targets() {
+map<string, ResultSet> QueryableHost::get_all_resultsets() {
 	// Allocate our resultsets.
 	// We map from table name to result set.
 	map<string, ResultSet> rs;
@@ -104,90 +104,101 @@ pair<uint64_t, uint64_t> QueryableHost::calculate_rate(time_t prev_time,
 
 // Query all targets for a host, process rates compared with cache, and return vector of database queries
 // that are ready to be executed.
-vector<string> QueryableHost::process() {
+vector<string> QueryableHost::get_inserts() {
 	// Store all database queries here for later processing.
 	vector<string> queries;
 
 	if (verbosity >= 3) {
 		pthread_mutex_lock(&cerr_lock);
-		cerr << "process_host(" << host.host << ") running query()" << endl;
+		cerr << "process_host(" << host.host << ") running get_all_resultsets()" << endl;
 		pthread_mutex_unlock(&cerr_lock);
 	}
 
 	// Query all values specified in the QueryHost and get back a list of ResultSets.
 	// Each ResultSet represents one table in the database.
-	map<string, ResultSet> results = query_all_targets();
+	map<string, ResultSet> results = get_all_resultsets();
 
 	if (verbosity >= 3) {
 		pthread_mutex_lock(&cerr_lock);
-		cerr << "process_host(" << host.host << ") got " << results.size()
-				<< " tables back grom query()" << endl;
+		cerr << "get_inserts(" << host.host << ") got " << results.size()
+				<< " tables back from query()" << endl;
 		pthread_mutex_unlock(&cerr_lock);
 	}
+
 	// Iterate over all the ResultSets we got back.
 	map<string, ResultSet>::iterator it;
 	for (it = results.begin(); it != results.end(); it++) {
 		ResultSet r = it->second;
 		if (r.rows.size() > 0) {
-			stringstream insert_query;
-			insert_query << "INSERT INTO " << r.table
-					<< " (id, dtime, counter, rate) VALUES ";
-			int inserted_rows = 0;
-
-			// Iterate over all the ResultRows in this ResultSet
-			vector<ResultRow>::iterator ri;
-			for (ri = r.rows.begin(); ri != r.rows.end(); ri++) {
-				ResultRow row = *ri;
-				// Create a hash key from table name and row id.
-				pair<string, int> key = pair<string, int> (r.table, row.id);
-				if (cache.times.find(key) != cache.times.end()) {
-					// We have a cache entry, so we can calculate rate since last measurement.
-					time_t prev_time = cache.times[key];
-					uint64_t prev_counter = cache.counters[key];
-
-					// Get the rate, corrected for wraps etc.
-					pair<uint64_t, uint64_t> rate = calculate_rate(prev_time,
-							prev_counter, row.dtime, row.counter, row.bits);
-
-					// Verify that the resulting value is reasonable, i.e. lower than interface speed.
-					if (rate.second <= row.speed) {
-						// Check if we should insert it, based on whether or not we want db zeroes and whether it's a gauge or not.
-						if (allow_db_zero || (row.bits != 0 && rate.second > 0)
-								|| (row.bits == 0 && row.counter
-										!= prev_counter)) {
-							if (inserted_rows > 0)
-								insert_query << ", ";
-							// Build on the insert query. We set dtime to the time returned from snmp_get.
-							insert_query << "(" << row.id << ", FROM_UNIXTIME("
-									<< row.dtime << "), " << rate.first << ", "
-									<< rate.second << ")";
-							inserted_rows++;
-						}
-					}
-				}
-
-				// Update the cache for next iteration.
-				cache.counters[key] = row.counter;
-				cache.times[key] = row.dtime;
-			}
-
-			// Update statistics.
-			if (inserted_rows > 0) {
-				pthread_mutex_lock(&global_lock);
-				stat_inserts += inserted_rows;
-				stat_queries++;
-				pthread_mutex_unlock(&global_lock);
-				queries.push_back(insert_query.str());
+			string insert_query = build_insert_query(r);
+			if (insert_query != "") {
+				queries.push_back(insert_query);
 			}
 		}
 	}
 
 	if (verbosity >= 3) {
 		pthread_mutex_lock(&cerr_lock);
-		cerr << "process_host(" << host.host << ") returning "
+		cerr << "get_inserts(" << host.host << ") returning "
 				<< queries.size() << " queries" << endl;
 		pthread_mutex_unlock(&cerr_lock);
 	}
+
 	// Return all the insert queries for processing.
 	return queries;
+}
+
+string QueryableHost::build_insert_query(ResultSet& r) {
+	ostringstream query_stream;
+	query_stream << "INSERT INTO " << r.table << " (id, dtime, counter, rate) VALUES ";
+
+	// Iterate over all the ResultRows in this ResultSet
+	vector<ResultRow>::iterator ri;
+	int rows = 0;
+	for (ri = r.rows.begin(); ri != r.rows.end(); ri++) {
+		ResultRow row = *ri;
+		// Create a hash key from table name and row id.
+		pair<string, int> key = pair<string, int> (r.table, row.id);
+		if (cache.times.find(key) != cache.times.end()) {
+			// We have a cache entry, so we can calculate rate since last measurement.
+			time_t prev_time = cache.times[key];
+			uint64_t prev_counter = cache.counters[key];
+
+			// Get the rate, corrected for wraps etc.
+			pair<uint64_t, uint64_t> rate = calculate_rate(prev_time,
+					prev_counter, row.dtime, row.counter, row.bits);
+
+			// Verify that the resulting value is reasonable, i.e. lower than interface speed.
+			if (rate.second <= row.speed) {
+				// Check if we should insert it, based on whether or not we want db zeroes and whether it's a gauge or not.
+				if (allow_db_zero || (row.bits != 0 && rate.second > 0)
+						|| (row.bits == 0 && row.counter
+								!= prev_counter)) {
+					// Build on the insert query. We set dtime to the time returned from snmp_get.
+					if (rows > 0)
+						query_stream << ", ";
+					query_stream << "(" << row.id << ", FROM_UNIXTIME("
+							<< row.dtime << "), " << rate.first << ", "
+							<< rate.second << ")";
+					rows++;
+				}
+			}
+		}
+
+		// Update the cache for next iteration.
+		cache.counters[key] = row.counter;
+		cache.times[key] = row.dtime;
+	}
+
+	if (rows > 0) {
+		// Update the statistics
+		pthread_mutex_lock(&global_lock);
+		stat_inserts += rows;
+		stat_queries++;
+		pthread_mutex_unlock(&global_lock);
+
+		return query_stream.str();
+	} else {
+		return "";
+	}
 }

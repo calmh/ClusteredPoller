@@ -7,3 +7,5 @@ version.h
 testrunner
 quicktestrunner
 Makefile.bak
+.cproject
+.project
