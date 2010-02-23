@@ -5,11 +5,11 @@
 
 class Monitor : public Multithread {
 protected:
-	void create_thread(pthread_t* thread, int thread_id);
-	static void* run(void* id_ptr);
+        void create_thread(pthread_t* thread, int* thread_id);
+        static void* run(void* id_ptr);
 
 public:
-	Monitor();
+        Monitor();
 };
 
 #endif /* MONITOR_H_ */
