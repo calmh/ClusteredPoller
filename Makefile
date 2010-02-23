@@ -20,6 +20,9 @@ clean:
 	make -C src clean
 	make -C test clean
 
+depend:
+	cd src && makedepend -Y../include *.cpp
+
 .PHONY: test
 test: all
 	make -C test test

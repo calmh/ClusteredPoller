@@ -1,4 +1,4 @@
-TESTSOURCES = ../src/query.cpp ../src/util.cpp ../src/globals.cpp snmp-mock.cpp
+TESTSOURCES = ../src/queryablehost.cpp ../src/util.cpp ../src/globals.cpp ../src/rtgconf.cpp ../src/rtgtargets.cpp  snmp-mock.cpp
 TESTOBJS := $(TESTSOURCES)
 TESTOBJS := $(TESTOBJS:.cpp=.o)
 TESTOBJS := $(TESTOBJS:.c=.o)
