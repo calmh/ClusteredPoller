@@ -4,17 +4,19 @@
 #include <string>
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/net-snmp-includes.h>
+#include <pthread.h>
 
 class SNMP {
 private:
-	static bool global_init_done;
-	struct snmp_session session;
-	void *sessp;
+        static bool global_init_done;
+        static pthread_mutex_t snmp_lock;
+        struct snmp_session session;
+        void *sessp;
 
 public:
-	SNMP(std::string host, std::string community);
-	~SNMP();
-	bool get_counter(std::string oid_str, uint64_t* counter, time_t* response_time);
+        SNMP(std::string host, std::string community);
+        ~SNMP();
+        bool get_counter(std::string oid_str, uint64_t* counter, time_t* response_time);
 };
 
 #endif
