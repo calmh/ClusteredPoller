@@ -16,17 +16,15 @@ Multithread::~Multithread()
 
 void Multithread::start()
 {
-	for (int i = 0; i < num_threads; i++) {
-		int thread_id = next_thread_id++;
-		cerr << "Start thread, id " << thread_id << endl;
-    create_thread(&threads[i], thread_id);
-	}
+        for (int i = 0; i < num_threads; i++) {
+                int thread_id = next_thread_id++;
+                create_thread(&threads[i], thread_id);
+        }
 }
 
 void Multithread::join_all()
 {
-	for (int i = 0; i < num_threads; i++) {
-		pthread_join(threads[i], NULL);
-		cerr << "Joined thread " << i << endl;
-	}
+        for (int i = 0; i < num_threads; i++) {
+                pthread_join(threads[i], NULL);
+        }
 }
