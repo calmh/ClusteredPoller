@@ -4,14 +4,14 @@
 using namespace std;
 
 Multithread::Multithread(int num_threads)
-	: num_threads(num_threads), next_thread_id(0)
+        : num_threads(num_threads), next_thread_id(0)
 {
-	threads = new pthread_t[num_threads];
+        threads = new pthread_t[num_threads];
 }
 
 Multithread::~Multithread()
 {
-	delete[] threads;
+        delete[] threads;
 }
 
 void Multithread::start()
