@@ -3,7 +3,8 @@
 
 #include <pthread.h>
 
-class Multithread {
+class Multithread
+{
 private:
         int num_threads;
         pthread_t *threads;

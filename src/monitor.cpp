@@ -11,7 +11,7 @@ Monitor::Monitor() : Multithread(1)
 
 void Monitor::create_thread(pthread_t* thread, int* thread_id)
 {
-    pthread_create(thread, NULL, &Monitor::run, (void*)thread_id);
+        pthread_create(thread, NULL, &Monitor::run, (void*)thread_id);
 }
 
 void* Monitor::run(void *id_ptr)

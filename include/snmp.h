@@ -6,7 +6,8 @@
 #include <net-snmp/net-snmp-includes.h>
 #include <pthread.h>
 
-class SNMP {
+class SNMP
+{
 private:
         static bool global_init_done;
         static pthread_mutex_t snmp_lock;

@@ -3,7 +3,8 @@
 
 #include "multithread.h"
 
-class Poller : public Multithread {
+class Poller : public Multithread
+{
 protected:
         void create_thread(pthread_t* thread, int* thread_id);
         static void* run(void* id_ptr);

@@ -57,21 +57,21 @@ bool SNMP::get_counter(string oid_str, uint64_t* counter, time_t* response_time)
         if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR) {
                 struct variable_list *vars = response->variables;
                 switch (vars->type) {
-                        case SNMP_NOSUCHOBJECT:
-                        case SNMP_NOSUCHINSTANCE:
+                case SNMP_NOSUCHOBJECT:
+                case SNMP_NOSUCHINSTANCE:
                         // Do nothing
                         break;
 
-                        case ASN_INTEGER:
-                        case ASN_COUNTER:
-                        case ASN_GAUGE:
-                        case ASN_OPAQUE:
+                case ASN_INTEGER:
+                case ASN_COUNTER:
+                case ASN_GAUGE:
+                case ASN_OPAQUE:
                         // Regular integer
                         *counter = *vars->val.integer;
                         success = true;
                         break;
 
-                        case ASN_COUNTER64:
+                case ASN_COUNTER64:
                         // Get high and low 32 bits and shift them together
                         *counter = (((uint64_t)(*vars->val.counter64).high) << 32) + (*vars->val.counter64).low;
                         success = true;

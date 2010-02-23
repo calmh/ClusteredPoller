@@ -11,8 +11,8 @@
 
 // Holds cache data for one host.
 struct ResultCache {
-	std::map<std::pair<std::string, int>, uint64_t> counters;
-	std::map<std::pair<std::string, int>, time_t> times;
+        std::map<std::pair<std::string, int>, uint64_t> counters;
+        std::map<std::pair<std::string, int>, time_t> times;
 };
 
 //
@@ -21,32 +21,32 @@ struct ResultCache {
 
 // Holds result data for one row (table+id).
 struct ResultRow {
-	int id;
-	uint64_t counter;
-	uint64_t rate;
-	int bits;
-	time_t dtime;
-	uint64_t speed;
+        int id;
+        uint64_t counter;
+        uint64_t rate;
+        int bits;
+        time_t dtime;
+        uint64_t speed;
 
-	ResultRow(int iid, uint64_t icounter, uint64_t irate, int ibits, time_t idtime, uint64_t ispeed) {
-		id = iid;
-		counter = icounter;
-		rate = irate;
-		bits = ibits;
-		dtime = idtime;
-		speed = ispeed;
-	}
+        ResultRow(int iid, uint64_t icounter, uint64_t irate, int ibits, time_t idtime, uint64_t ispeed) {
+                id = iid;
+                counter = icounter;
+                rate = irate;
+                bits = ibits;
+                dtime = idtime;
+                speed = ispeed;
+        }
 };
 
 // Holds result data for one host.
 struct ResultSet {
-	std::string table;
-	std::vector<ResultRow> rows;
+        std::string table;
+        std::vector<ResultRow> rows;
 
-	ResultSet() {}
-	ResultSet(std::string itable) {
-		table = itable;
-	}
+        ResultSet() {}
+        ResultSet(std::string itable) {
+                table = itable;
+        }
 };
 
 //
