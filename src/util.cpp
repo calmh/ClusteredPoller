@@ -53,7 +53,7 @@ template <typename Iter> void range_tolower (Iter beg, Iter end)
 }
 
 // Convert an entire string to lower case, in place.
-void string_tolower (std::string & str)
+void string_tolower (std::string& str)
 {
         range_tolower(str.begin(), str.end());
 }

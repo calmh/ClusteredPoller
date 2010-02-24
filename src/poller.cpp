@@ -22,7 +22,7 @@ void Poller::create_thread(pthread_t* thread, int* thread_id)
 // The list of hosts is processed starting at "offset" and then incrementing
 // with "stride" each iteration. This way we avoid having a separate host list
 // for each thread, and the threads keep off each others toes.
-void* Poller::run(void *id_ptr)
+void* Poller::run(void* id_ptr)
 {
         // Assign our offset and stride values.
         unsigned stride = config.threads;

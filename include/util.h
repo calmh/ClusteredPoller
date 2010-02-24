@@ -9,6 +9,6 @@
 void daemonize(void);
 std::string no_semi(std::string token);
 template <typename Iter> void range_tolower (Iter beg, Iter end);
-void string_tolower (std::string & str);
+void string_tolower (std::string& str);
 
 #endif

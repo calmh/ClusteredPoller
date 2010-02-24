@@ -12,11 +12,11 @@
 using namespace std;
 
 QueryableHost::QueryableHost(QueryHost& host, ResultCache& cache) :
-                host(host), cache(cache)
+        host(host), cache(cache)
 {
 }
 
-void QueryableHost::initialize_result_set(map<string, ResultSet> & rs, QueryRow & row)
+void QueryableHost::initialize_result_set(map<string, ResultSet> & rs, QueryRow& row)
 {
         // Check if there is an existing result set for this table in the map,
         // or create a new one.
@@ -187,8 +187,8 @@ string QueryableHost::build_insert_query(ResultSet& r)
                                         if (rows > 0)
                                                 query_stream << ", ";
                                         query_stream << "(" << row.id << ", FROM_UNIXTIME("
-                                        << row.dtime << "), " << rate.first << ", "
-                                        << rate.second << ")";
+                                                     << row.dtime << "), " << rate.first << ", "
+                                                     << rate.second << ")";
                                         rows++;
                                 }
                         }

@@ -17,7 +17,7 @@ void Database::create_thread(pthread_t* thread, int* thread_id)
         pthread_create(thread, NULL, &Database::run, (void*)thread_id);
 }
 
-void* Database::run(void *id_ptr)
+void* Database::run(void* id_ptr)
 {
         pthread_mutex_lock(&global_lock);
         pthread_mutex_unlock(&global_lock);

@@ -7,8 +7,8 @@ class Multithread
 {
 private:
         int num_threads;
-        pthread_t *threads;
-        int *thread_ids;
+        pthread_t* threads;
+        int* thread_ids;
 
 protected:
         virtual void create_thread(pthread_t* thread, int* thread_id) = 0;

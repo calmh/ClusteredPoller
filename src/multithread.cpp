@@ -4,7 +4,7 @@
 using namespace std;
 
 Multithread::Multithread(int num_threads)
-                : num_threads(num_threads)
+        : num_threads(num_threads)
 {
         threads = new pthread_t[num_threads];
         thread_ids = new int[num_threads];

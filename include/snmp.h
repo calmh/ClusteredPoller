@@ -12,7 +12,7 @@ private:
         static bool global_init_done;
         static pthread_mutex_t snmp_lock;
         struct snmp_session session;
-        void *sessp;
+        void* sessp;
 
 public:
         SNMP(std::string host, std::string community);

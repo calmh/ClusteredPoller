@@ -27,7 +27,7 @@ void help()
 }
 
 // Parse command line, load caonfiguration and start threads.
-int main (int argc, char * const argv[])
+int main (int argc, char* const argv[])
 {
         if (argc < 2) {
                 help();

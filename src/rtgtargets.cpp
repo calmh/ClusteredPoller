@@ -8,13 +8,13 @@
 using namespace std;
 
 RTGTargets::RTGTargets()
-                : vector<QueryHost>()
+        : vector<QueryHost>()
 {
 }
 
 // Simple state machine based config reader.
-RTGTargets::RTGTargets(string filename, RTGConf &conf)
-                : vector<QueryHost>()
+RTGTargets::RTGTargets(string filename, RTGConf& conf)
+        : vector<QueryHost>()
 {
         ifstream targets(filename.c_str());
         string token;
