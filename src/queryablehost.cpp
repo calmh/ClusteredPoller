@@ -12,10 +12,12 @@
 using namespace std;
 
 QueryableHost::QueryableHost(QueryHost& host, ResultCache& cache) :
-        host(host), cache(cache) {
+        host(host), cache(cache)
+{
 }
 
-void QueryableHost::initialize_result_set(map<string, ResultSet> & rs, QueryRow & row) {
+void QueryableHost::initialize_result_set(map<string, ResultSet> & rs, QueryRow& row)
+{
         // Check if there is an existing result set for this table in the map,
         // or create a new one.
         if (rs.find(row.table) == rs.end()) {
@@ -38,7 +40,8 @@ bool QueryableHost::query_snmp(SNMP& snmp_session, QueryRow& row, map<string, Re
 }
 
 // Query all targets for the specified host and return a collection of result sets.
-map<string, ResultSet> QueryableHost::get_all_resultsets() {
+map<string, ResultSet> QueryableHost::get_all_resultsets()
+{
         // Allocate our resultsets.
         // We map from table name to result set.
         map<string, ResultSet> rs;
@@ -79,7 +82,8 @@ map<string, ResultSet> QueryableHost::get_all_resultsets() {
 // Calculate the traffic rate between to points, for a given counter size (bits).
 // bits == 0 means it's a 32 bit gauge (RTG legacy).
 // bits == 32 or 64 means it's that size of counter.
-pair<uint64_t, uint64_t> QueryableHost::calculate_rate(time_t prev_time, uint64_t prev_counter, time_t cur_time, uint64_t cur_counter, int bits) {
+pair<uint64_t, uint64_t> QueryableHost::calculate_rate(time_t prev_time, uint64_t prev_counter, time_t cur_time, uint64_t cur_counter, int bits)
+{
         time_t time_diff = cur_time - prev_time;
         if (time_diff == 0) {
                 cerr << "Fatal error: time_diff == 0 (can't happen!)" << endl
@@ -110,7 +114,8 @@ pair<uint64_t, uint64_t> QueryableHost::calculate_rate(time_t prev_time, uint64_
 
 // Query all targets for a host, process rates compared with cache, and return vector of database queries
 // that are ready to be executed.
-vector<string> QueryableHost::get_inserts() {
+vector<string> QueryableHost::get_inserts()
+{
         // Store all database queries here for later processing.
         vector<string> queries;
 
@@ -154,7 +159,8 @@ vector<string> QueryableHost::get_inserts() {
         return queries;
 }
 
-string QueryableHost::build_insert_query(ResultSet& r) {
+string QueryableHost::build_insert_query(ResultSet& r)
+{
         ostringstream query_stream;
         query_stream << "INSERT INTO " << r.table << " (id, dtime, counter, rate) VALUES ";
 
@@ -176,9 +182,7 @@ string QueryableHost::build_insert_query(ResultSet& r) {
                         // Verify that the resulting value is reasonable, i.e. lower than interface speed.
                         if (rate.second <= row.speed) {
                                 // Check if we should insert it, based on whether or not we want db zeroes and whether it's a gauge or not.
-                                if (allow_db_zero || (row.bits != 0 && rate.second > 0)
-                                    || (row.bits == 0 && row.counter
-                                        != prev_counter)) {
+                                if (allow_db_zero || (row.bits != 0 && rate.second > 0) || (row.bits == 0 && row.counter != prev_counter)) {
                                         // Build on the insert query. We set dtime to the time returned from snmp_get.
                                         if (rows > 0)
                                                 query_stream << ", ";

@@ -40,8 +40,8 @@ SNMP::~SNMP()
 // Updates the counter and response_time parameters.
 bool SNMP::get_counter(string oid_str, uint64_t* counter, time_t* response_time)
 {
-        struct snmp_pdu *pdu;
-        struct snmp_pdu *response;
+        struct snmp_pdu* pdu;
+        struct snmp_pdu* response;
         oid anOID[MAX_OID_LEN];
         size_t anOID_len = MAX_OID_LEN;
         int status;
@@ -55,23 +55,23 @@ bool SNMP::get_counter(string oid_str, uint64_t* counter, time_t* response_time)
 
         bool success = false;
         if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR) {
-                struct variable_list *vars = response->variables;
+                struct variable_list* vars = response->variables;
                 switch (vars->type) {
-                        case SNMP_NOSUCHOBJECT:
-                        case SNMP_NOSUCHINSTANCE:
+                case SNMP_NOSUCHOBJECT:
+                case SNMP_NOSUCHINSTANCE:
                         // Do nothing
                         break;
 
-                        case ASN_INTEGER:
-                        case ASN_COUNTER:
-                        case ASN_GAUGE:
-                        case ASN_OPAQUE:
+                case ASN_INTEGER:
+                case ASN_COUNTER:
+                case ASN_GAUGE:
+                case ASN_OPAQUE:
                         // Regular integer
                         *counter = *vars->val.integer;
                         success = true;
                         break;
 
-                        case ASN_COUNTER64:
+                case ASN_COUNTER64:
                         // Get high and low 32 bits and shift them together
                         *counter = (((uint64_t)(*vars->val.counter64).high) << 32) + (*vars->val.counter64).low;
                         success = true;

@@ -4,7 +4,8 @@
 #include "multithread.h"
 #include <string>
 
-class Database : public Multithread {
+class Database : public Multithread
+{
 private:
         static std::string dequeue_query();
 
