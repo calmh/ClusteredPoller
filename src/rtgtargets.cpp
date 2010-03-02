@@ -69,8 +69,23 @@ RTGTargets::RTGTargets(string filename, RTGConf& conf)
                                 else
                                         row.speed = max_counter_diff / conf.interval;
                         } else if (token == "}") {
-                                host.rows.push_back(row);
-                                ntargs++;
+                                bool duplicate = false;
+                                for (vector<QueryRow>::const_iterator it = host.rows.begin(); it != host.rows.end(); it++) {
+                                        if (it->oid.compare(row.oid) == 0) {
+                                                duplicate = true;
+                                                cerr << "WARNING: Host " << host.host << " OID " << row.oid << " is a duplicate. Ignoring." << endl;
+                                                break;
+                                        }
+                                        if (it->table.compare(row.table) == 0 && it->id == row.id) {
+                                                duplicate = true;
+                                                cerr << "WARNING: Host " << host.host << " table " << row.table << " id " << row.id << " is a duplicate. Ignoring." << endl;
+                                                break;
+                                        }
+                                }
+                                if (!duplicate) {
+                                        host.rows.push_back(row);
+                                        ntargs++;
+                                }
                                 state = 1;
                         }
                 }
