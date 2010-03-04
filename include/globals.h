@@ -2,8 +2,8 @@
 #define _GLOBALS_H
 
 #include <pthread.h>
-#include <list>
 #include <string>
+#include <queue>
 
 #include "types.h"
 #include "rtgconf.h"
@@ -14,7 +14,7 @@
 extern RTGTargets hosts;
 extern RTGConf config;
 extern std::vector<ResultCache> cache;
-extern std::list<std::string> queries;
+extern std::queue<std::string> queries;
 extern unsigned query_queue_depth;
 extern unsigned thread_id;
 extern std::string rtgconf;

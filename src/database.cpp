@@ -78,7 +78,7 @@ string Database::dequeue_query()
         if (qs == 0)
                 return "";
         string q = queries.front();
-        queries.pop_front();
+        queries.pop();
         pthread_mutex_unlock(&db_list_lock);
         return q;
 }
