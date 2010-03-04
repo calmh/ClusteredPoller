@@ -75,8 +75,11 @@ string Database::dequeue_query()
 {
         pthread_mutex_lock(&db_list_lock);
         unsigned qs = queries.size();
-        if (qs == 0)
+        if (qs == 0) {
+                pthread_mutex_unlock(&db_list_lock);
                 return "";
+        }
+
         string q = queries.front();
         queries.pop();
         pthread_mutex_unlock(&db_list_lock);
