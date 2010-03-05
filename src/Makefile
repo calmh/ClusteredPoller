@@ -15,18 +15,13 @@ $(TARGET): $(OBJS)
 clean:
 	rm -f *.o $(TARGET) version.h
 
-# Version magic
-main.o: version.h
-version.h: $(SOURCES)
-	echo \#define CLPOLL_VERSION \"`git describe --always`\" > version.h
-
 # DO NOT DELETE
 
 database.o: ../include/database.h ../include/multithread.h
 database.o: ../include/globals.h ../include/types.h ../include/rtgconf.h
 database.o: ../include/rtgtargets.h
 globals.o: ../include/types.h ../include/rtgconf.h ../include/rtgtargets.h
-main.o: ../include/util.h ../include/types.h version.h ../include/globals.h
+main.o: ../include/util.h ../include/types.h ../include/globals.h
 main.o: ../include/rtgconf.h ../include/rtgtargets.h ../include/monitor.h
 main.o: ../include/multithread.h ../include/poller.h ../include/database.h
 monitor.o: ../include/monitor.h ../include/multithread.h

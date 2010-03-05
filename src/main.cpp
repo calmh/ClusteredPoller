@@ -1,5 +1,4 @@
 #include "util.h"
-#include "version.h"
 #include "globals.h"
 #include "monitor.h"
 #include "poller.h"
