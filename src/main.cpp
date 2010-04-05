@@ -3,6 +3,7 @@
 #include "monitor.h"
 #include "poller.h"
 #include "database.h"
+#include "version.h"
 
 #include <iostream>
 using namespace std;
@@ -25,6 +26,26 @@ void help()
         cerr <<  " Copyright (c) 2009-2010 Jakob Borg" << endl;
 }
 
+void run_threads() {
+        // Calculate number of database writers needed. This is just a guess.
+        unsigned num_dbthreads = config.threads / 8;
+        num_dbthreads = num_dbthreads ? num_dbthreads : 1;
+
+        Poller pollers(config.threads);
+        pollers.start();
+
+        Database database_threads(num_dbthreads);
+        database_threads.start();
+
+        Monitor monitor;
+        monitor.start();
+
+        pollers.join_all();
+        database_threads.join_all();
+        monitor.join_all();
+}
+
+#ifndef TESTSUITE
 // Parse command line, load caonfiguration and start threads.
 int main (int argc, char* const argv[])
 {
@@ -67,9 +88,6 @@ int main (int argc, char* const argv[])
                 exit(-1);
         }
 
-        // Calculate number of database writers needed. This is just a guess.
-        unsigned num_dbthreads = config.threads / 8;
-        num_dbthreads = num_dbthreads ? num_dbthreads : 1;
         // Allocate result cache for the number of hosts in targets.cfg
         cache = vector<ResultCache>(hosts.size());
 
@@ -81,19 +99,7 @@ int main (int argc, char* const argv[])
         if (detach)
                 daemonize();
 
-        Poller pollers(config.threads);
-        pollers.start();
-
-        Database database_threads(num_dbthreads);
-        database_threads.start();
-
-        Monitor monitor;
-        monitor.start();
-
-        pollers.join_all();
-        database_threads.join_all();
-        monitor.join_all();
-
+        run_threads();
         return 0;
 }
-
+#endif

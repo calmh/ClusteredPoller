@@ -34,3 +34,7 @@ quicktest:
 reformat:
 	astyle -A8 --convert-tabs --align-pointer=type -z2 include/*.h src/*cpp
 
+.PHONY: version
+version:
+	echo "#define CLPOLL_VERSION \"${VERSION}\"" > include/version.h
+

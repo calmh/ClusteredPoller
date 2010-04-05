@@ -1,8 +1,6 @@
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 
-#define CLPOLL_VERSION "1.0.3"
-
 #include <pthread.h>
 #include <string>
 #include <queue>

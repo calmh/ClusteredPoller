@@ -24,6 +24,7 @@ globals.o: ../include/types.h ../include/rtgconf.h ../include/rtgtargets.h
 main.o: ../include/util.h ../include/types.h ../include/globals.h
 main.o: ../include/rtgconf.h ../include/rtgtargets.h ../include/monitor.h
 main.o: ../include/multithread.h ../include/poller.h ../include/database.h
+main.o: ../include/version.h
 monitor.o: ../include/monitor.h ../include/multithread.h
 monitor.o: ../include/queryablehost.h ../include/globals.h ../include/types.h
 monitor.o: ../include/rtgconf.h ../include/rtgtargets.h
