@@ -12,6 +12,10 @@ Database::Database(int num_threads) : Multithread(num_threads)
 {
 }
 
+Database::~Database()
+{
+}
+
 void Database::create_thread(pthread_t* thread, int* thread_id)
 {
         pthread_create(thread, NULL, &Database::run, (void*)thread_id);
@@ -75,10 +79,13 @@ string Database::dequeue_query()
 {
         pthread_mutex_lock(&db_list_lock);
         unsigned qs = queries.size();
-        if (qs == 0)
+        if (qs == 0) {
+                pthread_mutex_unlock(&db_list_lock);
                 return "";
+        }
+
         string q = queries.front();
-        queries.pop_front();
+        queries.pop();
         pthread_mutex_unlock(&db_list_lock);
         return q;
 }

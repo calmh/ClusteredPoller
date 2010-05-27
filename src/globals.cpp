@@ -2,7 +2,7 @@
 #include "rtgconf.h"
 #include "rtgtargets.h"
 
-#include <list>
+#include <queue>
 #include <string>
 using namespace std;
 
@@ -17,7 +17,7 @@ vector<ResultCache> cache;
 // Used for assigning thread ID:s at startup.
 unsigned thread_id = 0;
 // Queue of outstanding database queries.
-list<string> queries;
+queue<string> queries;
 // Maximum number of outstanding database queries.
 unsigned query_queue_depth = 0;
 

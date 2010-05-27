@@ -3,7 +3,6 @@ targets.cfg
 *.o
 *.a
 clpoll
-version.h
 testrunner
 quicktestrunner
 Makefile.bak

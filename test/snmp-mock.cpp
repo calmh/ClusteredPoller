@@ -5,7 +5,7 @@
 
 using namespace std;
 
-unsigned int speed = 1e6 / 8; 
+unsigned int speed = 1000000 / 8; 
 
 void mock_set_speed(unsigned int newspeed)
 {

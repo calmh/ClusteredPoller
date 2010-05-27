@@ -46,34 +46,38 @@ map<string, ResultSet> QueryableHost::get_all_resultsets()
         // We map from table name to result set.
         map<string, ResultSet> rs;
 
-        // Start a new SNMP session.
-        // TODO: Return empty result set if this fails.
-        SNMP snmp_session(host.host, host.community);
+        try {
+                // Start a new SNMP session.
+                SNMP snmp_session(host.host, host.community);
 
-        int errors = 0;
-        // Iterate over all targets in the host.
-        vector<QueryRow>::iterator it;
-        for (it = host.rows.begin(); it != host.rows.end() && errors < MAXERRORSPERHOST; it++) {
-                QueryRow row = *it;
-                initialize_result_set(rs, row);
-                bool success = query_snmp(snmp_session, row, rs);
-                if (!success) {
+                int errors = 0;
+                // Iterate over all targets in the host.
+                vector<QueryRow>::iterator it;
+                for (it = host.rows.begin(); it != host.rows.end() && errors < MAXERRORSPERHOST; it++) {
+                        QueryRow row = *it;
+                        initialize_result_set(rs, row);
+                        bool success = query_snmp(snmp_session, row, rs);
+                        if (!success) {
+                                if (verbosity >= 1) {
+                                        // Inform about the failure.
+                                        pthread_mutex_lock(&cerr_lock);
+                                        cerr << "SNMP get for " << host.host << " OID " << row.oid
+                                             << " failed." << endl;
+                                        pthread_mutex_unlock(&cerr_lock);
+                                }
+                                errors++;
+                        }
+                }
+                if (errors >= MAXERRORSPERHOST) {
                         if (verbosity >= 1) {
-                                // Inform about the failure.
                                 pthread_mutex_lock(&cerr_lock);
-                                cerr << "SNMP get for " << host.host << " OID " << row.oid
-                                     << " failed." << endl;
+                                cerr << "Too many errors for host " << host.host << ", aborting." << endl;
                                 pthread_mutex_unlock(&cerr_lock);
                         }
-                        errors++;
                 }
-        }
-        if (errors >= MAXERRORSPERHOST) {
-                if (verbosity >= 1) {
-                        pthread_mutex_lock(&cerr_lock);
-                        cerr << "Too many errors for host " << host.host << ", aborting." << endl;
-                        pthread_mutex_unlock(&cerr_lock);
-                }
+        } catch (SNMPCommunicationException& e) {
+                cerr << "Error in SNMP setup." << endl;
+                cerr << e.what() << endl;
         }
 
         return rs;

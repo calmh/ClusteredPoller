@@ -10,6 +10,9 @@ TestResult::TestResult ()
 {
 }
 
+TestResult::~TestResult()
+{
+}
 
 void TestResult::testsStarted ()
 {

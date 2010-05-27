@@ -1,0 +1,29 @@
+Super Short Installation Instructions for CentOS 5.4
+====================================================
+
+Install Git from the Webtatic repository by following these
+instructions:
+
+  http://www.webtatic.com/blog/2009/09/git-on-centos-5/
+
+Install g++ and necessary development libraries:
+
+  sudo yum install gcc-g++ net-snmp-devel mysql-devel
+
+Download the MySQL++ library and development files (two RPM:s) from here
+and install them:
+
+  http://tangentsoft.net/mysql++/
+
+Clone the clpoll respository from github:
+
+  git clone git://github.com/calmh/ClusteredPoller.git
+
+Build and test clpoll:
+
+  cd ClusteredPoller ; make all test
+
+One of the last lines of compiler output should be "There were not test
+failures". You now have a hopefully working clpoll binary. Follow the
+instructions in README.
+

@@ -17,7 +17,8 @@ class Failure;
 class TestResult
 {
 public:
-					TestResult (); 
+	TestResult ();
+	virtual ~TestResult();
 	virtual void	testsStarted ();
 	virtual void	addFailure (const Failure& failure);
 	virtual void	testsEnded ();

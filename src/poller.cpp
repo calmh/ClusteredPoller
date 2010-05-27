@@ -83,7 +83,7 @@ void* Poller::run(void* id_ptr)
                                 vector<string>::iterator it;
                                 pthread_mutex_lock(&db_list_lock);
                                 for (it = host_queries.begin(); it != host_queries.end() && queries.size() < max_queue_length; it++) {
-                                        queries.push_back(*it);
+                                        queries.push(*it);
                                 }
                                 unsigned qd = queries.size();
                                 query_queue_depth = query_queue_depth > qd ? query_queue_depth : qd;

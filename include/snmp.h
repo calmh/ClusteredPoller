@@ -5,6 +5,13 @@
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/net-snmp-includes.h>
 #include <pthread.h>
+#include <stdexcept>
+
+class SNMPCommunicationException : public std::runtime_error
+{
+public:
+        SNMPCommunicationException(const std::string& what);
+};
 
 class SNMP
 {

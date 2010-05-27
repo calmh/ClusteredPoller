@@ -1,16 +1,16 @@
-TESTSOURCES = ../src/queryablehost.cpp ../src/util.cpp ../src/globals.cpp ../src/rtgconf.cpp ../src/rtgtargets.cpp  snmp-mock.cpp
+TESTSOURCES = main-for-tests.o ../src/queryablehost.cpp ../src/util.cpp ../src/globals.cpp ../src/rtgconf.cpp ../src/rtgtargets.cpp ../src/multithread.cpp ../src/poller.cpp ../src/monitor.cpp snmp-mock.cpp database-mock.cpp tests.cpp
 TESTOBJS := $(TESTSOURCES)
 TESTOBJS := $(TESTOBJS:.cpp=.o)
 TESTOBJS := $(TESTOBJS:.c=.o)
+CXXFLAGS := $(CXXFLAGS) -DTESTSUITE
 
-test: ${TESTOBJS} tests.cpp
+main-for-tests.o: ../src/main.cpp
+	$(COMPILE.cpp) $(OUTPUT_OPTION) $<
+
+test: ${TESTOBJS}
 	g++ -DLONGTESTS $^ $(CXXFLAGS) $(LIBS) ../CppUnitLite/cppunitlite.a -o testrunner
 	./testrunner
 
-quicktest: ${TESTOBJS} tests.cpp
-	g++ $^ $(CXXFLAGS) $(LIBS) ../CppUnitLite/cppunitlite.a -o quicktestrunner
-	./quicktestrunner
-
 clean:
-	rm -f *.o ${TARGET} testrunner quicktestrunner
+	rm -f *.o ${TARGET} testrunner
 

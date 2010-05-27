@@ -4,6 +4,11 @@
 #include <iostream>
 using namespace std;
 
+SNMPCommunicationException::SNMPCommunicationException(const string& what)
+        : runtime_error(what)
+{
+}
+
 bool SNMP::global_init_done = false;
 pthread_mutex_t SNMP::snmp_lock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -24,7 +29,7 @@ SNMP::SNMP(string host, string community)
         sessp = snmp_sess_open(&session);
 
         if (!sessp) {
-                cerr << "Couldn't create an SNMP session for host " << host << "." << endl;
+                throw SNMPCommunicationException(string("Couldn't create an SNMP session for host ") + host);
         }
 
         snmp_sess_session(sessp);

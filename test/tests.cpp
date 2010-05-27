@@ -66,7 +66,7 @@ TEST(CalculateRate, zero_rate_with_32_bits)
 
 	time_t cur_time = time(NULL);
 	time_t prev_time = cur_time - 60;
-	uint64_t prev_counter = 1e6;
+	uint64_t prev_counter = 1000000;
 	uint64_t cur_counter = prev_counter;
 	std::pair<uint64_t, uint64_t> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 32);
 	UINT64_EQUAL(0, rate.first);
@@ -81,8 +81,8 @@ TEST(CalculateRate, one_kbps_rate_with_32_bits)
 
 	time_t cur_time = time(NULL);
 	time_t prev_time = cur_time - 60;
-	uint64_t prev_counter = 1e6;
-	uint64_t cur_counter = 1e6 + 60 * 1000 / 8;
+	uint64_t prev_counter = 1000000;
+	uint64_t cur_counter = 1000000 + 60 * 1000 / 8;
 	std::pair<uint64_t, uint64_t> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 32);
 	UINT64_EQUAL(60 * 1000/8, rate.first);
 	UINT64_EQUAL(1000/8, rate.second);
@@ -126,11 +126,11 @@ TEST(CalculateRate, gauge_unchanged)
 
 	time_t cur_time = time(NULL);
 	time_t prev_time = cur_time - 60;
-	uint64_t prev_counter = 1e6;
-	uint64_t cur_counter = 1e6;
+	uint64_t prev_counter = 1000000;
+	uint64_t cur_counter = 1000000;
 	std::pair<uint64_t, uint64_t> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 0);
-	UINT64_EQUAL(1e6, rate.first);
-	UINT64_EQUAL(1e6, rate.second);
+	UINT64_EQUAL(1000000, rate.first);
+	UINT64_EQUAL(1000000, rate.second);
 }
 
 TEST(CalculateRate, gauge_changed)
@@ -141,11 +141,11 @@ TEST(CalculateRate, gauge_changed)
 
 	time_t cur_time = time(NULL);
 	time_t prev_time = cur_time - 60;
-	uint64_t prev_counter = 1e6;
-	uint64_t cur_counter = 1e6 + 1000;
+	uint64_t prev_counter = 1000000;
+	uint64_t cur_counter = 1000000 + 1000;
 	std::pair<uint64_t, uint64_t> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 0);
-	UINT64_EQUAL(1e6 + 1000, rate.first);
-	UINT64_EQUAL(1e6 + 1000, rate.second);
+	UINT64_EQUAL(1000000 + 1000, rate.first);
+	UINT64_EQUAL(1000000 + 1000, rate.second);
 }
 
 TEST(Query, one_host)
@@ -166,7 +166,7 @@ TEST(Query, one_host)
 #ifdef LONGTESTS
 TEST(ProcessHost, one_host_one_Mbps_10_secs)
 {
-	mock_set_speed(1e6 / 8);
+	mock_set_speed(1000000 / 8);
 	RTGConf conf("example-rtg.conf");
 	RTGTargets hosts("example-targets.cfg", conf);
 	ResultCache cache;
