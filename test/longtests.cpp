@@ -29,7 +29,7 @@ TEST(one_host_one_Mbps_10_secs)
 
 TEST(one_host_hundred_Mbps_one_interval)
 {
-        mock_set_speed(100e6 / 8);
+        mock_set_speed(100000000 / 8);
         RTGConf conf("test/example-rtg.conf");
         RTGTargets hosts("test/example-targets.cfg", conf);
         ResultCache cache;
