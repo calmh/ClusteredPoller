@@ -12,6 +12,10 @@ Database::Database(int num_threads) : Multithread(num_threads)
 {
 }
 
+Database::~Database()
+{
+}
+
 void Database::create_thread(pthread_t* thread, int* thread_id)
 {
         pthread_create(thread, NULL, &Database::run, (void*)thread_id);

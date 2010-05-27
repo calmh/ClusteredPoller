@@ -15,7 +15,7 @@ protected:
 
 public:
         Multithread(int num_threads);
-        ~Multithread();
+        virtual ~Multithread();
         void start();
         void join_all();
 };

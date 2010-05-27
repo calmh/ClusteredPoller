@@ -12,6 +12,9 @@ Test::Test (const SimpleString& testName)
 	TestRegistry::addTest (this);
 }
 
+Test::~Test()
+{
+}
 
 Test *Test::getNext() const
 {

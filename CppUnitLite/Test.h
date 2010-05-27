@@ -22,6 +22,7 @@ class Test
 {
 public:
 	Test (const SimpleString& testName);
+	virtual ~Test();
 
 	virtual void	run (TestResult& result) = 0;
 
