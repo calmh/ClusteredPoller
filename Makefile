@@ -27,9 +27,6 @@ depend:
 test: all
 	make -C test test
 
-quicktest:
-	make -C test quicktest
-
 .PHONY: reformat
 reformat:
 	astyle -A8 --convert-tabs --align-pointer=type -z2 include/*.h src/*cpp
