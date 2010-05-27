@@ -6,7 +6,7 @@ Deque::Deque() : itsSize(0), itsCap(10)
 }
 
 Deque::Deque(const Deque& other) : itsSize(other.size()),
-                                   itsCap(other.capacity())
+	itsCap(other.capacity())
 {
 	copy_data(other.itsData);
 }
@@ -24,9 +24,7 @@ int Deque::size() const
 void Deque::push_back(int i)
 {
 	if (itsSize >= itsCap)
-	{
 		grow(0);
-	}
 	itsData[itsSize++] = i;
 }
 
@@ -45,6 +43,7 @@ int Deque::pop_back()
 int Deque::pop_front()
 {
 	int value = itsData[0];
+
 	shrink();
 	itsSize--;
 	return value;
@@ -58,16 +57,17 @@ void Deque::grow(int place)
 
 void Deque::array_copy(int place, int start)
 {
-	int* temp = new int[itsCap];
+	int *temp = new int[itsCap];
+
 	array_copy(itsData, temp, start, place);
 	delete [] itsData;
 	itsData = temp;
 }
 
-void Deque::array_copy(const int* source,
-					  int* destination,
-					  int source_start,
-					  int destination_start)
+void Deque::array_copy(const int *source,
+		       int *destination,
+		       int source_start,
+		       int destination_start)
 {
 	for (int i = 0; i <= itsSize; i++)
 		destination[i + destination_start] = source[i + source_start];
@@ -78,7 +78,7 @@ void Deque::shrink()
 	array_copy(0, 1);
 }
 
-void Deque::copy_data(int* data)
+void Deque::copy_data(int *data)
 {
 	itsData = new int[itsCap];
 	array_copy(data, itsData);
@@ -86,8 +86,7 @@ void Deque::copy_data(int* data)
 
 Deque& Deque::operator=(const Deque& d)
 {
-	if (this != &d)
-	{
+	if (this != &d) {
 		itsCap = d.capacity();
 		itsSize = d.size();
 		delete [] itsData;

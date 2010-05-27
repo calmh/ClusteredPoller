@@ -1,6 +1,6 @@
 
-#include "TestResult.h"
 #include "Failure.h"
+#include "TestResult.h"
 
 #include <iostream>
 
@@ -11,11 +11,11 @@ void TestResult::testWasRun()
 	testCount++;
 }
 
-void TestResult::startTests () 
+void TestResult::startTests()
 {
 }
 
-void TestResult::addFailure (Failure failure) 
+void TestResult::addFailure(Failure failure)
 {
 	using namespace std;
 
@@ -23,7 +23,7 @@ void TestResult::addFailure (Failure failure)
 	failureCount++;
 }
 
-void TestResult::endTests () 
+void TestResult::endTests()
 {
 	using namespace std;
 

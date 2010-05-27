@@ -2,14 +2,14 @@
 #include "TestRegistry.h"
 #include "TestResult.h"
 
-Test::Test (const std::string& testName) : name (testName)
+Test::Test (const std::string& testName) : name(testName)
 {
-	TestRegistry::addTest (this);
+	TestRegistry::addTest(this);
 }
 
-void Test::run (TestResult& result)
+void Test::run(TestResult& result)
 {
-	runTest (result);
+	runTest(result);
 	result.testWasRun();
 }
 

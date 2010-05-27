@@ -3,10 +3,10 @@
 #ifndef TESTHARNESS_H
 #define TESTHARNESS_H
 
-#include "Test.h"
-#include "TestResult.h"
 #include "Failure.h"
+#include "Test.h"
 #include "TestRegistry.h"
+#include "TestResult.h"
 
 #endif
 
