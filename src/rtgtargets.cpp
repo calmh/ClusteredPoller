@@ -112,7 +112,7 @@ int RTGTargets::read_old_style_targets(string filename, RTGConf& conf)
 
         int nhosts = 0;
         QueryHost* currentHost = NULL;
-        while (!targets.eof()) {
+        while (targets.good() && !targets.eof()) {
                 targets.getline(linebuffer, 255);
                 string line(linebuffer);
 
@@ -154,8 +154,10 @@ int RTGTargets::read_old_style_targets(string filename, RTGConf& conf)
                 currentHost->rows.push_back(row);
         }
 
-        push_back(*currentHost);
-        nhosts++;
+        if (currentHost != NULL) {
+                push_back(*currentHost);
+                nhosts++;
+        }
 
         return nhosts;
 }

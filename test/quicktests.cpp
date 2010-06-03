@@ -21,6 +21,13 @@ SUITE(QuickTests)
                 CHECK_EQUAL("rtgdb", conf.database.c_str());
         }
 
+        TEST(ParseNonexistentTargets)
+        {
+                RTGConf conf("test/example-rtg.conf");
+                RTGTargets hosts("test/none.cfg", conf);
+                CHECK_EQUAL((size_t)0, hosts.size());
+        }
+
         TEST(ParseNewStyleTargets)
         {
                 RTGConf conf("test/example-rtg.conf");
