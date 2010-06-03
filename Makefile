@@ -36,7 +36,7 @@ UNITTESTPP = UnitTest++/libUnitTest++.a
 .SUFFIXES: .o .cpp
 
 INCLUDES = -Iinclude -IUnitTest++/src
-CXXFLAGS ?= -ansi -g -Wall -Werror -DOS_${OS} -DUSE_MYSQL $(INCLUDES)
+CXXFLAGS ?= -ansi -O2 -Wall -Werror -DOS_${OS} -DUSE_MYSQL $(INCLUDES)
 LDFLAGS ?=
 
 OS = $(shell uname -s | awk '{print tolower($$0)}')
@@ -53,6 +53,7 @@ all: $(UNITTESTPP) $(TARGET) test
 $(TARGET): $(OBJS)
 	@echo Linking $@...
 	@g++ $^ $(LIBS) -o $@
+	@strip $@
 
 $(TESTTARGET): $(TESTOBJS)
 	@echo Linking $@...
