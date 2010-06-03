@@ -5,8 +5,7 @@ using namespace std;
 
 SUITE(QuickTests)
 {
-        TEST(ParseConfigurationVariables)
-        {
+        TEST(ParseConfigurationVariables) {
                 RTGConf conf("test/example-rtg.conf");
                 CHECK_EQUAL(30u, conf.interval);
                 CHECK_EQUAL(2u, conf.threads);

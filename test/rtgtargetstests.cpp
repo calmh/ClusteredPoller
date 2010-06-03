@@ -7,15 +7,13 @@ using namespace std;
 
 SUITE(QuickTests)
 {
-        TEST(ParseNonexistentTargets)
-        {
+        TEST(ParseNonexistentTargets) {
                 RTGConf conf("test/example-rtg.conf");
                 RTGTargets hosts("test/none.cfg", conf);
                 CHECK_EQUAL((size_t)0, hosts.size());
         }
 
-        TEST(ParseNewStyleTargets)
-        {
+        TEST(ParseNewStyleTargets) {
                 RTGConf conf("test/example-rtg.conf");
                 RTGTargets hosts("test/example-targets.cfg", conf);
                 CHECK_EQUAL((size_t)2, hosts.size()); // Two hosts
@@ -23,8 +21,7 @@ SUITE(QuickTests)
                 CHECK_EQUAL((size_t)2, hosts[1].rows.size()); // Two rows for host two
         }
 
-        TEST(ParseOldStyleTargets)
-        {
+        TEST(ParseOldStyleTargets) {
                 RTGConf conf("test/example-rtg.conf");
                 RTGTargets hosts("test/oldstyle-targets.cfg", conf);
                 CHECK_EQUAL((size_t)2, hosts.size()); // Two hosts
@@ -32,8 +29,7 @@ SUITE(QuickTests)
                 CHECK_EQUAL((size_t)7, hosts[1].rows.size()); // Two rows for host two
         }
 
-        TEST(ParseNewStyleTargetsHost)
-        {
+        TEST(ParseNewStyleTargetsHost) {
                 RTGConf conf("test/example-rtg.conf");
                 RTGTargets hosts("test/example-targets.cfg", conf);
                 CHECK_EQUAL("172.16.1.1", hosts[0].host);
@@ -44,8 +40,7 @@ SUITE(QuickTests)
                 CHECK_EQUAL(2, hosts[1].snmpver);
         }
 
-        TEST(ParseOldStyleTargetsHost)
-        {
+        TEST(ParseOldStyleTargetsHost) {
                 RTGConf conf("test/example-rtg.conf");
                 RTGTargets hosts("test/oldstyle-targets.cfg", conf);
                 CHECK_EQUAL("172.16.17.18", hosts[0].host);
@@ -56,8 +51,7 @@ SUITE(QuickTests)
                 CHECK_EQUAL(2, hosts[1].snmpver);
         }
 
-        TEST(ParseNewsStyleTargetsRow)
-        {
+        TEST(ParseNewsStyleTargetsRow) {
                 RTGConf conf("test/example-rtg.conf");
                 RTGTargets hosts("test/example-targets.cfg", conf);
                 CHECK_EQUAL(".1.3.6.1.2.1.2.2.1.16.1001002", hosts[0].rows[0].oid);
@@ -67,8 +61,7 @@ SUITE(QuickTests)
                 CHECK_EQUAL(32u, hosts[0].rows[0].bits);
         }
 
-        TEST(ParseOldStyleTargetsRow)
-        {
+        TEST(ParseOldStyleTargetsRow) {
                 RTGConf conf("test/example-rtg.conf");
                 RTGTargets hosts("test/oldstyle-targets.cfg", conf);
                 CHECK_EQUAL("1.3.6.1.2.1.2.2.1.10.13", hosts[0].rows[0].oid);

@@ -8,8 +8,7 @@ void mock_set_speed(unsigned int newspeed); // From snmp-mock.cpp
 
 SUITE(LongTests)
 {
-        TEST(MeasureOneHostsAt10MbpsForTenSeconds)
-        {
+        TEST(MeasureOneHostsAt10MbpsForTenSeconds) {
                 mock_set_speed(1000000 / 8);
                 RTGConf conf("test/example-rtg.conf");
                 RTGTargets hosts("test/example-targets.cfg", conf);
@@ -26,8 +25,7 @@ SUITE(LongTests)
                 CHECK(pos != std::string::npos);
         }
 
-        TEST(MeasureOneHostAt100MbpsForOneInterval)
-        {
+        TEST(MeasureOneHostAt100MbpsForOneInterval) {
                 mock_set_speed(100000000 / 8);
                 RTGConf conf("test/example-rtg.conf");
                 RTGTargets hosts("test/example-targets.cfg", conf);

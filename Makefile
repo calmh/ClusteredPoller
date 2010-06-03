@@ -82,7 +82,7 @@ clean:
 
 .PHONY: reformat
 reformat:
-	@astyle -A8 -n --convert-tabs --align-pointer=type -z2 src/*
+	@astyle -A8 -n --convert-tabs --align-pointer=type -z2 src/*.cpp src/*.h test/*.cpp
 
 .PHONY: version
 version:

@@ -9,8 +9,7 @@ using namespace std;
 
 SUITE(QuickTests)
 {
-        TEST(ZeroRateWith32BitsCounter)
-        {
+        TEST(ZeroRateWith32BitsCounter) {
                 QueryHost host;
                 ResultCache cache;
                 QueryableHost qh(host, cache);
@@ -24,8 +23,7 @@ SUITE(QuickTests)
                 CHECK_EQUAL(0u, rate.second);
         }
 
-        TEST(OneKbpsRateWith32BitsCounter)
-        {
+        TEST(OneKbpsRateWith32BitsCounter) {
                 QueryHost host;
                 ResultCache cache;
                 QueryableHost qh(host, cache);
@@ -39,8 +37,7 @@ SUITE(QuickTests)
                 CHECK_EQUAL(1000u/8, rate.second);
         }
 
-        TEST(OneKbpsRateWith32BitsCounterThatWraps)
-        {
+        TEST(OneKbpsRateWith32BitsCounterThatWraps) {
                 QueryHost host;
                 ResultCache cache;
                 QueryableHost qh(host, cache);
@@ -54,8 +51,7 @@ SUITE(QuickTests)
                 CHECK_EQUAL(1000u/8, rate.second);
         }
 
-        TEST(OneKbpsRateWith64BitsCounterThatWraps)
-        {
+        TEST(OneKbpsRateWith64BitsCounterThatWraps) {
                 QueryHost host;
                 ResultCache cache;
                 QueryableHost qh(host, cache);
@@ -69,8 +65,7 @@ SUITE(QuickTests)
                 CHECK_EQUAL(1000u/8, rate.second);
         }
 
-        TEST(GaugeValueUnchanged)
-        {
+        TEST(GaugeValueUnchanged) {
                 QueryHost host;
                 ResultCache cache;
                 QueryableHost qh(host, cache);
@@ -84,8 +79,7 @@ SUITE(QuickTests)
                 CHECK_EQUAL(1000000u, rate.second);
         }
 
-        TEST(GaugeValueChanged)
-        {
+        TEST(GaugeValueChanged) {
                 QueryHost host;
                 ResultCache cache;
                 QueryableHost qh(host, cache);
@@ -99,8 +93,7 @@ SUITE(QuickTests)
                 CHECK_EQUAL(1000000u + 1000, rate.second);
         }
 
-        TEST(ResultSetForOneHost)
-        {
+        TEST(ResultSetForOneHost) {
                 ResultCache cache;
 
                 RTGConf conf("test/example-rtg.conf");
