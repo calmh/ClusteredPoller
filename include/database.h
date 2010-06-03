@@ -15,7 +15,7 @@ protected:
 
 public:
         Database(int num_threads);
-	virtual ~Database();
+        virtual ~Database();
 };
 
 #endif /* DATABASE_H_ */

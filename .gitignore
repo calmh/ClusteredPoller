@@ -2,9 +2,11 @@ rtg.conf
 targets.cfg
 *.o
 *.a
+*.d
 clpoll
 testrunner
-quicktestrunner
 Makefile.bak
 .cproject
 .project
+
+UnitTest++/TestUnitTest++
