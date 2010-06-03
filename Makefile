@@ -58,6 +58,7 @@ $(TESTTARGET): $(TESTOBJS)
 	@echo Linking $@...
 	@g++ $^ $(LIBS) $(UNITTESTPP) -o $@
 
+.PHONY: test
 test: $(TESTTARGET)
 	@echo Running unit tests...
 	@./$(TESTTARGET) 2>/dev/null
