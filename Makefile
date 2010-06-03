@@ -55,7 +55,7 @@ $(TARGET): $(OBJS)
 	@g++ $^ $(LIBS) -o $@
 	@strip $@
 
-$(TESTTARGET): $(TESTOBJS)
+$(TESTTARGET): $(TESTOBJS) $(UNITTESTPP)
 	@echo Linking $@...
 	@g++ $^ $(LIBS) $(UNITTESTPP) -o $@
 
@@ -86,6 +86,6 @@ version:
 	@echo "#define CLPOLL_VERSION \"${VERSION}\"" > include/version.h
 
 %.o : %.cpp
-	@echo Compiling $<...
+	@echo $<
 	@$(CXX) $(CXXFLAGS) -c $< -o $(patsubst %.cpp, %.o, $<)
 
