@@ -32,29 +32,29 @@ TESTOBJS := $(TESTOBJS:.cpp=.o)
 TESTOBJS := $(TESTOBJS:.c=.o)
 TARGET := clpoll
 TESTTARGET := testrunner
-UNITTESTPP = UnitTest++/libUnitTest++.a
+UNITTESTPP := UnitTest++/libUnitTest++.a
 .SUFFIXES: .o .cpp
 
-INCLUDES = -Iinclude -IUnitTest++/src
-CXXFLAGS ?= -ansi -O2 -Wall -Werror -DOS_${OS} -DUSE_MYSQL $(INCLUDES)
-LDFLAGS ?=
+CXXFLAGS ?= -ansi -DOS_${OS} -DUSE_MYSQL 
 
 OS = $(shell uname -s | awk '{print tolower($$0)}')
 ifeq ($(OS),linux)
-	CXXFLAGS := $(CXXFLAGS) -I/usr/include/mysql -I/usr/include/mysql++
+	CXXFLAGS += -I/usr/include/mysql -I/usr/include/mysql++
 	LIBS = -lnetsnmp -lpthread -lmysqlpp
 else ifeq ($(OS),darwin)
-	CXXFLAGS := $(CXXFLAGS) -I/usr/local/mysql/include -I/usr/local/include/mysql++
+	CXXFLAGS += -I/usr/local/mysql/include -I/usr/local/include/mysql++
 	LIBS = -lnetsnmp -lmysqlpp
 endif
 
 all: $(UNITTESTPP) $(TARGET) test
 
+$(TARGET): CXXFLAGS += -O2 -Wall -Werror
 $(TARGET): $(OBJS)
 	@echo Linking $@...
 	@g++ $^ $(LIBS) -o $@
 	@strip $@
 
+$(TESTTARGET): CXXFLAGS += -IUnitTest++/src -Isrc
 $(TESTTARGET): $(TESTOBJS) $(UNITTESTPP)
 	@echo Linking $@...
 	@g++ $^ $(LIBS) $(UNITTESTPP) -o $@
