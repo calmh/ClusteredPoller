@@ -51,10 +51,11 @@ endif
 all: $(UNITTESTPP) $(TARGET) test
 
 $(TARGET): $(OBJS)
-	@echo Linking...
+	@echo Linking $@...
 	@g++ $^ $(LIBS) -o $@
 
 $(TESTTARGET): $(TESTOBJS)
+	@echo Linking $@...
 	@g++ $^ $(LIBS) $(UNITTESTPP) -o $@
 
 test: $(TESTTARGET)
