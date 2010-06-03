@@ -55,6 +55,10 @@ public:
         std::string database;
         std::string dbuser;
         std::string dbpass;
+
+private:
+        int read_new_style_targets(std::string filename, RTGConf& conf);
+        int read_old_style_targets(std::string filename, RTGConf& conf);
 };
 
 #endif

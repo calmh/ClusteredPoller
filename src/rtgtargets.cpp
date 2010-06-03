@@ -16,6 +16,14 @@ RTGTargets::RTGTargets()
 RTGTargets::RTGTargets(string filename, RTGConf& conf)
         : vector<QueryHost>()
 {
+        int hosts_read = read_new_style_targets(filename, conf);
+        if (hosts_read == 0) {
+                read_old_style_targets(filename, conf);
+        }
+}
+
+int RTGTargets::read_new_style_targets(string filename, RTGConf& conf)
+{
         ifstream targets(filename.c_str());
         string token;
         QueryHost host;
@@ -94,4 +102,60 @@ RTGTargets::RTGTargets(string filename, RTGConf& conf)
         targets.close();
         if (verbosity >= 1)
                 cerr << "Read " << ntargs << " targets in " << nhosts << " hosts." << endl;
+        return nhosts;
+}
+
+int RTGTargets::read_old_style_targets(string filename, RTGConf& conf)
+{
+        ifstream targets(filename.c_str());
+        char linebuffer[256];
+
+        int nhosts = 0;
+        QueryHost* currentHost = NULL;
+        while (!targets.eof()) {
+                targets.getline(linebuffer, 255);
+                string line(linebuffer);
+
+                line = string_uncomment(line);
+                if (line.length() == 0)
+                        continue;
+
+                list<string> parts = string_split(line, "\t");
+                if (parts.size() < 6)
+                        continue;
+
+                string host = parts.front();
+                parts.pop_front();
+                string oid = parts.front();
+                parts.pop_front();
+                int bits = atoi(parts.front().c_str());
+                parts.pop_front();
+                string community = parts.front();
+                parts.pop_front();
+                string table = parts.front();
+                parts.pop_front();
+                int id = atoi(parts.front().c_str());
+                parts.pop_front();
+
+                if (currentHost != NULL && currentHost->host.compare(host) != 0) {
+                        push_back(*currentHost);
+                        nhosts++;
+                        currentHost = NULL;
+                }
+
+                if (currentHost == NULL) {
+                        // We lack data, so we assume SNMP version 2.
+                        currentHost = new QueryHost(host, community, 2);
+                };
+
+                QueryRow row(oid, table, id, bits);
+                // We lack data so we assume a tengig interface.
+                row.speed = (unsigned)10e9 / 8 / conf.interval;
+                currentHost->rows.push_back(row);
+        }
+
+        push_back(*currentHost);
+        nhosts++;
+
+        return nhosts;
 }
