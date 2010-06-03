@@ -1,6 +1,5 @@
 #include "UnitTest++.h"
 #include "types.h"
-#include "query.h"
 #include "queryablehost.h"
 #include "rtgconf.h"
 #include "rtgtargets.h"

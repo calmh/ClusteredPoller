@@ -1,7 +1,7 @@
+#include <string>
 #include "database.h"
 #include "globals.h"
 
-#include <string>
 using namespace std;
 
 Database::Database(int num_threads) : Multithread(num_threads)

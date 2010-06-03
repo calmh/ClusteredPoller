@@ -11,7 +11,10 @@ SOURCES = src/main.cpp \
 	src/database.cpp
 
 TESTSOURCES = test/main.cpp \
-	test/quicktests.cpp \
+	test/utiltests.cpp \
+	test/integrationtests.cpp \
+	test/rtgconftests.cpp \
+	test/rtgtargetstests.cpp \
 	test/longtests.cpp \
 	test/database-mock.cpp \
 	test/snmp-mock.cpp \
@@ -79,7 +82,7 @@ clean:
 
 .PHONY: reformat
 reformat:
-	@astyle -A8 -n --convert-tabs --align-pointer=type -z2 include/*.h src/*cpp
+	@astyle -A8 -n --convert-tabs --align-pointer=type -z2 src/*
 
 .PHONY: version
 version:
