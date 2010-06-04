@@ -56,6 +56,12 @@ QueryHost RTGTargets::read_host(ifstream& targets, string& host_name, RTGConf& c
         host.host = host_name;
         while (targets >> token) {
                 token = no_semi(token);
+                string_tolower(token);
+                if (token[0] == '#') {
+                        targets.ignore(1024, '\n');
+                        continue;
+                }
+
                 if (token == "community") {
                         targets >> token;
                         host.community = no_semi(token);
@@ -82,6 +88,12 @@ QueryRow RTGTargets::read_row(ifstream& targets, string& oid, RTGConf& conf)
         row.oid = oid;
         while (targets >> token) {
                 token = no_semi(token);
+                string_tolower(token);
+                if (token[0] == '#') {
+                        targets.ignore(1024, '\n');
+                        continue;
+                }
+
                 if (token == "bits") {
                         targets >> row.bits;
                 } else if (token == "table") {
