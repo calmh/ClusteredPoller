@@ -50,8 +50,8 @@ Installation
 `clpoll` depends on `libmysql++` and `net-snmp`. Make sure these are
 available.
 
-Run `make`. It should produce a binary called `clpoll` in the `src`
-directory. Use this in the same way you would use `rtgpoll`.
+Run `make`. It should produce a binary called `clpoll`.  Use this in the same
+way you would use `rtgpoll`.
 
 Jakob Borg <jakob@nym.se>
 2009-12-25

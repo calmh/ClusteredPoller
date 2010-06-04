@@ -21,9 +21,9 @@ Clone the clpoll respository from github:
 
 Build and test clpoll:
 
-  cd ClusteredPoller ; make all test
+  cd ClusteredPoller ; make
 
-One of the last lines of compiler output should be "There were not test
-failures". You now have a hopefully working clpoll binary. Follow the
-instructions in README.
+The last lines of compiler output should indicate that unit tests passed
+without failures. You now have a hopefully working clpoll binary. Follow
+the instructions in README.
 

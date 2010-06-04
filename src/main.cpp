@@ -15,7 +15,7 @@ void help();
 // Display usage.
 void help()
 {
-        cerr << "clpoll version " << CLPOLL_VERSION << endl;
+        cerr << "clpoll " << CLPOLL_VERSION << endl;
         cerr << " -c <file>   Specify configuration file [" << rtgconf << "]" << endl;
         cerr << " -D          Don't detach, run in foreground" << endl;
         cerr << " -d          Disable database inserts" << endl;
@@ -26,7 +26,8 @@ void help()
         cerr <<  " Copyright (c) 2009-2010 Jakob Borg" << endl;
 }
 
-void run_threads() {
+void run_threads()
+{
         // Calculate number of database writers needed. This is just a guess.
         unsigned num_dbthreads = config.threads / 8;
         num_dbthreads = num_dbthreads ? num_dbthreads : 1;
