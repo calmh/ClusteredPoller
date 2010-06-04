@@ -163,25 +163,32 @@ int RTGTargets::read_old_style_targets(string filename, RTGConf& conf)
                 parts.pop_front();
 
                 if (currentHost != NULL && currentHost->host.compare(host) != 0) {
-                        push_back(*currentHost);
-                        nhosts++;
+                        // Not the same host as previous row, so invalidate.
                         currentHost = NULL;
                 }
 
                 if (currentHost == NULL) {
+                        // Look for an existing host.
+                        for (vector<QueryHost>::iterator it = begin(); it != end(); it++) {
+                                if (it->host.compare(host) == 0) {
+                                        currentHost = &(*it);
+                                        break;
+                                }
+                        }
+                }
+
+                if (currentHost == NULL) {
+                        // Create a new host.
                         // We lack data, so we assume SNMP version 2.
-                        currentHost = new QueryHost(host, community, 2);
+                        push_back(*(new QueryHost(host, community, 2)));
+                        currentHost = &back();
+                        nhosts++;
                 };
 
                 QueryRow row(oid, table, id, bits);
                 // We lack data so we assume a tengig interface.
                 row.speed = (unsigned)10e9 / 8 / conf.interval;
                 currentHost->rows.push_back(row);
-        }
-
-        if (currentHost != NULL) {
-                push_back(*currentHost);
-                nhosts++;
         }
 
         return nhosts;
