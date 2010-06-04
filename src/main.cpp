@@ -15,7 +15,7 @@ void help();
 // Display usage.
 void help()
 {
-        cerr << "clpoll version " << CLPOLL_VERSION << endl;
+        cerr << "clpoll " << CLPOLL_VERSION << endl;
         cerr << " -c <file>   Specify configuration file [" << rtgconf << "]" << endl;
         cerr << " -D          Don't detach, run in foreground" << endl;
         cerr << " -d          Disable database inserts" << endl;

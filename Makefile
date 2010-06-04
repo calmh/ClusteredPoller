@@ -86,7 +86,7 @@ reformat:
 
 .PHONY: version
 version:
-	@echo "#define CLPOLL_VERSION \"${VERSION}\"" > include/version.h
+	@echo "#define CLPOLL_VERSION \"${VERSION}\"" > src/version.h
 
 %.o : %.cpp
 	@echo $<
