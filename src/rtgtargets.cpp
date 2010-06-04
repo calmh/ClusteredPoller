@@ -26,11 +26,7 @@ int RTGTargets::read_new_style_targets(string filename, RTGConf& conf)
 {
         ifstream targets(filename.c_str());
         string token;
-        QueryHost host;
-        QueryRow row;
-        int state = 0;
         int nhosts = 0;
-        int ntargs = 0;
         while (targets >> token) {
                 token = no_semi(token);
                 string_tolower(token);
@@ -38,71 +34,88 @@ int RTGTargets::read_new_style_targets(string filename, RTGConf& conf)
                         targets.ignore(1024, '\n');
                         continue;
                 }
-                if (state == 0) {
-                        if (token == "host") {
-                                host = QueryHost();
-                                targets >> host.host;
-                        } else if (token == "{")
-                                state = 1;
-                } else if (state == 1) {
-                        if (token == "community") {
-                                targets >> token;
-                                host.community = no_semi(token);
-                        } else if (token == "snmpver") {
-                                targets >> host.snmpver;
-                        } else if (token == "target") {
-                                targets >> token;
-                                row = QueryRow();
-                                row.oid = no_semi(token);
-                        } else if (token == "{") {
-                                state = 2;
-                        } else if (token == "}") {
-                                push_back(host);
-                                nhosts++;
-                                state = 0;
-                        }
-                } else if (state == 2) {
-                        if (token == "bits")
-                                targets >> row.bits;
-                        else if (token == "table") {
-                                targets >> token;
-                                row.table = no_semi(token);
-                        } else if (token == "id") {
-                                targets >> row.id;
-                        } else if (token == "speed") {
-                                uint64_t max_counter_diff;
-                                targets >> max_counter_diff;
-                                if (row.bits == 0)
-                                        row.speed = max_counter_diff;
-                                else
-                                        row.speed = max_counter_diff / conf.interval;
-                        } else if (token == "}") {
-                                bool duplicate = false;
-                                for (vector<QueryRow>::const_iterator it = host.rows.begin(); it != host.rows.end(); it++) {
-                                        if (it->oid.compare(row.oid) == 0) {
-                                                duplicate = true;
-                                                cerr << "WARNING: Host " << host.host << " OID " << row.oid << " is a duplicate. Ignoring." << endl;
-                                                break;
-                                        }
-                                        if (it->table.compare(row.table) == 0 && it->id == row.id) {
-                                                duplicate = true;
-                                                cerr << "WARNING: Host " << host.host << " table " << row.table << " id " << row.id << " is a duplicate. Ignoring." << endl;
-                                                break;
-                                        }
-                                }
-                                if (!duplicate) {
-                                        host.rows.push_back(row);
-                                        ntargs++;
-                                }
-                                state = 1;
-                        }
+                if (token == "host") {
+                        string host_name;
+                        targets >> host_name;
+                        QueryHost host = read_host(targets, host_name, conf);
+                        push_back(host);
+                        nhosts++;
                 }
         }
-
         targets.close();
+
         if (verbosity >= 1)
-                cerr << "Read " << ntargs << " targets in " << nhosts << " hosts." << endl;
+                cerr << "Read " << nhosts << " hosts." << endl;
         return nhosts;
+}
+
+QueryHost RTGTargets::read_host(ifstream& targets, string& host_name, RTGConf& conf)
+{
+        string token;
+        QueryHost host;
+        host.host = host_name;
+        while (targets >> token) {
+                token = no_semi(token);
+                if (token == "community") {
+                        targets >> token;
+                        host.community = no_semi(token);
+                } else if (token == "snmpver") {
+                        targets >> host.snmpver;
+                } else if (token == "target") {
+                        targets >> token;
+                        string oid = no_semi(token);
+                        QueryRow row = read_row(targets, oid, conf);
+                        if (!check_for_duplicate(host, row)) {
+                                host.rows.push_back(row);
+                        }
+                } else if (token == "}") {
+                        break;
+                }
+        }
+        return host;
+}
+
+QueryRow RTGTargets::read_row(ifstream& targets, string& oid, RTGConf& conf)
+{
+        string token;
+        QueryRow row;
+        row.oid = oid;
+        while (targets >> token) {
+                token = no_semi(token);
+                if (token == "bits") {
+                        targets >> row.bits;
+                } else if (token == "table") {
+                        targets >> token;
+                        row.table = no_semi(token);
+                } else if (token == "id") {
+                        targets >> row.id;
+                } else if (token == "speed") {
+                        uint64_t max_counter_diff;
+                        targets >> max_counter_diff;
+                        if (row.bits == 0)
+                                row.speed = max_counter_diff;
+                        else
+                                row.speed = max_counter_diff / conf.interval;
+                } else if (token == "}") {
+                        break;
+                }
+        }
+        return row;
+}
+
+bool RTGTargets::check_for_duplicate(QueryHost& host, QueryRow& row)
+{
+        for (vector<QueryRow>::const_iterator it = host.rows.begin(); it != host.rows.end(); it++) {
+                if (it->oid.compare(row.oid) == 0) {
+                        cerr << "WARNING: Host " << host.host << " OID " << row.oid << " is a duplicate. Ignoring." << endl;
+                        return true;
+                }
+                if (it->table.compare(row.table) == 0 && it->id == row.id) {
+                        cerr << "WARNING: Host " << host.host << " table " << row.table << " id " << row.id << " is a duplicate. Ignoring." << endl;
+                        return true;
+                }
+        }
+        return false;
 }
 
 int RTGTargets::read_old_style_targets(string filename, RTGConf& conf)

@@ -57,6 +57,9 @@ public:
         std::string dbpass;
 
 private:
+        QueryHost read_host(std::ifstream& targets, std::string& host_name, RTGConf& conf);
+        QueryRow read_row(std::ifstream& targets, std::string& oid, RTGConf& conf);
+        bool check_for_duplicate(QueryHost& host, QueryRow& row);
         int read_new_style_targets(std::string filename, RTGConf& conf);
         int read_old_style_targets(std::string filename, RTGConf& conf);
 };
