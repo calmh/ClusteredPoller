@@ -48,7 +48,7 @@ map<string, ResultSet> QueryableHost::get_all_resultsets()
 
         try {
                 // Start a new SNMP session.
-                SNMP snmp_session(host.host, host.community);
+                SNMP snmp_session(host.host, host.community, host.snmpver);
 
                 int errors = 0;
                 // Iterate over all targets in the host.
