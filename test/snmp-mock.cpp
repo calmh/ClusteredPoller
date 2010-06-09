@@ -13,7 +13,7 @@ void mock_set_speed(unsigned int newspeed)
 
 bool SNMP::global_init_done = false;
 
-SNMP::SNMP(string host, string community)
+SNMP::SNMP(string host, string community, int snmpver)
 {
 }
 

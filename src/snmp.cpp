@@ -12,7 +12,7 @@ SNMPCommunicationException::SNMPCommunicationException(const string& what)
 bool SNMP::global_init_done = false;
 pthread_mutex_t SNMP::snmp_lock = PTHREAD_MUTEX_INITIALIZER;
 
-SNMP::SNMP(string host, string community)
+SNMP::SNMP(string host, string community, int snmpver)
 {
         // Initialization of SNMP isn't thread safe.
         pthread_mutex_lock(&snmp_lock);
@@ -23,9 +23,14 @@ SNMP::SNMP(string host, string community)
 
         snmp_sess_init(&session);
         session.peername = (char*) host.c_str();
-        session.version = SNMP_VERSION_2c;
         session.community = (u_char*) community.c_str();
         session.community_len = community.length();
+        if (snmpver == 2)
+                session.version = SNMP_VERSION_2c;
+        else if (snmpver == 1)
+                session.version = SNMP_VERSION_1;
+        else
+                throw SNMPCommunicationException(string("Unsupported SNMP version for host ") + host);
         sessp = snmp_sess_open(&session);
 
         if (!sessp) {
