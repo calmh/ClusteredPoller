@@ -19,14 +19,18 @@ SUITE(QuickTests)
                 CHECK_EQUAL((size_t)2, hosts.size()); // Two hosts
                 CHECK_EQUAL((size_t)2, hosts[0].rows.size()); // Two rows for host one
                 CHECK_EQUAL((size_t)2, hosts[1].rows.size()); // Two rows for host two
+                CHECK_EQUAL(2, hosts.results.hosts);
+                CHECK_EQUAL(4, hosts.results.targets);
         }
 
         TEST(ParseOldStyleTargets) {
                 RTGConf conf("test/example-rtg.conf");
                 RTGTargets hosts("test/oldstyle-targets.cfg", conf);
                 CHECK_EQUAL((size_t)2, hosts.size()); // Two hosts
-                CHECK_EQUAL((size_t)8, hosts[0].rows.size()); // Two rows for host one
-                CHECK_EQUAL((size_t)7, hosts[1].rows.size()); // Two rows for host two
+                CHECK_EQUAL((size_t)8, hosts[0].rows.size()); // Eight rows for host one
+                CHECK_EQUAL((size_t)7, hosts[1].rows.size()); // Seven rows for host two
+                CHECK_EQUAL(2, hosts.results.hosts);
+                CHECK_EQUAL(8+7, hosts.results.targets);
         }
 
         TEST(ParseNewStyleTargetsHost) {

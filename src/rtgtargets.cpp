@@ -16,17 +16,19 @@ RTGTargets::RTGTargets()
 RTGTargets::RTGTargets(string filename, RTGConf& conf)
         : vector<QueryHost>()
 {
-        int hosts_read = read_new_style_targets(filename, conf);
-        if (hosts_read == 0) {
-                read_old_style_targets(filename, conf);
+        results = read_new_style_targets(filename, conf);
+        if (results.hosts == 0) {
+                results = read_old_style_targets(filename, conf);
         }
+        if (verbosity >= 1)
+                cerr << "Read " << results.targets << " targets in " << results.hosts << " hosts." << endl;
 }
 
-int RTGTargets::read_new_style_targets(string filename, RTGConf& conf)
+ParseResults RTGTargets::read_new_style_targets(string filename, RTGConf& conf)
 {
+        ParseResults results = {0};
         ifstream targets(filename.c_str());
         string token;
-        int nhosts = 0;
         while (targets >> token) {
                 token = no_semi(token);
                 string_tolower(token);
@@ -39,14 +41,13 @@ int RTGTargets::read_new_style_targets(string filename, RTGConf& conf)
                         targets >> host_name;
                         QueryHost host = read_host(targets, host_name, conf);
                         push_back(host);
-                        nhosts++;
+                        results.hosts++;
+                        results.targets += host.rows.size();
                 }
         }
         targets.close();
 
-        if (verbosity >= 1)
-                cerr << "Read " << nhosts << " hosts." << endl;
-        return nhosts;
+        return results;
 }
 
 QueryHost RTGTargets::read_host(ifstream& targets, string& host_name, RTGConf& conf)
@@ -130,12 +131,12 @@ bool RTGTargets::check_for_duplicate(QueryHost& host, QueryRow& row)
         return false;
 }
 
-int RTGTargets::read_old_style_targets(string filename, RTGConf& conf)
+ParseResults RTGTargets::read_old_style_targets(string filename, RTGConf& conf)
 {
         ifstream targets(filename.c_str());
         char linebuffer[256];
 
-        int nhosts = 0;
+        ParseResults results = {0};
         QueryHost* currentHost = NULL;
         while (targets.good() && !targets.eof()) {
                 targets.getline(linebuffer, 255);
@@ -182,14 +183,15 @@ int RTGTargets::read_old_style_targets(string filename, RTGConf& conf)
                         // We lack data, so we assume SNMP version 2.
                         push_back(*(new QueryHost(host, community, 2)));
                         currentHost = &back();
-                        nhosts++;
+                        results.hosts++;
                 };
 
                 QueryRow row(oid, table, id, bits);
                 // We lack data so we assume a tengig interface.
                 row.speed = (unsigned)10e9 / 8 / conf.interval;
                 currentHost->rows.push_back(row);
+                results.targets++;
         }
 
-        return nhosts;
+        return results;
 }
