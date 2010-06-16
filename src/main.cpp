@@ -32,12 +32,18 @@ void run_threads()
         unsigned num_dbthreads = config.threads / 8;
         num_dbthreads = num_dbthreads ? num_dbthreads : 1;
 
+        if (verbosity >= 1)
+                cerr << "Starting " << config.threads << " poller threads." << endl;
         Poller pollers(config.threads);
         pollers.start();
 
+        if (verbosity >= 1)
+                cerr << "Starting " << num_dbthreads << " database threads." << endl;
         Database database_threads(num_dbthreads);
         database_threads.start();
 
+        if (verbosity >= 1)
+                cerr << "Starting monitor thread." << endl;
         Monitor monitor;
         monitor.start();
 
@@ -92,10 +98,8 @@ int main (int argc, char* const argv[])
         // Allocate result cache for the number of hosts in targets.cfg
         cache = vector<ResultCache>(hosts.size());
 
-        if (verbosity >= 1) {
+        if (verbosity >= 1)
                 cerr << "Polling every " << config.interval << " seconds." << endl;
-                cerr << "Starting poll with " << config.threads << " threads." << endl;
-        }
 
         if (detach)
                 daemonize();
