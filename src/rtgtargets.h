@@ -40,6 +40,12 @@ struct QueryHost {
         }
 };
 
+// Results from targets file reading
+struct ParseResults {
+        unsigned hosts;
+        unsigned targets;
+};
+
 // Holds information from targets.cfg.
 class RTGTargets : public std::vector<QueryHost>
 {
@@ -55,13 +61,14 @@ public:
         std::string database;
         std::string dbuser;
         std::string dbpass;
+        ParseResults results;
 
 private:
         QueryHost read_host(std::ifstream& targets, std::string& host_name, RTGConf& conf);
         QueryRow read_row(std::ifstream& targets, std::string& oid, RTGConf& conf);
         bool check_for_duplicate(QueryHost& host, QueryRow& row);
-        int read_new_style_targets(std::string filename, RTGConf& conf);
-        int read_old_style_targets(std::string filename, RTGConf& conf);
+        ParseResults read_new_style_targets(std::string filename, RTGConf& conf);
+        ParseResults read_old_style_targets(std::string filename, RTGConf& conf);
 };
 
 #endif
