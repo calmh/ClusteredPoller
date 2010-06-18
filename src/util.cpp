@@ -117,8 +117,8 @@ void log(int level, const char* format, ...)
                 cerr << buffer << endl;
                 pthread_mutex_unlock(&cerr_lock);
                 if (level > 1)
-                        syslog(LOG_DEBUG, buffer);
+                        syslog(LOG_DEBUG, "%s", buffer);
                 else
-                        syslog(LOG_INFO, buffer);
+                        syslog(LOG_INFO, "%s", buffer);
         }
 }
