@@ -1,9 +1,10 @@
-#include <string>
 #include "UnitTest++.h"
 #include "types.h"
 #include "queryablehost.h"
 #include "rtgconf.h"
 #include "rtgtargets.h"
+
+#include <string>
 
 using namespace std;
 

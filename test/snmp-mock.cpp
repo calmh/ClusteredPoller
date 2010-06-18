@@ -1,5 +1,7 @@
 #include <string>
 #include <iostream>
+
+#include "types.h"
 #include "snmp.h"
 
 using namespace std;

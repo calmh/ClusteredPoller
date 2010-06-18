@@ -1,4 +1,5 @@
 #include <string>
+
 #include "database.h"
 #include "globals.h"
 
