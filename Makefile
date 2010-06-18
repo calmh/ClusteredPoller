@@ -38,7 +38,7 @@ TESTTARGET := testrunner
 UNITTESTPP := UnitTest++/libUnitTest++.a
 .SUFFIXES: .o .cpp
 
-CXXFLAGS ?= -ansi -DOS_${OS} -DUSE_MYSQL 
+CXXFLAGS ?= -ansi -DOS_${OS} -DUSE_MYSQL -Wall -Werror
 
 OS = $(shell uname -s | awk '{print tolower($$0)}')
 ifeq ($(OS),linux)
@@ -51,7 +51,7 @@ endif
 
 all: $(UNITTESTPP) $(TARGET) test
 
-$(TARGET): CXXFLAGS += -O2 -Wall -Werror
+$(TARGET): CXXFLAGS += -O2
 $(TARGET): $(OBJS)
 	@echo Linking $@...
 	@g++ $^ $(LIBS) -o $@
