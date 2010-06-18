@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "pstdint.h"
+
 class QueryHost;
 class ResultCache;
 class ResultSet;

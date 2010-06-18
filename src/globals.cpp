@@ -1,9 +1,10 @@
+#include <queue>
+#include <string>
+
 #include "types.h"
 #include "rtgconf.h"
 #include "rtgtargets.h"
 
-#include <queue>
-#include <string>
 using namespace std;
 
 // Global variables are instantiated here.

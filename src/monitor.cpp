@@ -1,8 +1,10 @@
+#include <iostream>
+
+#include "types.h"
 #include "monitor.h"
 #include "queryablehost.h"
 #include "globals.h"
 
-#include <iostream>
 using namespace std;
 
 Monitor::Monitor() : Multithread(1)

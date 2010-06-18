@@ -1,15 +1,16 @@
-#define MAXERRORSPERHOST 3
+#include <iostream>
+#include <sstream>
 
-#include "rtgtargets.h"
 #include "types.h"
+#include "rtgtargets.h"
 #include "queryablehost.h"
 #include "globals.h"
 #include "util.h"
 #include "snmp.h"
 
-#include <iostream>
-#include <sstream>
 using namespace std;
+
+#define MAXERRORSPERHOST 3
 
 QueryableHost::QueryableHost(QueryHost& host, ResultCache& cache) :
         host(host), cache(cache)

@@ -5,6 +5,8 @@
 #include <vector>
 #include <string>
 
+#include "pstdint.h"
+
 //
 // Cache stuff.
 //

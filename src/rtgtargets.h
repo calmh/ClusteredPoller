@@ -6,6 +6,8 @@ class RTGConf;
 #include <string>
 #include <vector>
 
+#include "pstdint.h"
+
 // Holds query instructions for one row (table+id).
 struct QueryRow {
         std::string oid;

@@ -1,7 +1,9 @@
-#include "snmp.h"
-
 #include <string>
 #include <iostream>
+
+#include "types.h"
+#include "snmp.h"
+
 using namespace std;
 
 SNMPCommunicationException::SNMPCommunicationException(const string& what)

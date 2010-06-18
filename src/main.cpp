@@ -1,3 +1,6 @@
+#include <iostream>
+
+#include "types.h"
 #include "util.h"
 #include "globals.h"
 #include "monitor.h"
@@ -5,7 +8,6 @@
 #include "database.h"
 #include "version.h"
 
-#include <iostream>
 using namespace std;
 
 void help();

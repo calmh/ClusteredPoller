@@ -2,6 +2,7 @@
 #define POLLER_H_
 
 #include "multithread.h"
+#include "pstdint.h"
 
 class Poller : public Multithread
 {

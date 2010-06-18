@@ -7,6 +7,8 @@
 #include <pthread.h>
 #include <stdexcept>
 
+#include "pstdint.h"
+
 class SNMPCommunicationException : public std::runtime_error
 {
 public:

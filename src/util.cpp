@@ -1,8 +1,10 @@
-#include "util.h"
-
 #include <string>
 #include <list>
 #include <sys/stat.h>
+
+#include "types.h"
+#include "util.h"
+
 using namespace std;
 
 // Detach from console. Common recipe.

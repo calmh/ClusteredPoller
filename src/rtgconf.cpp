@@ -1,7 +1,9 @@
+#include <fstream>
+
+#include "types.h"
 #include "rtgconf.h"
 #include "util.h"
 
-#include <fstream>
 using namespace std;
 
 RTGConf::RTGConf()

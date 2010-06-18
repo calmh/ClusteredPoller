@@ -1,10 +1,12 @@
+#include <string>
+#include <iostream>
+#include <fstream>
+
+#include "types.h"
 #include "rtgtargets.h"
 #include "util.h"
 #include "globals.h"
 
-#include <string>
-#include <iostream>
-#include <fstream>
 using namespace std;
 
 RTGTargets::RTGTargets()

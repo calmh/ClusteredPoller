@@ -1,11 +1,12 @@
-#include "database.h"
-#include "globals.h"
-
 #ifdef USE_MYSQL
 #include <mysql++.h>
 #endif
-
 #include <iostream>
+
+#include "types.h"
+#include "database.h"
+#include "globals.h"
+
 using namespace std;
 
 Database::Database(int num_threads) : Multithread(num_threads)
