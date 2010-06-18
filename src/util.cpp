@@ -35,7 +35,7 @@ void daemonize(void)
                 exit(EXIT_FAILURE);
         }
 
-	FILE *ignored;
+        FILE* ignored;
         ignored = freopen( "/dev/null", "r", stdin);
         ignored = freopen( "/dev/null", "w", stdout);
         ignored = freopen( "/dev/null", "w", stderr);
@@ -53,7 +53,7 @@ string no_semi(string token)
 // Convert characters in a range to lower case.
 template <typename Iter> void range_tolower (Iter beg, Iter end)
 {
-       for ( Iter iter = beg; iter != end; ++iter ) {
+        for ( Iter iter = beg; iter != end; ++iter ) {
                 *iter = std::tolower( *iter );
         }
 }
