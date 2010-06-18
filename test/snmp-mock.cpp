@@ -23,7 +23,7 @@ SNMP::~SNMP()
 {
 }
 
-bool SNMP::get_counter(string oid_str, uint64_t* counter, time_t* response_time)
+bool SNMP::get_counter(string oid_str, unsigned long long* counter, time_t* response_time)
 {
         time(response_time);
         *counter = *response_time * speed;
