@@ -5,7 +5,6 @@
 #include <string>
 #include <list>
 
-#include "pstdint.h"
 #include "types.h"
 
 // See util.cpp for comments.

@@ -5,7 +5,6 @@
 #include <string>
 #include <queue>
 
-#include "pstdint.h"
 #include "types.h"
 #include "rtgconf.h"
 #include "rtgtargets.h"

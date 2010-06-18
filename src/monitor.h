@@ -1,7 +1,6 @@
 #ifndef MONITOR_H_
 #define MONITOR_H_
 
-#include "pstdint.h"
 #include "multithread.h"
 
 class Monitor : public Multithread

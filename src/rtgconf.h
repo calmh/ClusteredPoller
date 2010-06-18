@@ -3,8 +3,6 @@
 
 #include <string>
 
-#include "pstdint.h"
-
 // Holds information from rtg.conf.
 struct RTGConf {
         RTGConf();

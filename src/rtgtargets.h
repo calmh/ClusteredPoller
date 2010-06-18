@@ -6,15 +6,13 @@ class RTGConf;
 #include <string>
 #include <vector>
 
-#include "pstdint.h"
-
 // Holds query instructions for one row (table+id).
 struct QueryRow {
         std::string oid;
         std::string table;
         unsigned id;
         unsigned bits;
-        uint64_t speed;
+        unsigned long long speed;
 
         QueryRow() {}
         QueryRow(std::string ioid, std::string itable, int iid, int ibits) {

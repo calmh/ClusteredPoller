@@ -105,7 +105,7 @@ QueryRow RTGTargets::read_row(ifstream& targets, string& oid, RTGConf& conf)
                 } else if (token == "id") {
                         targets >> row.id;
                 } else if (token == "speed") {
-                        uint64_t max_counter_diff;
+                        unsigned long long max_counter_diff;
                         targets >> max_counter_diff;
                         if (row.bits == 0)
                                 row.speed = max_counter_diff;

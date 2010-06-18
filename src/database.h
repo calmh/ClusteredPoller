@@ -3,7 +3,6 @@
 
 #include <string>
 
-#include "pstdint.h"
 #include "multithread.h"
 
 class Database : public Multithread

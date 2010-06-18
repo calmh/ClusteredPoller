@@ -3,8 +3,6 @@
 
 #include <pthread.h>
 
-#include "pstdint.h"
-
 class Multithread
 {
 private:

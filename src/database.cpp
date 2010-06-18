@@ -73,6 +73,7 @@ void* Database::run(void* id_ptr)
                         sleep(1);
                 }
         }
+	return 0;
 }
 
 // Exctract a query from the queue, or an empty string if it's empty.

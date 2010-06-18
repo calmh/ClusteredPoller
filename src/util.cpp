@@ -1,6 +1,7 @@
 #include <string>
 #include <list>
 #include <sys/stat.h>
+#include <cstdio>
 
 #include "types.h"
 #include "util.h"
@@ -34,9 +35,10 @@ void daemonize(void)
                 exit(EXIT_FAILURE);
         }
 
-        freopen( "/dev/null", "r", stdin);
-        freopen( "/dev/null", "w", stdout);
-        freopen( "/dev/null", "w", stderr);
+	FILE *ignored;
+        ignored = freopen( "/dev/null", "r", stdin);
+        ignored = freopen( "/dev/null", "w", stdout);
+        ignored = freopen( "/dev/null", "w", stderr);
 }
 
 // Remove one semicolon from a string.
@@ -51,7 +53,7 @@ string no_semi(string token)
 // Convert characters in a range to lower case.
 template <typename Iter> void range_tolower (Iter beg, Iter end)
 {
-        for ( Iter iter = beg; iter != end; ++iter ) {
+       for ( Iter iter = beg; iter != end; ++iter ) {
                 *iter = std::tolower( *iter );
         }
 }
