@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "util.h"
 #include "types.h"
 #include "globals.h"
 #include "poller.h"
@@ -36,11 +37,8 @@ void* Poller::run(void* id_ptr)
         while (1) {
 
                 // Mark ourself sleeping
-                if (iterations > 0 && verbosity >= 2) {
-                        pthread_mutex_lock(&cerr_lock);
-                        cerr << "Thread " << offset << " sleeping after " << end - start << " s processing time." << endl;
-                        pthread_mutex_unlock(&cerr_lock);
-                }
+                if (iterations > 0)
+                        log(2, "Thread %d sleeping after %d s processing time.", offset, end - start);
 
                 // Wait for green light.
                 pthread_mutex_lock(&global_lock);
@@ -49,11 +47,7 @@ void* Poller::run(void* id_ptr)
                 pthread_cond_wait(&global_cond, &global_lock);
                 pthread_mutex_unlock(&global_lock);
 
-                if (verbosity >= 2) {
-                        pthread_mutex_lock(&cerr_lock);
-                        cerr << "Thread " << offset << " starting." << endl;
-                        pthread_mutex_unlock(&cerr_lock);
-                }
+                log(2, "Thread %d starting.", offset);
                 // Mark ourself active.
                 pthread_mutex_lock(&global_lock);
                 active_threads++;
@@ -64,21 +58,13 @@ void* Poller::run(void* id_ptr)
                 // Loop over our share of the hosts.
                 for (unsigned i = offset; i < hosts.size(); i += stride) {
                         QueryHost host = hosts[i];
-                        if (verbosity >= 2) {
-                                pthread_mutex_lock(&cerr_lock);
-                                cerr << "Thread " << offset << " picked host #" << i << ": " << host.host << "." << endl;
-                                pthread_mutex_unlock(&cerr_lock);
-                        }
+                        log(2, "Thread %d picked host #%d.", offset, i);
                         // Process the host and get back a list of SQL updates to execute.
                         QueryableHost queryable_host(host, cache[i]);
                         vector<string> host_queries = queryable_host.get_inserts();
 
                         if (host_queries.size() > 0) {
-                                if (verbosity >= 2) {
-                                        pthread_mutex_lock(&cerr_lock);
-                                        cerr << "Thread " << offset << " queueing " << host_queries.size() << " queries." << endl;
-                                        pthread_mutex_unlock(&cerr_lock);
-                                }
+                                log(2, "Thread %d queueing %d queries.", offset, host_queries.size());
 
                                 vector<string>::iterator it;
                                 pthread_mutex_lock(&db_list_lock);
@@ -87,11 +73,8 @@ void* Poller::run(void* id_ptr)
                                 }
                                 unsigned qd = queries.size();
                                 query_queue_depth = query_queue_depth > qd ? query_queue_depth : qd;
-                                if (it != host_queries.end() && verbosity > 0) {
-                                        pthread_mutex_lock(&cerr_lock);
-                                        cerr << "Thread " << offset << " dropped queries due to database queue full." << endl;
-                                        pthread_mutex_unlock(&cerr_lock);
-                                }
+                                if (it != host_queries.end())
+                                        log(0, "Thread %d dropped queries due to database queue full.", offset);
                                 pthread_mutex_unlock(&db_list_lock);
 
                         }

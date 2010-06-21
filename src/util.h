@@ -2,6 +2,7 @@
 #define _UTIL_H
 
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string>
 #include <list>
 
@@ -15,5 +16,6 @@ template <typename Iter> void range_tolower(Iter beg, Iter end);
 void string_tolower(std::string& str);
 std::string string_uncomment(std::string& line);
 std::list<std::string> string_split(std::string& line, const char* separator);
+void log(int level, const char* format, ...);
 
 #endif

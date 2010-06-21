@@ -2,7 +2,10 @@
 #include <list>
 #include <sys/stat.h>
 #include <cstdio>
+#include <iostream>
+#include <syslog.h>
 
+#include "globals.h"
 #include "types.h"
 #include "util.h"
 
@@ -100,4 +103,22 @@ list<string> string_split(string& line, const char* separator)
         string part = line.substr(start, line.length() - start);
         parts.push_back(part);
         return parts;
+}
+
+void log(int level, const char* format, ...)
+{
+        va_list ap;
+        char buffer[128];
+        va_start(ap, format);
+        vsnprintf(buffer, 128, format, ap);
+        va_end(ap);
+        if (verbosity >= level) {
+                pthread_mutex_lock(&cerr_lock);
+                cerr << buffer << endl;
+                pthread_mutex_unlock(&cerr_lock);
+                if (level > 1)
+                        syslog(LOG_DEBUG, buffer);
+                else
+                        syslog(LOG_INFO, buffer);
+        }
 }

@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "util.h"
 #include "types.h"
 #include "monitor.h"
 #include "queryablehost.h"
@@ -30,14 +31,12 @@ void* Monitor::run(void* id_ptr)
                                 pthread_mutex_lock(&db_list_lock);
                                 unsigned qd = queries.size();
                                 pthread_mutex_unlock(&db_list_lock);
-                                pthread_mutex_lock(&cerr_lock);
-                                cerr << "Iteration complete, elapsed time for #" << stat_iterations << " was " << time(NULL) - in_iteration << " s." << endl;
-                                cerr << "Time until next iteration is " << interval - time(NULL) << " s." << endl;
-                                cerr << "  Rows inserted: " << stat_inserts << endl;
-                                cerr << "  Queries queued: " << stat_queries << endl;
-                                cerr << "  Max queue depth: " << query_queue_depth << endl;
-                                cerr << "  Remaining queue: " << qd << endl;
-                                pthread_mutex_unlock(&cerr_lock);
+                                log(1, "Iteration complete, elapsed time for #%d was %d s.", stat_iterations, time(NULL) - in_iteration);
+                                log(1, "Time until next iteration is %d s.", interval - time(NULL));
+                                log(1, "  Rows inserted: %d", stat_inserts);
+                                log(1, "  Queries queued: %d", stat_queries);
+                                log(1, "  Max queue depth: %d", query_queue_depth);
+                                log(1, "  Remaining queue: %d", qd);
                                 if (qd > 0)
                                         iteration_completed = time(NULL);
                         }
@@ -52,8 +51,7 @@ void* Monitor::run(void* id_ptr)
                         unsigned qd = queries.size();
                         pthread_mutex_unlock(&db_list_lock);
                         if (qd == 0) {
-                                if (verbosity > 0)
-                                        cerr << "  Queue zero " << time(NULL) - iteration_completed << " s after poll completion." << endl;
+                                log(1,  "  Queue empty %d s after poll completion.", time(NULL) - iteration_completed);
                                 iteration_completed = 0;
                         }
                 }
@@ -63,14 +61,12 @@ void* Monitor::run(void* id_ptr)
                         interval = (time(NULL) / config.interval + 1) * config.interval;
                         in_iteration = time(NULL);
                         if (verbosity >= 1) {
-                                pthread_mutex_lock(&cerr_lock);
-                                cerr << "Monitor signals wakeup." << endl;
-                                pthread_mutex_unlock(&cerr_lock);
+                                log(1, "Monitor signals wakeup.");
                                 pthread_mutex_lock(&db_list_lock);
                                 unsigned qd = queries.size();
                                 pthread_mutex_unlock(&db_list_lock);
                                 if (qd > 0 && verbosity > 0)
-                                        cerr << "  Queue at depth " << qd << " at poll start." << endl;
+                                        log(1, "  Queue at depth %d at poll start.", qd);
                                 iteration_completed = 0;
                         }
                         pthread_cond_broadcast(&global_cond);

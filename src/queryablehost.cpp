@@ -59,26 +59,15 @@ map<string, ResultSet> QueryableHost::get_all_resultsets()
                         initialize_result_set(rs, row);
                         bool success = query_snmp(snmp_session, row, rs);
                         if (!success) {
-                                if (verbosity >= 1) {
-                                        // Inform about the failure.
-                                        pthread_mutex_lock(&cerr_lock);
-                                        cerr << "SNMP get for " << host.host << " OID " << row.oid
-                                             << " failed." << endl;
-                                        pthread_mutex_unlock(&cerr_lock);
-                                }
+                                log(1, "SNMP get for %s OID %s failed.", host.host.c_str(), row.oid.c_str());
                                 errors++;
                         }
                 }
-                if (errors >= MAXERRORSPERHOST) {
-                        if (verbosity >= 1) {
-                                pthread_mutex_lock(&cerr_lock);
-                                cerr << "Too many errors for host " << host.host << ", aborting." << endl;
-                                pthread_mutex_unlock(&cerr_lock);
-                        }
-                }
+                if (errors >= MAXERRORSPERHOST)
+                        log(0, "Too many errors for host %s, aborted.", host.host.c_str());
         } catch (SNMPCommunicationException& e) {
-                cerr << "Error in SNMP setup." << endl;
-                cerr << e.what() << endl;
+                log(0, "Error in SNMP setup.");
+                log(0, "%s", e.what());
         }
 
         return rs;
@@ -91,12 +80,7 @@ pair<unsigned long long, unsigned long long> QueryableHost::calculate_rate(time_
 {
         time_t time_diff = cur_time - prev_time;
         if (time_diff == 0) {
-                cerr << "Fatal error: time_diff == 0 (can't happen!)" << endl
-                     << "prev_time " << prev_time << endl
-                     << "prev_counter " << prev_counter << endl
-                     << "cur_time " << cur_time << endl
-                     << "cur_count " << cur_counter << endl
-                     << "bits " << bits << endl;
+                log(0, "Fatal error: time_diff == 0 (can't happen!)");
                 exit(-1);
         }
         unsigned long long counter_diff = cur_counter - prev_counter;
@@ -124,22 +108,9 @@ vector<string> QueryableHost::get_inserts()
         // Store all database queries here for later processing.
         vector<string> queries;
 
-        if (verbosity >= 3) {
-                pthread_mutex_lock(&cerr_lock);
-                cerr << "process_host(" << host.host << ") running get_all_resultsets()" << endl;
-                pthread_mutex_unlock(&cerr_lock);
-        }
-
         // Query all values specified in the QueryHost and get back a list of ResultSets.
         // Each ResultSet represents one table in the database.
         map<string, ResultSet> results = get_all_resultsets();
-
-        if (verbosity >= 3) {
-                pthread_mutex_lock(&cerr_lock);
-                cerr << "get_inserts(" << host.host << ") got " << results.size()
-                     << " tables back from query()" << endl;
-                pthread_mutex_unlock(&cerr_lock);
-        }
 
         // Iterate over all the ResultSets we got back.
         map<string, ResultSet>::iterator it;
@@ -151,13 +122,6 @@ vector<string> QueryableHost::get_inserts()
                                 queries.push_back(insert_query);
                         }
                 }
-        }
-
-        if (verbosity >= 3) {
-                pthread_mutex_lock(&cerr_lock);
-                cerr << "get_inserts(" << host.host << ") returning "
-                     << queries.size() << " queries" << endl;
-                pthread_mutex_unlock(&cerr_lock);
         }
 
         // Return all the insert queries for processing.

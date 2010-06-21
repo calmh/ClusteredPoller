@@ -22,8 +22,7 @@ RTGTargets::RTGTargets(string filename, RTGConf& conf)
         if (results.hosts == 0) {
                 results = read_old_style_targets(filename, conf);
         }
-        if (verbosity >= 1)
-                cerr << "Read " << results.targets << " targets in " << results.hosts << " hosts." << endl;
+        log(0, "Read %d targets in %d hosts.", results.targets, results.hosts);
 }
 
 ParseResults RTGTargets::read_new_style_targets(string filename, RTGConf& conf)
@@ -122,11 +121,11 @@ bool RTGTargets::check_for_duplicate(QueryHost& host, QueryRow& row)
 {
         for (vector<QueryRow>::const_iterator it = host.rows.begin(); it != host.rows.end(); it++) {
                 if (it->oid.compare(row.oid) == 0) {
-                        cerr << "WARNING: Host " << host.host << " OID " << row.oid << " is a duplicate. Ignoring." << endl;
+                        log(0, "WARNING: Host %s OID %s is a duplicate. Ignoring.", host.host.c_str(), row.oid.c_str());
                         return true;
                 }
                 if (it->table.compare(row.table) == 0 && it->id == row.id) {
-                        cerr << "WARNING: Host " << host.host << " table " << row.table << " id " << row.id << " is a duplicate. Ignoring." << endl;
+                        log(0, "WARNING: Host %s table %s id %d is a duplicate. Ignoring.", host.host.c_str(), row.table.c_str(), row.id);
                         return true;
                 }
         }

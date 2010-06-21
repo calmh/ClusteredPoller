@@ -34,18 +34,15 @@ void run_threads()
         unsigned num_dbthreads = config.threads / 8;
         num_dbthreads = num_dbthreads ? num_dbthreads : 1;
 
-        if (verbosity >= 1)
-                cerr << "Starting " << config.threads << " poller threads." << endl;
+        log(1, "Starting %d poller threads.", config.threads);
         Poller pollers(config.threads);
         pollers.start();
 
-        if (verbosity >= 1)
-                cerr << "Starting " << num_dbthreads << " database threads." << endl;
+        log(1, "Starting %d database threads.", num_dbthreads);
         Database database_threads(num_dbthreads);
         database_threads.start();
 
-        if (verbosity >= 1)
-                cerr << "Starting monitor thread." << endl;
+        log(1, "Starting monitor thread.");
         Monitor monitor;
         monitor.start();
 
@@ -93,15 +90,14 @@ int main (int argc, char* const argv[])
         hosts = RTGTargets(targets, config);
 
         if (hosts.size() == 0) {
-                cerr << "No hosts, so nothing to do." << endl;
+                log(0, "No hosts, so nothing to do.");
                 exit(-1);
         }
 
         // Allocate result cache for the number of hosts in targets.cfg
         cache = vector<ResultCache>(hosts.size());
 
-        if (verbosity >= 1)
-                cerr << "Polling every " << config.interval << " seconds." << endl;
+        log(1, "Polling every %d seconds.", config.interval);
 
         if (detach)
                 daemonize();
