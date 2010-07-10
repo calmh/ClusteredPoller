@@ -1,7 +1,9 @@
-#include "snmp.h"
-
 #include <string>
 #include <iostream>
+
+#include "types.h"
+#include "snmp.h"
+
 using namespace std;
 
 SNMPCommunicationException::SNMPCommunicationException(const string& what)
@@ -48,7 +50,7 @@ SNMP::~SNMP()
 
 // Do an SNMP GET for a value, and return true if successfull.
 // Updates the counter and response_time parameters.
-bool SNMP::get_counter(string oid_str, uint64_t* counter, time_t* response_time)
+bool SNMP::get_counter(string oid_str, unsigned long long* counter, time_t* response_time)
 {
         struct snmp_pdu* pdu;
         struct snmp_pdu* response;
@@ -83,7 +85,7 @@ bool SNMP::get_counter(string oid_str, uint64_t* counter, time_t* response_time)
 
                 case ASN_COUNTER64:
                         // Get high and low 32 bits and shift them together
-                        *counter = (((uint64_t)(*vars->val.counter64).high) << 32) + (*vars->val.counter64).low;
+                        *counter = (((unsigned long long)(*vars->val.counter64).high) << 32) + (*vars->val.counter64).low;
                         success = true;
                         break;
                 }

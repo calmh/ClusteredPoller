@@ -1,10 +1,12 @@
+#include <string>
+#include <iostream>
+#include <fstream>
+
+#include "types.h"
 #include "rtgtargets.h"
 #include "util.h"
 #include "globals.h"
 
-#include <string>
-#include <iostream>
-#include <fstream>
 using namespace std;
 
 RTGTargets::RTGTargets()
@@ -20,8 +22,7 @@ RTGTargets::RTGTargets(string filename, RTGConf& conf)
         if (results.hosts == 0) {
                 results = read_old_style_targets(filename, conf);
         }
-        if (verbosity >= 1)
-                cerr << "Read " << results.targets << " targets in " << results.hosts << " hosts." << endl;
+        log(0, "Read %d targets in %d hosts.", results.targets, results.hosts);
 }
 
 ParseResults RTGTargets::read_new_style_targets(string filename, RTGConf& conf)
@@ -103,7 +104,7 @@ QueryRow RTGTargets::read_row(ifstream& targets, string& oid, RTGConf& conf)
                 } else if (token == "id") {
                         targets >> row.id;
                 } else if (token == "speed") {
-                        uint64_t max_counter_diff;
+                        unsigned long long max_counter_diff;
                         targets >> max_counter_diff;
                         if (row.bits == 0)
                                 row.speed = max_counter_diff;
@@ -120,11 +121,11 @@ bool RTGTargets::check_for_duplicate(QueryHost& host, QueryRow& row)
 {
         for (vector<QueryRow>::const_iterator it = host.rows.begin(); it != host.rows.end(); it++) {
                 if (it->oid.compare(row.oid) == 0) {
-                        cerr << "WARNING: Host " << host.host << " OID " << row.oid << " is a duplicate. Ignoring." << endl;
+                        log(0, "WARNING: Host %s OID %s is a duplicate. Ignoring.", host.host.c_str(), row.oid.c_str());
                         return true;
                 }
                 if (it->table.compare(row.table) == 0 && it->id == row.id) {
-                        cerr << "WARNING: Host " << host.host << " table " << row.table << " id " << row.id << " is a duplicate. Ignoring." << endl;
+                        log(0, "WARNING: Host %s table %s id %d is a duplicate. Ignoring.", host.host.c_str(), row.table.c_str(), row.id);
                         return true;
                 }
         }

@@ -24,7 +24,7 @@ private:
 public:
         SNMP(std::string host, std::string community, int snmpver);
         ~SNMP();
-        bool get_counter(std::string oid_str, uint64_t* counter, time_t* response_time);
+        bool get_counter(std::string oid_str, unsigned long long* counter, time_t* response_time);
 };
 
 #endif

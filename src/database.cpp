@@ -1,11 +1,14 @@
-#include "database.h"
-#include "globals.h"
-
 #ifdef USE_MYSQL
 #include <mysql++.h>
 #endif
-
 #include <iostream>
+
+
+#include "util.h"
+#include "types.h"
+#include "database.h"
+#include "globals.h"
+
 using namespace std;
 
 Database::Database(int num_threads) : Multithread(num_threads)
@@ -38,17 +41,10 @@ void* Database::run(void* id_ptr)
                 if (qs > 0) {
 #ifdef USE_MYSQL
                         if (!conn.connected()) {
-                                if (verbosity >= 2) {
-                                        pthread_mutex_lock(&cerr_lock);
-                                        cerr << "DB thread " << my_id << " connecting to MySQL" << endl;
-                                        pthread_mutex_unlock(&cerr_lock);
-                                }
+                                log(2, "DB thread %d connecting to MySQL.", my_id);
                                 conn.connect(config.database.c_str(), config.dbhost.c_str(), config.dbuser.c_str(), config.dbpass.c_str());
-                                if (!conn.connected()) {
-                                        pthread_mutex_lock(&cerr_lock);
-                                        cerr << "DB thread " << my_id << " !! Connection failed." << endl;
-                                        pthread_mutex_unlock(&cerr_lock);
-                                }
+                                if (!conn.connected())
+                                        log(0, "DB thread %d connection failed.", my_id);
                         } else {
                                 useless_iterations = 0;
                                 mysqlpp::Query q = conn.query(dequeue_query());
@@ -61,17 +57,14 @@ void* Database::run(void* id_ptr)
 #ifdef USE_MYSQL
                         useless_iterations++;
                         if (useless_iterations > 10 && conn.connected()) {
-                                if (verbosity >= 2) {
-                                        pthread_mutex_lock(&cerr_lock);
-                                        cerr << "DB thread " << my_id << " disconnecting from MySQL" << endl;
-                                        pthread_mutex_unlock(&cerr_lock);
-                                }
+                                log(2, "DB thread %d disconnecting.", my_id);
                                 conn.disconnect();
                         }
 #endif
                         sleep(1);
                 }
         }
+        return 0;
 }
 
 // Exctract a query from the queue, or an empty string if it's empty.

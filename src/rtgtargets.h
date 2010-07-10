@@ -12,7 +12,7 @@ struct QueryRow {
         std::string table;
         unsigned id;
         unsigned bits;
-        uint64_t speed;
+        unsigned long long speed;
 
         QueryRow() {}
         QueryRow(std::string ioid, std::string itable, int iid, int ibits) {

@@ -1,15 +1,16 @@
-#define MAXERRORSPERHOST 3
+#include <iostream>
+#include <sstream>
 
-#include "rtgtargets.h"
 #include "types.h"
+#include "rtgtargets.h"
 #include "queryablehost.h"
 #include "globals.h"
 #include "util.h"
 #include "snmp.h"
 
-#include <iostream>
-#include <sstream>
 using namespace std;
+
+#define MAXERRORSPERHOST 3
 
 QueryableHost::QueryableHost(QueryHost& host, ResultCache& cache) :
         host(host), cache(cache)
@@ -28,7 +29,7 @@ void QueryableHost::initialize_result_set(map<string, ResultSet> & rs, QueryRow&
 
 bool QueryableHost::query_snmp(SNMP& snmp_session, QueryRow& row, map<string, ResultSet>& rs)
 {
-        uint64_t value;
+        unsigned long long value;
         time_t response_time;
         bool success = snmp_session.get_counter(row.oid, &value, &response_time);
         if (success) {
@@ -58,26 +59,15 @@ map<string, ResultSet> QueryableHost::get_all_resultsets()
                         initialize_result_set(rs, row);
                         bool success = query_snmp(snmp_session, row, rs);
                         if (!success) {
-                                if (verbosity >= 1) {
-                                        // Inform about the failure.
-                                        pthread_mutex_lock(&cerr_lock);
-                                        cerr << "SNMP get for " << host.host << " OID " << row.oid
-                                             << " failed." << endl;
-                                        pthread_mutex_unlock(&cerr_lock);
-                                }
+                                log(1, "SNMP get for %s OID %s failed.", host.host.c_str(), row.oid.c_str());
                                 errors++;
                         }
                 }
-                if (errors >= MAXERRORSPERHOST) {
-                        if (verbosity >= 1) {
-                                pthread_mutex_lock(&cerr_lock);
-                                cerr << "Too many errors for host " << host.host << ", aborting." << endl;
-                                pthread_mutex_unlock(&cerr_lock);
-                        }
-                }
+                if (errors >= MAXERRORSPERHOST)
+                        log(0, "Too many errors for host %s, aborted.", host.host.c_str());
         } catch (SNMPCommunicationException& e) {
-                cerr << "Error in SNMP setup." << endl;
-                cerr << e.what() << endl;
+                log(0, "Error in SNMP setup.");
+                log(0, "%s", e.what());
         }
 
         return rs;
@@ -86,19 +76,14 @@ map<string, ResultSet> QueryableHost::get_all_resultsets()
 // Calculate the traffic rate between to points, for a given counter size (bits).
 // bits == 0 means it's a 32 bit gauge (RTG legacy).
 // bits == 32 or 64 means it's that size of counter.
-pair<uint64_t, uint64_t> QueryableHost::calculate_rate(time_t prev_time, uint64_t prev_counter, time_t cur_time, uint64_t cur_counter, int bits)
+pair<unsigned long long, unsigned long long> QueryableHost::calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cur_time, unsigned long long cur_counter, int bits)
 {
         time_t time_diff = cur_time - prev_time;
         if (time_diff == 0) {
-                cerr << "Fatal error: time_diff == 0 (can't happen!)" << endl
-                     << "prev_time " << prev_time << endl
-                     << "prev_counter " << prev_counter << endl
-                     << "cur_time " << cur_time << endl
-                     << "cur_count " << cur_counter << endl
-                     << "bits " << bits << endl;
+                log(0, "Fatal error: time_diff == 0 (can't happen!)");
                 exit(-1);
         }
-        uint64_t counter_diff = cur_counter - prev_counter;
+        unsigned long long counter_diff = cur_counter - prev_counter;
         if (prev_counter > cur_counter) {
                 // We seem to have a wrap.
                 // Wrap it back to find the correct rate.
@@ -110,10 +95,10 @@ pair<uint64_t, uint64_t> QueryableHost::calculate_rate(time_t prev_time, uint64_
 
         if (bits == 0)
                 // It's a gauge so just return the value as both counter diff and rate.
-                return pair<uint64_t, uint64_t> (cur_counter, cur_counter);
+                return pair<unsigned long long, unsigned long long> (cur_counter, cur_counter);
         else
                 // Return the calculated rate.
-                return pair<uint64_t, uint64_t> (counter_diff, counter_diff / time_diff);
+                return pair<unsigned long long, unsigned long long> (counter_diff, counter_diff / time_diff);
 }
 
 // Query all targets for a host, process rates compared with cache, and return vector of database queries
@@ -123,22 +108,9 @@ vector<string> QueryableHost::get_inserts()
         // Store all database queries here for later processing.
         vector<string> queries;
 
-        if (verbosity >= 3) {
-                pthread_mutex_lock(&cerr_lock);
-                cerr << "process_host(" << host.host << ") running get_all_resultsets()" << endl;
-                pthread_mutex_unlock(&cerr_lock);
-        }
-
         // Query all values specified in the QueryHost and get back a list of ResultSets.
         // Each ResultSet represents one table in the database.
         map<string, ResultSet> results = get_all_resultsets();
-
-        if (verbosity >= 3) {
-                pthread_mutex_lock(&cerr_lock);
-                cerr << "get_inserts(" << host.host << ") got " << results.size()
-                     << " tables back from query()" << endl;
-                pthread_mutex_unlock(&cerr_lock);
-        }
 
         // Iterate over all the ResultSets we got back.
         map<string, ResultSet>::iterator it;
@@ -150,13 +122,6 @@ vector<string> QueryableHost::get_inserts()
                                 queries.push_back(insert_query);
                         }
                 }
-        }
-
-        if (verbosity >= 3) {
-                pthread_mutex_lock(&cerr_lock);
-                cerr << "get_inserts(" << host.host << ") returning "
-                     << queries.size() << " queries" << endl;
-                pthread_mutex_unlock(&cerr_lock);
         }
 
         // Return all the insert queries for processing.
@@ -178,10 +143,10 @@ string QueryableHost::build_insert_query(ResultSet& r)
                 if (cache.times.find(key) != cache.times.end()) {
                         // We have a cache entry, so we can calculate rate since last measurement.
                         time_t prev_time = cache.times[key];
-                        uint64_t prev_counter = cache.counters[key];
+                        unsigned long long prev_counter = cache.counters[key];
 
                         // Get the rate, corrected for wraps etc.
-                        pair<uint64_t, uint64_t> rate = calculate_rate(prev_time, prev_counter, row.dtime, row.counter, row.bits);
+                        pair<unsigned long long, unsigned long long> rate = calculate_rate(prev_time, prev_counter, row.dtime, row.counter, row.bits);
 
                         // Verify that the resulting value is reasonable, i.e. lower than interface speed.
                         if (rate.second <= row.speed) {

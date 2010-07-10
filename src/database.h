@@ -1,8 +1,9 @@
 #ifndef DATABASE_H_
 #define DATABASE_H_
 
-#include "multithread.h"
 #include <string>
+
+#include "multithread.h"
 
 class Database : public Multithread
 {

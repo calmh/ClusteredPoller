@@ -23,7 +23,7 @@ private:
 public:
         QueryableHost(QueryHost& host, ResultCache& cache);
         std::vector<std::string> get_inserts();
-        std::pair<uint64_t, uint64_t> calculate_rate(time_t prev_time, uint64_t prev_counter, time_t cur_time, uint64_t cur_counter, int bits);
+        std::pair<unsigned long long, unsigned long long> calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cur_time, unsigned long long cur_counter, int bits);
         std::map<std::string, ResultSet> get_all_resultsets();
 };
 

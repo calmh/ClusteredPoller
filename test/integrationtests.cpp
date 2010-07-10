@@ -1,9 +1,10 @@
-#include <string>
 #include "UnitTest++.h"
 #include "types.h"
 #include "queryablehost.h"
 #include "rtgconf.h"
 #include "rtgtargets.h"
+
+#include <string>
 
 using namespace std;
 
@@ -16,9 +17,9 @@ SUITE(QuickTests)
 
                 time_t cur_time = time(NULL);
                 time_t prev_time = cur_time - 60;
-                uint64_t prev_counter = 1000000;
-                uint64_t cur_counter = prev_counter;
-                std::pair<uint64_t, uint64_t> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 32);
+                unsigned long long prev_counter = 1000000;
+                unsigned long long cur_counter = prev_counter;
+                std::pair<unsigned long long, unsigned long long> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 32);
                 CHECK_EQUAL(0u, rate.first);
                 CHECK_EQUAL(0u, rate.second);
         }
@@ -30,9 +31,9 @@ SUITE(QuickTests)
 
                 time_t cur_time = time(NULL);
                 time_t prev_time = cur_time - 60;
-                uint64_t prev_counter = 1000000;
-                uint64_t cur_counter = 1000000 + 60 * 1000 / 8;
-                std::pair<uint64_t, uint64_t> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 32);
+                unsigned long long prev_counter = 1000000;
+                unsigned long long cur_counter = 1000000 + 60 * 1000 / 8;
+                std::pair<unsigned long long, unsigned long long> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 32);
                 CHECK_EQUAL(60u * 1000/8, rate.first);
                 CHECK_EQUAL(1000u/8, rate.second);
         }
@@ -44,9 +45,9 @@ SUITE(QuickTests)
 
                 time_t cur_time = time(NULL);
                 time_t prev_time = cur_time - 60;
-                uint32_t prev_counter = 4294967000ul;
-                uint32_t cur_counter = prev_counter + 60 * 1000 / 8;
-                std::pair<uint64_t, uint64_t> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 32);
+                unsigned int prev_counter = 4294967000u;
+                unsigned int cur_counter = prev_counter + 60 * 1000 / 8;
+                std::pair<unsigned long long, unsigned long long> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 32);
                 CHECK_EQUAL(60u * 1000/8, rate.first);
                 CHECK_EQUAL(1000u/8, rate.second);
         }
@@ -58,9 +59,9 @@ SUITE(QuickTests)
 
                 time_t cur_time = time(NULL);
                 time_t prev_time = cur_time - 60;
-                uint64_t prev_counter = 18446744073709551000ull;
-                uint64_t cur_counter = prev_counter + 60 * 1000 / 8;
-                std::pair<uint64_t, uint64_t> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 64);
+                unsigned long long prev_counter = 18446744073709551000ull;
+                unsigned long long cur_counter = prev_counter + 60 * 1000 / 8;
+                std::pair<unsigned long long, unsigned long long> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 64);
                 CHECK_EQUAL(60u * 1000/8, rate.first);
                 CHECK_EQUAL(1000u/8, rate.second);
         }
@@ -72,9 +73,9 @@ SUITE(QuickTests)
 
                 time_t cur_time = time(NULL);
                 time_t prev_time = cur_time - 60;
-                uint64_t prev_counter = 1000000;
-                uint64_t cur_counter = 1000000;
-                std::pair<uint64_t, uint64_t> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 0);
+                unsigned long long prev_counter = 1000000;
+                unsigned long long cur_counter = 1000000;
+                std::pair<unsigned long long, unsigned long long> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 0);
                 CHECK_EQUAL(1000000u, rate.first);
                 CHECK_EQUAL(1000000u, rate.second);
         }
@@ -86,9 +87,9 @@ SUITE(QuickTests)
 
                 time_t cur_time = time(NULL);
                 time_t prev_time = cur_time - 60;
-                uint64_t prev_counter = 1000000;
-                uint64_t cur_counter = 1000000 + 1000;
-                std::pair<uint64_t, uint64_t> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 0);
+                unsigned long long prev_counter = 1000000;
+                unsigned long long cur_counter = 1000000 + 1000;
+                std::pair<unsigned long long, unsigned long long> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 0);
                 CHECK_EQUAL(1000000u + 1000, rate.first);
                 CHECK_EQUAL(1000000u + 1000, rate.second);
         }

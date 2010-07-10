@@ -1,6 +1,9 @@
 #include <string>
+
 #include "UnitTest++.h"
 #include "util.h"
+#include "types.h"
+
 using namespace std;
 
 SUITE(QuickTests)

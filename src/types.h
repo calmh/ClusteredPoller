@@ -11,7 +11,7 @@
 
 // Holds cache data for one host.
 struct ResultCache {
-        std::map<std::pair<std::string, int>, uint64_t> counters;
+        std::map<std::pair<std::string, int>, unsigned long long> counters;
         std::map<std::pair<std::string, int>, time_t> times;
 };
 
@@ -22,13 +22,13 @@ struct ResultCache {
 // Holds result data for one row (table+id).
 struct ResultRow {
         int id;
-        uint64_t counter;
-        uint64_t rate;
+        unsigned long long counter;
+        unsigned long long rate;
         int bits;
         time_t dtime;
-        uint64_t speed;
+        unsigned long long speed;
 
-        ResultRow(int iid, uint64_t icounter, uint64_t irate, int ibits, time_t idtime, uint64_t ispeed) {
+        ResultRow(int iid, unsigned long long icounter, unsigned long long irate, int ibits, time_t idtime, unsigned long long ispeed) {
                 id = iid;
                 counter = icounter;
                 rate = irate;

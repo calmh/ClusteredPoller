@@ -1,6 +1,8 @@
+#include <iostream>
+
+#include "types.h"
 #include "multithread.h"
 
-#include <iostream>
 using namespace std;
 
 Multithread::Multithread(int num_threads)
