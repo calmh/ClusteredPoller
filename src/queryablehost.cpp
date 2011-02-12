@@ -78,27 +78,27 @@ map<string, ResultSet> QueryableHost::get_all_resultsets()
 // bits == 32 or 64 means it's that size of counter.
 pair<unsigned long long, unsigned long long> QueryableHost::calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cur_time, unsigned long long cur_counter, int bits)
 {
-        time_t time_diff = cur_time - prev_time;
-        if (time_diff == 0) {
-                log(0, "Fatal error: time_diff == 0 (can't happen!)");
-                exit(-1);
-        }
-        unsigned long long counter_diff = cur_counter - prev_counter;
-        if (prev_counter > cur_counter) {
-                // We seem to have a wrap.
-                // Wrap it back to find the correct rate.
-                if (bits == 64)
-                        counter_diff += 18446744073709551615ull + 1; // 2^64-1 + 1
-                else
-                        counter_diff += 4294967296ull; // 2^32
-        }
-
-        if (bits == 0)
+        if (bits == 0) {
                 // It's a gauge so just return the value as both counter diff and rate.
                 return pair<unsigned long long, unsigned long long> (cur_counter, cur_counter);
-        else
+        } else {
+                time_t time_diff = cur_time - prev_time;
+                if (time_diff == 0) {
+                        log(0, "Fatal error: time_diff == 0 (can't happen!)");
+                        exit(-1);
+                }
+                unsigned long long counter_diff = cur_counter - prev_counter;
+                if (prev_counter > cur_counter) {
+                        // We seem to have a wrap.
+                        // Wrap it back to find the correct rate.
+                        if (bits == 64)
+                                counter_diff += 18446744073709551615ull + 1; // 2^64-1 + 1
+                        else
+                                counter_diff += 4294967296ull; // 2^32
+                }
                 // Return the calculated rate.
                 return pair<unsigned long long, unsigned long long> (counter_diff, counter_diff / time_diff);
+        }
 }
 
 // Query all targets for a host, process rates compared with cache, and return vector of database queries
