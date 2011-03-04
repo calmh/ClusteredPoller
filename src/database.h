@@ -5,10 +5,17 @@
 
 #include "multithread.h"
 
+namespace mysqlpp
+{
+class Connection;
+}
+
 class Database : public Multithread
 {
 private:
         static std::string dequeue_query();
+        static unsigned queries_size();
+        static mysqlpp::Connection* connection(int my_id);
 
 protected:
         void create_thread(pthread_t* thread, int* thread_id);
