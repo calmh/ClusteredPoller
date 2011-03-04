@@ -41,4 +41,8 @@ available.
 Run `make`. It should produce a binary called `clpoll`. Use this in
 the same way you would use `rtgpoll`.
 
+Make sure that your database is using a schema with a `rate` column or
+no data will be inserted into the database. This is an `rtg` default since
+2004 or thereabout, but there are old installations without this column.
+
 Jakob Borg <jakob@nym.se>

@@ -1,1 +1,1 @@
-#define CLPOLL_VERSION "v1.1.3"
+#define CLPOLL_VERSION "v1.1.4"
