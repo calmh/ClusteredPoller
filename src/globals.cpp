@@ -9,8 +9,6 @@ using namespace std;
 
 // Global variables are instantiated here.
 
-// Cache of latest values and times for rate calculation.
-vector<ResultCache> cache;
 // Used for assigning thread ID:s at startup.
 unsigned thread_id = 0;
 // Queue of outstanding database queries.

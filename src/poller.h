@@ -5,6 +5,7 @@
 
 class RTGConf;
 class RTGTargets;
+class ResultCache;
 
 class Poller : public Multithread
 {
@@ -13,6 +14,7 @@ protected:
         static void* run(void* id_ptr);
         static int stride;
         static RTGTargets* hosts;
+        static std::vector<ResultCache> *cache;
 
 public:
         Poller(int num_threads, RTGTargets* hosts);

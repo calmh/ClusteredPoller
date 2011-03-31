@@ -11,7 +11,6 @@
 
 // See globals.cpp for documentation on what these are used for.
 
-extern std::vector<ResultCache> cache;
 extern std::queue<std::string> queries;
 extern unsigned query_queue_depth;
 extern unsigned thread_id;

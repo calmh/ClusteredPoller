@@ -94,9 +94,6 @@ int main (int argc, char* const argv[])
                 exit(-1);
         }
 
-        // Allocate result cache for the number of hosts in targets.cfg
-        cache = vector<ResultCache>(hosts->size());
-
         log(1, "Polling every %d seconds.", config->interval);
 
         if (detach)

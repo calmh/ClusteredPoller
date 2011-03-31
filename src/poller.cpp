@@ -11,11 +11,13 @@ using namespace std;
 
 int Poller::stride;
 RTGTargets* Poller::hosts;
+vector<ResultCache> *Poller::cache;
 
 Poller::Poller(int num_threads, RTGTargets* hosts) : Multithread(num_threads)
 {
         stride = num_threads;
         Poller::hosts = hosts;
+        Poller::cache = new vector<ResultCache>(hosts->size());
 }
 
 void Poller::create_thread(pthread_t* thread, int* thread_id)
@@ -63,7 +65,7 @@ void* Poller::run(void* id_ptr)
                         QueryHost host = (*hosts)[i];
                         log(2, "Thread %d picked host #%d.", offset, i);
                         // Process the host and get back a list of SQL updates to execute.
-                        QueryableHost queryable_host(host, cache[i]);
+                        QueryableHost queryable_host(host, (*cache)[i]);
                         vector<string> host_queries = queryable_host.get_inserts();
 
                         if (host_queries.size() > 0) {
