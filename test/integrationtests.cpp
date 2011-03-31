@@ -1,5 +1,4 @@
 #include "UnitTest++.h"
-#include "types.h"
 #include "queryablehost.h"
 #include "rtgconf.h"
 #include "rtgtargets.h"
@@ -11,100 +10,102 @@ using namespace std;
 SUITE(QuickTests)
 {
         TEST(ZeroRateWith32BitsCounter) {
-                queryhost* host = queryhost_create();
-                ResultCache cache;
-                QueryableHost qh(host, cache);
-
                 time_t cur_time = time(NULL);
                 time_t prev_time = cur_time - 60;
                 unsigned long long prev_counter = 1000000;
                 unsigned long long cur_counter = prev_counter;
-                std::pair<unsigned long long, unsigned long long> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 32);
-                CHECK_EQUAL(0u, rate.first);
-                CHECK_EQUAL(0u, rate.second);
+
+                unsigned long long counter_diff;
+                unsigned rate;
+                calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 32, &counter_diff, &rate);
+
+                CHECK_EQUAL(0u, counter_diff);
+                CHECK_EQUAL(0u, rate);
         }
 
         TEST(OneKbpsRateWith32BitsCounter) {
-                queryhost* host = queryhost_create();
-                ResultCache cache;
-                QueryableHost qh(host, cache);
-
                 time_t cur_time = time(NULL);
                 time_t prev_time = cur_time - 60;
                 unsigned long long prev_counter = 1000000;
                 unsigned long long cur_counter = 1000000 + 60 * 1000 / 8;
-                std::pair<unsigned long long, unsigned long long> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 32);
-                CHECK_EQUAL(60u * 1000/8, rate.first);
-                CHECK_EQUAL(1000u/8, rate.second);
+
+                unsigned long long counter_diff;
+                unsigned rate;
+                calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 32, &counter_diff, &rate);
+
+                CHECK_EQUAL(60u * 1000/8, counter_diff);
+                CHECK_EQUAL(1000u/8, rate);
         }
 
         TEST(OneKbpsRateWith32BitsCounterThatWraps) {
-                queryhost* host = queryhost_create();
-                ResultCache cache;
-                QueryableHost qh(host, cache);
-
                 time_t cur_time = time(NULL);
                 time_t prev_time = cur_time - 60;
                 unsigned int prev_counter = 4294967000u;
                 unsigned int cur_counter = prev_counter + 60 * 1000 / 8;
-                std::pair<unsigned long long, unsigned long long> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 32);
-                CHECK_EQUAL(60u * 1000/8, rate.first);
-                CHECK_EQUAL(1000u/8, rate.second);
+
+                unsigned long long counter_diff;
+                unsigned rate;
+                calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 32, &counter_diff, &rate);
+
+                CHECK_EQUAL(60u * 1000/8, counter_diff);
+                CHECK_EQUAL(1000u/8, rate);
         }
 
         TEST(OneKbpsRateWith64BitsCounterThatWraps) {
-                queryhost* host = queryhost_create();
-                ResultCache cache;
-                QueryableHost qh(host, cache);
-
                 time_t cur_time = time(NULL);
                 time_t prev_time = cur_time - 60;
                 unsigned long long prev_counter = 18446744073709551000ull;
                 unsigned long long cur_counter = prev_counter + 60 * 1000 / 8;
-                std::pair<unsigned long long, unsigned long long> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 64);
-                CHECK_EQUAL(60u * 1000/8, rate.first);
-                CHECK_EQUAL(1000u/8, rate.second);
+
+                unsigned long long counter_diff;
+                unsigned rate;
+                calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 64, &counter_diff, &rate);
+
+                CHECK_EQUAL(60u * 1000/8, counter_diff);
+                CHECK_EQUAL(1000u/8, rate);
         }
 
         TEST(GaugeValueUnchanged) {
-                queryhost* host = queryhost_create();
-                ResultCache cache;
-                QueryableHost qh(host, cache);
-
                 time_t cur_time = time(NULL);
                 time_t prev_time = cur_time - 60;
                 unsigned long long prev_counter = 1000000;
                 unsigned long long cur_counter = 1000000;
-                std::pair<unsigned long long, unsigned long long> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 0);
-                CHECK_EQUAL(1000000u, rate.first);
-                CHECK_EQUAL(1000000u, rate.second);
+
+                unsigned long long counter_diff;
+                unsigned rate;
+                calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 0, &counter_diff, &rate);
+
+                CHECK_EQUAL(1000000u, counter_diff);
+                CHECK_EQUAL(1000000u, rate);
         }
 
         TEST(GaugeValueChanged) {
-                queryhost* host = queryhost_create();
-                ResultCache cache;
-                QueryableHost qh(host, cache);
-
                 time_t cur_time = time(NULL);
                 time_t prev_time = cur_time - 60;
                 unsigned long long prev_counter = 1000000;
                 unsigned long long cur_counter = 1000000 + 1000;
-                std::pair<unsigned long long, unsigned long long> rate = qh.calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 0);
-                CHECK_EQUAL(1000000u + 1000, rate.first);
-                CHECK_EQUAL(1000000u + 1000, rate.second);
+
+                unsigned long long counter_diff;
+                unsigned rate;
+                calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 0, &counter_diff, &rate);
+
+                CHECK_EQUAL(1000000u + 1000, counter_diff);
+                CHECK_EQUAL(1000000u + 1000, rate);
         }
 
         TEST(ResultSetForOneHost) {
-                ResultCache cache;
-
                 rtgconf* conf = rtgconf_create("test/example-rtg.conf");
                 rtgtargets* hosts = rtgtargets_parse("test/example-targets.cfg", conf);
-                QueryableHost qh(hosts->hosts[0], cache);
-                std::map<std::string, ResultSet> rs = qh.get_all_resultsets();
-                CHECK_EQUAL((size_t)1, rs.size()); // One table
-                ResultSet set = rs["ifOutOctets_362"];
-                CHECK_EQUAL((size_t)2, set.rows.size()); // Two rows
-                CHECK_EQUAL(4309, set.rows[0].id);
-                CHECK_EQUAL(4310, set.rows[1].id);
+
+                db_insert** inserts = get_db_inserts(hosts->hosts[0]);
+                sleep(1);
+                inserts = get_db_inserts(hosts->hosts[0]);
+
+                CHECK(NULL != inserts[0]); // One table
+                CHECK(NULL == inserts[1]); // Not two tables
+                CHECK_EQUAL("ifOutOctets_362", inserts[0]->table); // Two rows
+                CHECK_EQUAL(2u, inserts[0]->nvalues); // Two rows
+                CHECK_EQUAL(4309u, inserts[0]->values[0].id);
+                CHECK_EQUAL(4310u, inserts[0]->values[1].id);
         }
 }

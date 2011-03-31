@@ -3,15 +3,18 @@
 
 #include "multithread.h"
 
-class Monitor : public Multithread
-{
-protected:
-        void create_thread(pthread_t* thread, int* thread_id);
-        static void* run(void* id_ptr);
-        static int interval;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-public:
-        Monitor(int interval);
-};
+        typedef struct {
+                unsigned interval;
+        } monitor_ctx;
+
+        void* monitor_run(void* ptr);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* MONITOR_H_ */

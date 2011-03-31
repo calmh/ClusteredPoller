@@ -1,6 +1,5 @@
 #include <string>
 
-#include "types.h"
 #include "UnitTest++.h"
 #include "rtgconf.h"
 #include "rtgtargets.h"

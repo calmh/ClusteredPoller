@@ -2,21 +2,20 @@
 #define POLLER_H_
 
 #include "multithread.h"
+#include "rtgtargets.h"
 
-class RTGConf;
-class ResultCache;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-class Poller : public Multithread
-{
-protected:
-        void create_thread(pthread_t* thread, int* thread_id);
-        static void* run(void* id_ptr);
-        static int stride;
-        static rtgtargets* hosts;
-        static std::vector<ResultCache> *cache;
+        typedef struct {
+                unsigned stride;
+                rtgtargets* targets;
+        } poller_ctx;
 
-public:
-        Poller(int num_threads, rtgtargets* hosts);
-};
+        void* poller_run(void* param);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* POLLER_H_ */

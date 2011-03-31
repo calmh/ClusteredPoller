@@ -8,9 +8,12 @@ OBJS = src/main.o \
 	src/multithread.o \
 	src/monitor.o \
 	src/poller.o \
-	src/database.o
+	src/database.o \
+	src/gstring.o \
+	src/cbuffer.o
 
 TESTOBJS = test/main.o \
+	test/cbuffertests.o \
 	test/utiltests.o \
 	test/integrationtests.o \
 	test/rtgconftests.o \
@@ -26,6 +29,8 @@ TESTOBJS = test/main.o \
 	src/multithread.o \
 	src/monitor.o \
 	src/poller.o \
+	src/gstring.o \
+	src/cbuffer.o
 
 TARGET := clpoll
 TESTTARGET := testrunner
@@ -37,13 +42,13 @@ CFLAGS ?= --std=c99 -DOS_${OS} -DUSE_MYSQL -Wall
 
 OS = $(shell uname -s | awk '{print tolower($$0)}')
 ifeq ($(OS),linux)
-	CXXFLAGS += -I/usr/include/mysql -I/usr/include/mysql++
+	CXXFLAGS += -I/usr/include/mysql
 	CFLAGS += -I/usr/include/mysql
-	LIBS = -lnetsnmp -lpthread -lmysqlpp
+	LIBS = -lnetsnmp -lpthread -lmysql
 else ifeq ($(OS),darwin)
-	CXXFLAGS += -I/usr/local/mysql/include -I/usr/local/include/mysql++
+	CXXFLAGS += -I/usr/local/mysql/include
 	CFLAGS += -I/usr/local/mysql/include
-	LIBS = -lnetsnmp -lmysqlpp
+	LIBS = -L/usr/local/mysql/lib -lnetsnmp -lmysqlclient
 endif
 
 all: $(UNITTESTPP) $(TARGET) test

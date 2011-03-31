@@ -1,6 +1,7 @@
 #ifndef _RTGTARGETS_H
 #define _RTGTARGETS_H
 
+#include <time.h>
 #include "rtgconf.h"
 
 #ifdef __cplusplus
@@ -14,6 +15,8 @@ extern "C" {
                 unsigned id;
                 unsigned bits;
                 unsigned long long speed;
+                unsigned long long cached_counter;
+                time_t cached_time;
         } queryrow;
 
         queryrow* queryrow_create();

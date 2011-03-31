@@ -146,6 +146,8 @@ queryrow* queryrow_create()
         row->id = 0;
         row->bits = 0;
         row->speed = 0;
+        row->cached_time = 0;
+        row->cached_counter = 0;
         return row;
 }
 

@@ -5,25 +5,7 @@
 
 using namespace std;
 
-Database::Database(int num_threads, rtgconf* conf) : Multithread(num_threads)
-{
-}
-
-Database::~Database()
-{
-}
-
-void Database::create_thread(pthread_t* thread, int* thread_id)
-{
-}
-
-void* Database::run(void* id_ptr)
+void* database_run(void* id_ptr)
 {
         return NULL;
 }
-
-string Database::dequeue_query()
-{
-        return "";
-}
-

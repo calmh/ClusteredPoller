@@ -1,24 +1,18 @@
-#include <queue>
-#include <string>
-
-#include "types.h"
 #include "rtgconf.h"
 #include "rtgtargets.h"
-
-using namespace std;
+#include "cbuffer.h"
+#include "pthread.h"
 
 // Global variables are instantiated here.
 
-// Used for assigning thread ID:s at startup.
-unsigned thread_id = 0;
 // Queue of outstanding database queries.
-queue<string> queries;
+cbuffer* queries;
 // Maximum number of outstanding database queries.
-unsigned query_queue_depth = 0;
+unsigned long query_queue_depth = 0;
 
 // Configuration variables that are modified by command line flags.
-string rtgconf_file = "/usr/local/rtg/etc/rtg.conf";
-string targets_file = "/usr/local/rtg/etc/targets.cfg";
+char* rtgconf_file = (char*) "/usr/local/rtg/etc/rtg.conf";
+char* targets_file = (char*) "/usr/local/rtg/etc/targets.cfg";
 int verbosity = 0;
 int detach = 1;
 int use_db = 1;

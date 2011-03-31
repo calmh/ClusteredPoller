@@ -1,5 +1,4 @@
 #include "UnitTest++.h"
-#include "types.h"
 #include "queryablehost.h"
 #include "rtgconf.h"
 #include "rtgtargets.h"
@@ -12,29 +11,40 @@ SUITE(LongTests)
                 mock_set_speed(1000000 / 8);
                 rtgconf* conf = rtgconf_create("test/example-rtg.conf");
                 rtgtargets* hosts = rtgtargets_parse("test/example-targets.cfg", conf);
-                ResultCache cache;
-                QueryableHost qh(hosts->hosts[0], cache);
-                std::vector<std::string> queries = qh.get_inserts();
-                CHECK_EQUAL((size_t)0, queries.size()); // No inserts first iteration
+
+                char** queries = get_inserts(hosts->hosts[0]);
+                unsigned queries_size;
+                for (queries_size = 0; queries[queries_size]; queries_size++);
+
+                CHECK_EQUAL(0u, queries_size); // No inserts first iteration
+
                 sleep(10);
-                queries = qh.get_inserts();
-                CHECK_EQUAL((size_t)1, queries.size()); // One insert next iteration
-                size_t pos = queries[0].find(", 1250000, 125000)");
-                CHECK(pos != std::string::npos);
-                pos = queries[0].find(", 1250000, 125000)", pos+1);
-                CHECK(pos != std::string::npos);
+
+                queries = get_inserts(hosts->hosts[0]);
+                for (queries_size = 0; queries[queries_size]; queries_size++);
+
+                CHECK_EQUAL(1u, queries_size); // One insert next iteration
+                char* pos = strstr(queries[0], ", 1250000, 125000)");
+                CHECK(pos != NULL);
+                pos = strstr(pos + 1, ", 1250000, 125000)");
+                CHECK(pos != NULL);
         }
 
         TEST(MeasureOneHostAt100MbpsForOneInterval) {
                 mock_set_speed(100000000 / 8);
                 rtgconf* conf = rtgconf_create("test/example-rtg.conf");
                 rtgtargets* hosts = rtgtargets_parse("test/example-targets.cfg", conf);
-                ResultCache cache;
-                QueryableHost qh(hosts->hosts[0], cache);
-                std::vector<std::string> queries = qh.get_inserts();
-                CHECK_EQUAL((size_t)0, queries.size()); // No inserts first iteration
+
+                char** queries = get_inserts(hosts->hosts[0]);
+                unsigned queries_size;
+                for (queries_size = 0; queries[queries_size]; queries_size++);
+
+                CHECK_EQUAL(0u, queries_size); // No inserts first iteration
+
                 sleep(conf->interval);
-                queries = qh.get_inserts();
-                CHECK_EQUAL((size_t)0, queries.size()); // No inserts next iteration due to too high speed
+
+                queries = get_inserts(hosts->hosts[0]);
+                for (queries_size = 0; queries[queries_size]; queries_size++);
+                CHECK_EQUAL(0u, queries_size); // No inserts next iteration due to too high speed
         }
 }
