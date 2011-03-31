@@ -1,10 +1,9 @@
 #ifndef _RTGTARGETS_H
 #define _RTGTARGETS_H
 
-class RTGConf;
-
 #include <string>
 #include <vector>
+#include "rtgconf.h"
 
 // Holds query instructions for one row (table+id).
 struct QueryRow {
@@ -51,7 +50,7 @@ class RTGTargets : public std::vector<QueryHost>
 {
 public:
         RTGTargets();
-        RTGTargets(std::string filename, RTGConf* config);
+        RTGTargets(std::string filename, rtgconf* config);
 
         unsigned interval;
         unsigned threads;
@@ -64,11 +63,11 @@ public:
         ParseResults results;
 
 private:
-        QueryHost read_host(std::ifstream& targets, std::string& host_name, RTGConf* conf);
-        QueryRow read_row(std::ifstream& targets, std::string& oid, RTGConf* conf);
+        QueryHost read_host(std::ifstream& targets, std::string& host_name, rtgconf* conf);
+        QueryRow read_row(std::ifstream& targets, std::string& oid, rtgconf* conf);
         bool check_for_duplicate(QueryHost& host, QueryRow& row);
-        ParseResults read_new_style_targets(std::string filename, RTGConf* conf);
-        ParseResults read_old_style_targets(std::string filename, RTGConf* conf);
+        ParseResults read_new_style_targets(std::string filename, rtgconf* conf);
+        ParseResults read_old_style_targets(std::string filename, rtgconf* conf);
 };
 
 #endif

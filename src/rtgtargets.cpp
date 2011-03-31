@@ -15,7 +15,7 @@ RTGTargets::RTGTargets()
 }
 
 // Simple state machine based config reader.
-RTGTargets::RTGTargets(string filename, RTGConf* conf)
+RTGTargets::RTGTargets(string filename, rtgconf* conf)
         : vector<QueryHost>()
 {
         results = read_new_style_targets(filename, conf);
@@ -25,7 +25,7 @@ RTGTargets::RTGTargets(string filename, RTGConf* conf)
         log(0, "Read %d targets in %d hosts.", results.targets, results.hosts);
 }
 
-ParseResults RTGTargets::read_new_style_targets(string filename, RTGConf* conf)
+ParseResults RTGTargets::read_new_style_targets(string filename, rtgconf* conf)
 {
         ParseResults results = {0};
         ifstream targets(filename.c_str());
@@ -51,7 +51,7 @@ ParseResults RTGTargets::read_new_style_targets(string filename, RTGConf* conf)
         return results;
 }
 
-QueryHost RTGTargets::read_host(ifstream& targets, string& host_name, RTGConf* conf)
+QueryHost RTGTargets::read_host(ifstream& targets, string& host_name, rtgconf* conf)
 {
         string token;
         QueryHost host;
@@ -83,7 +83,7 @@ QueryHost RTGTargets::read_host(ifstream& targets, string& host_name, RTGConf* c
         return host;
 }
 
-QueryRow RTGTargets::read_row(ifstream& targets, string& oid, RTGConf* conf)
+QueryRow RTGTargets::read_row(ifstream& targets, string& oid, rtgconf* conf)
 {
         string token;
         QueryRow row;
@@ -132,7 +132,7 @@ bool RTGTargets::check_for_duplicate(QueryHost& host, QueryRow& row)
         return false;
 }
 
-ParseResults RTGTargets::read_old_style_targets(string filename, RTGConf* conf)
+ParseResults RTGTargets::read_old_style_targets(string filename, rtgconf* conf)
 {
         ifstream targets(filename.c_str());
         char linebuffer[256];

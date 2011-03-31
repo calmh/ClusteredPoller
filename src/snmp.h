@@ -10,7 +10,7 @@ typedef struct {
         void* sessp;
 } clsnmp_session;
 
-#ifdef __cplusplus 
+#ifdef __cplusplus
 extern "C" void clsnmp_global_init();
 extern "C" clsnmp_session* clsnmp_session_create(const char* host, const char* community, int snmpver);
 extern "C" void clsnmp_session_free(clsnmp_session* session);

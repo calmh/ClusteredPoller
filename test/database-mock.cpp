@@ -5,7 +5,7 @@
 
 using namespace std;
 
-Database::Database(int num_threads, RTGConf* conf) : Multithread(num_threads)
+Database::Database(int num_threads, rtgconf* conf) : Multithread(num_threads)
 {
 }
 

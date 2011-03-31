@@ -2,10 +2,8 @@
 #define DATABASE_H_
 
 #include <string>
-
+#include "rtgconf.h"
 #include "multithread.h"
-
-class RTGConf;
 
 namespace mysqlpp
 {
@@ -18,14 +16,14 @@ private:
         static std::string dequeue_query();
         static unsigned queries_size();
         static mysqlpp::Connection* connection(int my_id);
-        static RTGConf* config;
+        static rtgconf* config;
 
 protected:
         void create_thread(pthread_t* thread, int* thread_id);
         static void* run(void* id_ptr);
 
 public:
-        Database(int num_threads, RTGConf* config);
+        Database(int num_threads, rtgconf* config);
         virtual ~Database();
 };
 

@@ -18,7 +18,7 @@ void help();
 void help()
 {
         cerr << "clpoll " << CLPOLL_VERSION << endl;
-        cerr << " -c <file>   Specify configuration file [" << rtgconf << "]" << endl;
+        cerr << " -c <file>   Specify configuration file [" << rtgconf_file << "]" << endl;
         cerr << " -D          Don't detach, run in foreground" << endl;
         cerr << " -d          Disable database inserts" << endl;
         cerr << " -t <file>   Specify target file [" << targets << "]" << endl;
@@ -28,7 +28,7 @@ void help()
         cerr <<  " Copyright (c) 2009-2010 Jakob Borg" << endl;
 }
 
-void run_threads(RTGTargets* targets, RTGConf* config)
+void run_threads(RTGTargets* targets, rtgconf* config)
 {
         // Calculate number of database writers needed. This is just a guess.
         unsigned num_dbthreads = config->threads / 8;
@@ -74,7 +74,7 @@ int main (int argc, char* const argv[])
                         exit(0);
                 } else if (arg == "-c") {
                         i++;
-                        rtgconf = string(argv[i]);
+                        rtgconf_file = string(argv[i]);
                 } else if (arg == "-t") {
                         i++;
                         targets = string(argv[i]);
@@ -85,7 +85,7 @@ int main (int argc, char* const argv[])
         }
 
         // Read rtg.conf
-        RTGConf* config = new RTGConf(rtgconf);
+        rtgconf* config = rtgconf_create(rtgconf_file.c_str());
         // Read targets.cfg
         RTGTargets* hosts = new RTGTargets(targets, config);
 

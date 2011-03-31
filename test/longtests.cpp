@@ -10,8 +10,8 @@ SUITE(LongTests)
 {
         TEST(MeasureOneHostsAt10MbpsForTenSeconds) {
                 mock_set_speed(1000000 / 8);
-                RTGConf conf("test/example-rtg.conf");
-                RTGTargets hosts("test/example-targets.cfg", &conf);
+                rtgconf* conf = rtgconf_create("test/example-rtg.conf");
+                RTGTargets hosts("test/example-targets.cfg", conf);
                 ResultCache cache;
                 QueryableHost qh(hosts[0], cache);
                 std::vector<std::string> queries = qh.get_inserts();
@@ -27,13 +27,13 @@ SUITE(LongTests)
 
         TEST(MeasureOneHostAt100MbpsForOneInterval) {
                 mock_set_speed(100000000 / 8);
-                RTGConf conf("test/example-rtg.conf");
-                RTGTargets hosts("test/example-targets.cfg", &conf);
+                rtgconf* conf = rtgconf_create("test/example-rtg.conf");
+                RTGTargets hosts("test/example-targets.cfg", conf);
                 ResultCache cache;
                 QueryableHost qh(hosts[0], cache);
                 std::vector<std::string> queries = qh.get_inserts();
                 CHECK_EQUAL((size_t)0, queries.size()); // No inserts first iteration
-                sleep(conf.interval);
+                sleep(conf->interval);
                 queries = qh.get_inserts();
                 CHECK_EQUAL((size_t)0, queries.size()); // No inserts next iteration due to too high speed
         }
