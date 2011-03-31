@@ -1,94 +1,91 @@
-SOURCES = src/main.cpp \
-	src/util.cpp \
-	src/globals.cpp \
-	src/snmp.cpp \
-	src/queryablehost.cpp \
-	src/rtgconf.cpp \
-	src/rtgtargets.cpp \
-	src/multithread.cpp \
-	src/monitor.cpp \
-	src/poller.cpp \
-	src/database.cpp
+OBJS = src/main.o \
+	src/util.o \
+	src/globals.o \
+	src/snmp.o \
+	src/queryablehost.o \
+	src/rtgconf.o \
+	src/rtgtargets.o \
+	src/multithread.o \
+	src/monitor.o \
+	src/poller.o \
+	src/database.o
 
-TESTSOURCES = test/main.cpp \
-	test/utiltests.cpp \
-	test/integrationtests.cpp \
-	test/rtgconftests.cpp \
-	test/rtgtargetstests.cpp \
-	test/longtests.cpp \
-	test/database-mock.cpp \
-	test/snmp-mock.cpp \
-	src/util.cpp \
-	src/globals.cpp \
-	src/queryablehost.cpp \
-	src/rtgconf.cpp \
-	src/rtgtargets.cpp \
-	src/multithread.cpp \
-	src/monitor.cpp \
-	src/poller.cpp \
+TESTOBJS = test/main.o \
+	test/utiltests.o \
+	test/integrationtests.o \
+	test/rtgconftests.o \
+	test/rtgtargetstests.o \
+	test/longtests.o \
+	test/database-mock.o \
+	test/snmp-mock.o \
+	src/util.o \
+	src/globals.o \
+	src/queryablehost.o \
+	src/rtgconf.o \
+	src/rtgtargets.o \
+	src/multithread.o \
+	src/monitor.o \
+	src/poller.o \
 
-OBJS := $(SOURCES)
-OBJS := $(OBJS:.cpp=.o)
-OBJS := $(OBJS:.c=.o)
-TESTOBJS := $(TESTSOURCES)
-TESTOBJS := $(TESTOBJS:.cpp=.o)
-TESTOBJS := $(TESTOBJS:.c=.o)
 TARGET := clpoll
 TESTTARGET := testrunner
 UNITTESTPP := UnitTest++/libUnitTest++.a
-.SUFFIXES: .o .cpp
+.SUFFIXES: .o .cpp .c
 
 CXXFLAGS ?= -ansi -DOS_${OS} -DUSE_MYSQL -Wall -Werror
+CFLAGS ?= --std=c99 -DOS_${OS} -DUSE_MYSQL -Wall
 
 OS = $(shell uname -s | awk '{print tolower($$0)}')
 ifeq ($(OS),linux)
 	CXXFLAGS += -I/usr/include/mysql -I/usr/include/mysql++
+	CFLAGS += -I/usr/include/mysql
 	LIBS = -lnetsnmp -lpthread -lmysqlpp
 else ifeq ($(OS),darwin)
 	CXXFLAGS += -I/usr/local/mysql/include -I/usr/local/include/mysql++
+	CFLAGS += -I/usr/local/mysql/include
 	LIBS = -lnetsnmp -lmysqlpp
 endif
 
 all: $(UNITTESTPP) $(TARGET) test
 
 $(TARGET): CXXFLAGS += -O2
+$(TARGET): CFLAGS += -O2
 $(TARGET): $(OBJS)
-	@echo Linking $@...
-	@g++ $^ $(LIBS) -o $@
-	@strip $@
+	g++ $^ $(LIBS) -o $@
+	strip $@
 
 $(TESTTARGET): CXXFLAGS += -IUnitTest++/src -Isrc
+$(TESTTARGET): CFLAGS += -IUnitTest++/src -Isrc
 $(TESTTARGET): $(TESTOBJS) $(UNITTESTPP)
-	@echo Linking $@...
-	@g++ $^ $(LIBS) $(UNITTESTPP) -o $@
+	g++ $^ $(LIBS) $(UNITTESTPP) -o $@
 
 .PHONY: test
 test: $(TESTTARGET)
-	@echo Running unit tests...
-	@./$(TESTTARGET) 2>/dev/null
+	./$(TESTTARGET) 2>/dev/null
 
 longtest: $(TESTTARGET)
-	@echo Running unit tests...
-	@./$(TESTTARGET) long 2>/dev/null
+	./$(TESTTARGET) long 2>/dev/null
 
 $(UNITTESTPP):
-	@make -C UnitTest++
+	make -C UnitTest++
 
 distclean: clean
-	@make -C UnitTest++ clean
+	make -C UnitTest++ clean
 
 clean:
-	@rm -f $(OBJS) $(TESTOBJS) $(TARGET) $(TESTTARGET)
+	rm -f $(OBJS) $(TESTOBJS) $(TARGET) $(TESTTARGET)
 
 .PHONY: reformat
 reformat:
-	@astyle -A8 -n --convert-tabs --align-pointer=type -z2 src/*.cpp src/*.h test/*.cpp
+	astyle -A8 -n --convert-tabs --align-pointer=type -z2 src/*.cpp src/*.h test/*.cpp
 
 .PHONY: version
 version:
-	@echo "#define CLPOLL_VERSION \"${VERSION}\"" > src/version.h
+	echo "#define CLPOLL_VERSION \"${VERSION}\"" > src/version.h
 
 %.o : %.cpp
-	@echo $<
-	@$(CXX) $(CXXFLAGS) -c $< -o $(patsubst %.cpp, %.o, $<)
+	$(CXX) $(CXXFLAGS) -c $< -o $(patsubst %.cpp, %.o, $<)
+
+%.o : %.c
+	$(CC) $(CFLAGS) -c $< -o $(patsubst %.c, %.o, $<)
 
