@@ -11,7 +11,7 @@ using namespace std;
 SUITE(QuickTests)
 {
         TEST(ZeroRateWith32BitsCounter) {
-                QueryHost host;
+                queryhost* host = queryhost_create();
                 ResultCache cache;
                 QueryableHost qh(host, cache);
 
@@ -25,7 +25,7 @@ SUITE(QuickTests)
         }
 
         TEST(OneKbpsRateWith32BitsCounter) {
-                QueryHost host;
+                queryhost* host = queryhost_create();
                 ResultCache cache;
                 QueryableHost qh(host, cache);
 
@@ -39,7 +39,7 @@ SUITE(QuickTests)
         }
 
         TEST(OneKbpsRateWith32BitsCounterThatWraps) {
-                QueryHost host;
+                queryhost* host = queryhost_create();
                 ResultCache cache;
                 QueryableHost qh(host, cache);
 
@@ -53,7 +53,7 @@ SUITE(QuickTests)
         }
 
         TEST(OneKbpsRateWith64BitsCounterThatWraps) {
-                QueryHost host;
+                queryhost* host = queryhost_create();
                 ResultCache cache;
                 QueryableHost qh(host, cache);
 
@@ -67,7 +67,7 @@ SUITE(QuickTests)
         }
 
         TEST(GaugeValueUnchanged) {
-                QueryHost host;
+                queryhost* host = queryhost_create();
                 ResultCache cache;
                 QueryableHost qh(host, cache);
 
@@ -81,7 +81,7 @@ SUITE(QuickTests)
         }
 
         TEST(GaugeValueChanged) {
-                QueryHost host;
+                queryhost* host = queryhost_create();
                 ResultCache cache;
                 QueryableHost qh(host, cache);
 
@@ -98,8 +98,8 @@ SUITE(QuickTests)
                 ResultCache cache;
 
                 rtgconf* conf = rtgconf_create("test/example-rtg.conf");
-                RTGTargets hosts("test/example-targets.cfg", conf);
-                QueryableHost qh(hosts[0], cache);
+                rtgtargets* hosts = rtgtargets_parse("test/example-targets.cfg", conf);
+                QueryableHost qh(hosts->hosts[0], cache);
                 std::map<std::string, ResultSet> rs = qh.get_all_resultsets();
                 CHECK_EQUAL((size_t)1, rs.size()); // One table
                 ResultSet set = rs["ifOutOctets_362"];

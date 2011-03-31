@@ -18,7 +18,7 @@ unsigned query_queue_depth = 0;
 
 // Configuration variables that are modified by command line flags.
 string rtgconf_file = "/usr/local/rtg/etc/rtg.conf";
-string targets = "/usr/local/rtg/etc/targets.cfg";
+string targets_file = "/usr/local/rtg/etc/targets.cfg";
 int verbosity = 0;
 int detach = 1;
 int use_db = 1;

@@ -6,23 +6,22 @@
 #include <vector>
 
 #include "snmp.h"
+#include "rtgtargets.h"
 
-class QueryHost;
 class ResultCache;
 class ResultSet;
-class QueryRow;
 
 class QueryableHost
 {
 private:
-        QueryHost& host;
+        queryhost* host;
         ResultCache& cache;
-        void initialize_result_set(std::map<std::string,ResultSet>& rs, QueryRow& row);
-        bool query_snmp(clsnmp_session* snmp_session, QueryRow& row, std::map<std::string,ResultSet>& rs);
+        void initialize_result_set(std::map<std::string,ResultSet>& rs, queryrow* row);
+        bool query_snmp(clsnmp_session* snmp_session, queryrow* row, std::map<std::string,ResultSet>& rs);
         std::string build_insert_query(ResultSet& r);
 
 public:
-        QueryableHost(QueryHost& host, ResultCache& cache);
+        QueryableHost(queryhost* host, ResultCache& cache);
         std::vector<std::string> get_inserts();
         std::pair<unsigned long long, unsigned long long> calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cur_time, unsigned long long cur_counter, int bits);
         std::map<std::string, ResultSet> get_all_resultsets();

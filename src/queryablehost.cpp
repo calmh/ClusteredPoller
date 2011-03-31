@@ -12,30 +12,30 @@ using namespace std;
 
 #define MAXERRORSPERHOST 3
 
-QueryableHost::QueryableHost(QueryHost& host, ResultCache& cache) :
+QueryableHost::QueryableHost(queryhost* host, ResultCache& cache) :
         host(host), cache(cache)
 {
 }
 
-void QueryableHost::initialize_result_set(map<string, ResultSet> & rs, QueryRow& row)
+void QueryableHost::initialize_result_set(map<string, ResultSet> & rs, queryrow* row)
 {
         // Check if there is an existing result set for this table in the map,
         // or create a new one.
-        if (rs.find(row.table) == rs.end()) {
-                ResultSet r(row.table);
-                rs[row.table] = r;
+        if (rs.find(row->table) == rs.end()) {
+                ResultSet r(row->table);
+                rs[row->table] = r;
         }
 }
 
-bool QueryableHost::query_snmp(clsnmp_session* snmp_session, QueryRow& row, map<string, ResultSet>& rs)
+bool QueryableHost::query_snmp(clsnmp_session* snmp_session, queryrow* row, map<string, ResultSet>& rs)
 {
         unsigned long long value;
         time_t response_time;
-        bool success = clsnmp_get(snmp_session, row.oid.c_str(), &value, &response_time);
+        bool success = clsnmp_get(snmp_session, row->oid, &value, &response_time);
         if (success) {
                 // We got a result from SNMP polling, so insert it into the result set.
-                ResultRow r(row.id, value, 0, row.bits, response_time, row.speed);
-                rs[row.table].rows.push_back(r);
+                ResultRow r(row->id, value, 0, row->bits, response_time, row->speed);
+                rs[row->table].rows.push_back(r);
         }
         return success;
 }
@@ -48,22 +48,21 @@ map<string, ResultSet> QueryableHost::get_all_resultsets()
         map<string, ResultSet> rs;
 
         // Start a new SNMP session.
-        clsnmp_session* session = clsnmp_session_create(host.host.c_str(), host.community.c_str(), host.snmpver);
+        clsnmp_session* session = clsnmp_session_create(host->host, host->community, host->snmpver);
         if (session) {
                 int errors = 0;
                 // Iterate over all targets in the host.
-                vector<QueryRow>::iterator it;
-                for (it = host.rows.begin(); it != host.rows.end() && errors < MAXERRORSPERHOST; it++) {
-                        QueryRow row = *it;
+                for (unsigned i = 0; i < host->nrows; i++) {
+                        queryrow* row = host->rows[i];
                         initialize_result_set(rs, row);
                         bool success = query_snmp(session, row, rs);
                         if (!success) {
-                                log(1, "SNMP get for %s OID %s failed.", host.host.c_str(), row.oid.c_str());
+                                log(1, "SNMP get for %s OID %s failed.", host->host, row->oid);
                                 errors++;
                         }
                 }
                 if (errors >= MAXERRORSPERHOST)
-                        log(0, "Too many errors for host %s, aborted.", host.host.c_str());
+                        log(0, "Too many errors for host %s, aborted.", host->host);
         } else {
                 log(0, "Error in SNMP setup.");
         }

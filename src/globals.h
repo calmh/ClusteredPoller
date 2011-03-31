@@ -15,7 +15,7 @@ extern std::queue<std::string> queries;
 extern unsigned query_queue_depth;
 extern unsigned thread_id;
 extern std::string rtgconf_file;
-extern std::string targets;
+extern std::string targets_file;
 extern int verbosity;
 extern int detach;
 extern int use_db;

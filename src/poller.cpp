@@ -10,14 +10,14 @@
 using namespace std;
 
 int Poller::stride;
-RTGTargets* Poller::hosts;
+rtgtargets* Poller::hosts;
 vector<ResultCache> *Poller::cache;
 
-Poller::Poller(int num_threads, RTGTargets* hosts) : Multithread(num_threads)
+Poller::Poller(int num_threads, rtgtargets* hosts) : Multithread(num_threads)
 {
         stride = num_threads;
         Poller::hosts = hosts;
-        Poller::cache = new vector<ResultCache>(hosts->size());
+        Poller::cache = new vector<ResultCache>(hosts->nhosts);
 }
 
 void Poller::create_thread(pthread_t* thread, int* thread_id)
@@ -61,8 +61,8 @@ void* Poller::run(void* id_ptr)
                 // Note our start time, so we know how long an iteration takes.
                 start = time(NULL);
                 // Loop over our share of the hosts.
-                for (unsigned i = offset; i < hosts->size(); i += stride) {
-                        QueryHost host = (*hosts)[i];
+                for (unsigned i = offset; i < hosts->nhosts; i += stride) {
+                        queryhost* host = hosts->hosts[i];
                         log(2, "Thread %d picked host #%d.", offset, i);
                         // Process the host and get back a list of SQL updates to execute.
                         QueryableHost queryable_host(host, (*cache)[i]);

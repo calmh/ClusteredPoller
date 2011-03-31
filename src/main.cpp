@@ -21,14 +21,14 @@ void help()
         cerr << " -c <file>   Specify configuration file [" << rtgconf_file << "]" << endl;
         cerr << " -D          Don't detach, run in foreground" << endl;
         cerr << " -d          Disable database inserts" << endl;
-        cerr << " -t <file>   Specify target file [" << targets << "]" << endl;
+        cerr << " -t <file>   Specify target file [" << targets_file << "]" << endl;
         cerr << " -v          Increase verbosity" << endl;
         cerr << " -z          Database zero delta inserts" << endl;
         cerr << " -ql <num>   Maximum database queue length [" << max_queue_length << "]" << endl;
         cerr <<  " Copyright (c) 2009-2010 Jakob Borg" << endl;
 }
 
-void run_threads(RTGTargets* targets, rtgconf* config)
+void run_threads(rtgtargets* targets, rtgconf* config)
 {
         // Calculate number of database writers needed. This is just a guess.
         unsigned num_dbthreads = config->threads / 8;
@@ -77,7 +77,7 @@ int main (int argc, char* const argv[])
                         rtgconf_file = string(argv[i]);
                 } else if (arg == "-t") {
                         i++;
-                        targets = string(argv[i]);
+                        targets_file = string(argv[i]);
                 } else if (arg == "-ql") {
                         i++;
                         max_queue_length = atoi(argv[i]);
@@ -87,10 +87,10 @@ int main (int argc, char* const argv[])
         // Read rtg.conf
         rtgconf* config = rtgconf_create(rtgconf_file.c_str());
         // Read targets.cfg
-        RTGTargets* hosts = new RTGTargets(targets, config);
+        rtgtargets* targets = rtgtargets_parse(targets_file.c_str(), config);
 
-        if (hosts->size() == 0) {
-                log(0, "No hosts, so nothing to do.");
+        if (targets->ntargets == 0) {
+                log(0, "No targets, so nothing to do.");
                 exit(-1);
         }
 
@@ -99,7 +99,7 @@ int main (int argc, char* const argv[])
         if (detach)
                 daemonize();
 
-        run_threads(hosts, config);
+        run_threads(targets, config);
         return 0;
 }
 #endif
