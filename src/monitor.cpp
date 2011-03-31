@@ -8,8 +8,11 @@
 
 using namespace std;
 
-Monitor::Monitor() : Multithread(1)
+int Monitor::interval;
+
+Monitor::Monitor(int interval) : Multithread(1)
 {
+        Monitor::interval = interval;
 }
 
 void Monitor::create_thread(pthread_t* thread, int* thread_id)
@@ -58,7 +61,7 @@ void* Monitor::run(void* id_ptr)
 
                 pthread_mutex_lock(&global_lock);
                 if (active_threads == 0 && time(NULL) > interval) {
-                        interval = (time(NULL) / config.interval + 1) * config.interval;
+                        interval = (time(NULL) / Monitor::interval + 1) * Monitor::interval;
                         in_iteration = time(NULL);
                         if (verbosity >= 1) {
                                 log(1, "Monitor signals wakeup.");

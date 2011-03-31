@@ -11,7 +11,7 @@ SUITE(LongTests)
         TEST(MeasureOneHostsAt10MbpsForTenSeconds) {
                 mock_set_speed(1000000 / 8);
                 RTGConf conf("test/example-rtg.conf");
-                RTGTargets hosts("test/example-targets.cfg", conf);
+                RTGTargets hosts("test/example-targets.cfg", &conf);
                 ResultCache cache;
                 QueryableHost qh(hosts[0], cache);
                 std::vector<std::string> queries = qh.get_inserts();
@@ -28,7 +28,7 @@ SUITE(LongTests)
         TEST(MeasureOneHostAt100MbpsForOneInterval) {
                 mock_set_speed(100000000 / 8);
                 RTGConf conf("test/example-rtg.conf");
-                RTGTargets hosts("test/example-targets.cfg", conf);
+                RTGTargets hosts("test/example-targets.cfg", &conf);
                 ResultCache cache;
                 QueryableHost qh(hosts[0], cache);
                 std::vector<std::string> queries = qh.get_inserts();

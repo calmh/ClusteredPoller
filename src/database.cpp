@@ -11,10 +11,13 @@
 
 using namespace std;
 
+RTGConf* Database::config;
+
 #define COMMIT_INTERVAL 100
 
-Database::Database(int num_threads) : Multithread(num_threads)
+Database::Database(int num_threads, RTGConf* config) : Multithread(num_threads)
 {
+        Database::config = config;
 }
 
 Database::~Database()
@@ -131,7 +134,7 @@ mysqlpp::Connection* Database::connection(int my_id)
         log(2, "DB thread %d connecting to MySQL.", my_id);
 
         mysqlpp::Connection* conn = new mysqlpp::Connection(false);
-        conn->connect(config.database.c_str(), config.dbhost.c_str(), config.dbuser.c_str(), config.dbpass.c_str());
+        conn->connect(config->database.c_str(), config->dbhost.c_str(), config->dbuser.c_str(), config->dbpass.c_str());
 
         if (conn->connected()) {
                 mysqlpp::Query disable_autocommit = conn->query("SET AUTOCOMMIT=0");

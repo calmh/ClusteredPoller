@@ -8,9 +8,10 @@ class Monitor : public Multithread
 protected:
         void create_thread(pthread_t* thread, int* thread_id);
         static void* run(void* id_ptr);
+        static int interval;
 
 public:
-        Monitor();
+        Monitor(int interval);
 };
 
 #endif /* MONITOR_H_ */

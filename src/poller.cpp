@@ -9,8 +9,13 @@
 
 using namespace std;
 
-Poller::Poller(int num_threads) : Multithread(num_threads)
+int Poller::stride;
+RTGTargets* Poller::hosts;
+
+Poller::Poller(int num_threads, RTGTargets* hosts) : Multithread(num_threads)
 {
+        stride = num_threads;
+        Poller::hosts = hosts;
 }
 
 void Poller::create_thread(pthread_t* thread, int* thread_id)
@@ -25,8 +30,6 @@ void Poller::create_thread(pthread_t* thread, int* thread_id)
 // for each thread, and the threads keep off each others toes.
 void* Poller::run(void* id_ptr)
 {
-        // Assign our offset and stride values.
-        unsigned stride = config.threads;
         pthread_mutex_lock(&global_lock);
         unsigned offset = *((int*) id_ptr);
         pthread_mutex_unlock(&global_lock);
@@ -56,8 +59,8 @@ void* Poller::run(void* id_ptr)
                 // Note our start time, so we know how long an iteration takes.
                 start = time(NULL);
                 // Loop over our share of the hosts.
-                for (unsigned i = offset; i < hosts.size(); i += stride) {
-                        QueryHost host = hosts[i];
+                for (unsigned i = offset; i < hosts->size(); i += stride) {
+                        QueryHost host = (*hosts)[i];
                         log(2, "Thread %d picked host #%d.", offset, i);
                         // Process the host and get back a list of SQL updates to execute.
                         QueryableHost queryable_host(host, cache[i]);

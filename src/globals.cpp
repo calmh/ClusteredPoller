@@ -9,10 +9,6 @@ using namespace std;
 
 // Global variables are instantiated here.
 
-// All hosts that we are to poll.
-RTGTargets hosts;
-// Configuration data (database information etc.)
-RTGConf config;
 // Cache of latest values and times for rate calculation.
 vector<ResultCache> cache;
 // Used for assigning thread ID:s at startup.

@@ -28,22 +28,22 @@ void help()
         cerr <<  " Copyright (c) 2009-2010 Jakob Borg" << endl;
 }
 
-void run_threads()
+void run_threads(RTGTargets* targets, RTGConf* config)
 {
         // Calculate number of database writers needed. This is just a guess.
-        unsigned num_dbthreads = config.threads / 8;
+        unsigned num_dbthreads = config->threads / 8;
         num_dbthreads = num_dbthreads ? num_dbthreads : 1;
 
-        log(1, "Starting %d poller threads.", config.threads);
-        Poller pollers(config.threads);
+        log(1, "Starting %d poller threads.", config->threads);
+        Poller pollers(config->threads, targets);
         pollers.start();
 
         log(1, "Starting %d database threads.", num_dbthreads);
-        Database database_threads(num_dbthreads);
+        Database database_threads(num_dbthreads, config);
         database_threads.start();
 
         log(1, "Starting monitor thread.");
-        Monitor monitor;
+        Monitor monitor(config->interval);
         monitor.start();
 
         pollers.join_all();
@@ -85,24 +85,24 @@ int main (int argc, char* const argv[])
         }
 
         // Read rtg.conf
-        config = RTGConf(rtgconf);
+        RTGConf* config = new RTGConf(rtgconf);
         // Read targets.cfg
-        hosts = RTGTargets(targets, config);
+        RTGTargets* hosts = new RTGTargets(targets, config);
 
-        if (hosts.size() == 0) {
+        if (hosts->size() == 0) {
                 log(0, "No hosts, so nothing to do.");
                 exit(-1);
         }
 
         // Allocate result cache for the number of hosts in targets.cfg
-        cache = vector<ResultCache>(hosts.size());
+        cache = vector<ResultCache>(hosts->size());
 
-        log(1, "Polling every %d seconds.", config.interval);
+        log(1, "Polling every %d seconds.", config->interval);
 
         if (detach)
                 daemonize();
 
-        run_threads();
+        run_threads(hosts, config);
         return 0;
 }
 #endif

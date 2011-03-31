@@ -98,7 +98,7 @@ SUITE(QuickTests)
                 ResultCache cache;
 
                 RTGConf conf("test/example-rtg.conf");
-                RTGTargets hosts("test/example-targets.cfg", conf);
+                RTGTargets hosts("test/example-targets.cfg", &conf);
                 QueryableHost qh(hosts[0], cache);
                 std::map<std::string, ResultSet> rs = qh.get_all_resultsets();
                 CHECK_EQUAL((size_t)1, rs.size()); // One table
