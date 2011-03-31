@@ -27,11 +27,11 @@ void QueryableHost::initialize_result_set(map<string, ResultSet> & rs, QueryRow&
         }
 }
 
-bool QueryableHost::query_snmp(SNMP& snmp_session, QueryRow& row, map<string, ResultSet>& rs)
+bool QueryableHost::query_snmp(clsnmp_session* snmp_session, QueryRow& row, map<string, ResultSet>& rs)
 {
         unsigned long long value;
         time_t response_time;
-        bool success = snmp_session.get_counter(row.oid, &value, &response_time);
+        bool success = clsnmp_get(snmp_session, row.oid.c_str(), &value, &response_time);
         if (success) {
                 // We got a result from SNMP polling, so insert it into the result set.
                 ResultRow r(row.id, value, 0, row.bits, response_time, row.speed);
@@ -47,17 +47,16 @@ map<string, ResultSet> QueryableHost::get_all_resultsets()
         // We map from table name to result set.
         map<string, ResultSet> rs;
 
-        try {
-                // Start a new SNMP session.
-                SNMP snmp_session(host.host, host.community, host.snmpver);
-
+        // Start a new SNMP session.
+        clsnmp_session* session = clsnmp_session_create(host.host.c_str(), host.community.c_str(), host.snmpver);
+        if (session) {
                 int errors = 0;
                 // Iterate over all targets in the host.
                 vector<QueryRow>::iterator it;
                 for (it = host.rows.begin(); it != host.rows.end() && errors < MAXERRORSPERHOST; it++) {
                         QueryRow row = *it;
                         initialize_result_set(rs, row);
-                        bool success = query_snmp(snmp_session, row, rs);
+                        bool success = query_snmp(session, row, rs);
                         if (!success) {
                                 log(1, "SNMP get for %s OID %s failed.", host.host.c_str(), row.oid.c_str());
                                 errors++;
@@ -65,9 +64,8 @@ map<string, ResultSet> QueryableHost::get_all_resultsets()
                 }
                 if (errors >= MAXERRORSPERHOST)
                         log(0, "Too many errors for host %s, aborted.", host.host.c_str());
-        } catch (SNMPCommunicationException& e) {
+        } else {
                 log(0, "Error in SNMP setup.");
-                log(0, "%s", e.what());
         }
 
         return rs;

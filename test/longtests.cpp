@@ -4,7 +4,7 @@
 #include "rtgconf.h"
 #include "rtgtargets.h"
 
-void mock_set_speed(unsigned int newspeed); // From snmp-mock.cpp
+extern "C" void mock_set_speed(unsigned int newspeed); // From snmp-mock.cpp
 
 SUITE(LongTests)
 {

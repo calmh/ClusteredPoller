@@ -5,11 +5,12 @@
 #include <string>
 #include <vector>
 
+#include "snmp.h"
+
 class QueryHost;
 class ResultCache;
 class ResultSet;
 class QueryRow;
-class SNMP;
 
 class QueryableHost
 {
@@ -17,7 +18,7 @@ private:
         QueryHost& host;
         ResultCache& cache;
         void initialize_result_set(std::map<std::string,ResultSet>& rs, QueryRow& row);
-        bool query_snmp(SNMP& snmp_session, QueryRow& row, std::map<std::string,ResultSet>& rs);
+        bool query_snmp(clsnmp_session* snmp_session, QueryRow& row, std::map<std::string,ResultSet>& rs);
         std::string build_insert_query(ResultSet& r);
 
 public:
