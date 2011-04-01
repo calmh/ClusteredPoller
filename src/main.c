@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "util.h"
 #include "globals.h"
@@ -33,7 +34,8 @@ void run_threads(rtgtargets *targets, rtgconf *config)
 
         cllog(1, "Starting %d poller threads.", config->threads);
         mt_threads *poller_threads = mt_threads_create(config->threads);
-        for (unsigned i = 0; i < config->threads; i++) {
+	unsigned i;
+        for (i = 0; i < config->threads; i++) {
                 poller_ctx *ctx = (poller_ctx *)malloc(sizeof(poller_ctx));
                 ctx->stride = config->threads;
                 ctx->targets = targets;
@@ -43,7 +45,7 @@ void run_threads(rtgtargets *targets, rtgconf *config)
 
         cllog(1, "Starting %d database threads.", num_dbthreads);
         mt_threads *database_threads = mt_threads_create(num_dbthreads);
-        for (unsigned i = 0; i < num_dbthreads; i++) {
+        for (i = 0; i < num_dbthreads; i++) {
                 database_ctx *ctx = (database_ctx *)malloc(sizeof(database_ctx));
                 ctx->config = config;
                 database_threads->contexts[i].param = ctx;
@@ -70,7 +72,9 @@ int main (int argc, char *const argv[])
                 help();
                 exit(0);
         }
-        for (int i = 1; i < argc; i++) {
+
+	int i;
+        for (i = 1; i < argc; i++) {
                 char *arg = argv[i];
                 if (!strcmp(arg, "-v"))
                         verbosity++;

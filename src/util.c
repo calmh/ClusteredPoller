@@ -48,7 +48,7 @@ void cllog(int level, const char *format, ...)
         va_end(ap);
         if (verbosity >= level) {
                 pthread_mutex_lock(&cerr_lock);
-                fprintf(stderr, buffer);
+                fprintf(stderr, "%s", buffer);
                 pthread_mutex_unlock(&cerr_lock);
                 if (level > 1)
                         syslog(LOG_DEBUG, "%s", buffer);

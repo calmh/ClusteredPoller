@@ -10,20 +10,23 @@ mt_threads *mt_threads_create(unsigned nthreads)
                 return NULL;
         threads->contexts = (mt_context *) malloc(sizeof(mt_context) * nthreads);
         threads->nthreads = nthreads;
-        for (unsigned i = 0; i < nthreads; i++)
+	unsigned i;
+        for (i = 0; i < nthreads; i++)
                 threads->contexts[i].thread_id = i;
         return threads;
 }
 
 void mt_threads_start(mt_threads *threads, void*(*runner)(void *))
 {
-        for (unsigned i = 0; i < threads->nthreads; i++)
+	unsigned i;
+        for (i = 0; i < threads->nthreads; i++)
                 pthread_create(&threads->contexts[i].pthread, NULL, runner, &threads->contexts[i]);
 }
 
 void mt_threads_join(mt_threads *threads)
 {
-        for (unsigned i = 0; i < threads->nthreads; i++)
+	unsigned i;
+        for (i = 0; i < threads->nthreads; i++)
                 pthread_join(threads->contexts[i].pthread, NULL);
 }
 

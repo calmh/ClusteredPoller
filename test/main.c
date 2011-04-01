@@ -1,6 +1,6 @@
 #include <stdio.h>
-
-#include "CuTest.h"
+#include <string.h>
+#include "cutest.h"
 
 CuSuite *CuGetCBufferSuite();
 CuSuite *CuGetIntegrationSuite();
@@ -34,4 +34,5 @@ int main(int argc, char **argv)
                 RunAllTests(1);
         else
                 RunAllTests(0);
+	return 0;
 }

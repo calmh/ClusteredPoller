@@ -28,7 +28,8 @@ rtgtargets *rtgtargets_create()
 
 void rtgtargets_free(rtgtargets *targets)
 {
-        for (int i = 0; i < targets->nhosts; i++)
+	int i;
+        for (i = 0; i < targets->nhosts; i++)
                 queryhost_free(targets->hosts[i]);
         free(targets->hosts);
         free(targets);
@@ -69,12 +70,14 @@ rtgtargets *read_new_style_targets(const char *filename, const rtgconf *conf)
 
                 /* In case of comment, ignore up to end of line. */
                 if (token[0] == '#') {
-                        fscanf(fileptr, "%*[^\n]");
+                        int result = fscanf(fileptr, "%*[^\n]");
+			(void)result;
                         continue;
                 }
 
                 if (!strcmp(token, "host")) {
-                        fscanf(fileptr, " %512s", token);
+                        int result = fscanf(fileptr, " %512s", token);
+			(void)result;
                         queryhost *host = read_host(fileptr, token, conf);
                         rtgtargets_push_host(targets, host);
                 }
@@ -91,21 +94,23 @@ queryhost *read_host(FILE *fileptr, const char *host_name, const rtgconf *conf)
         char token[513];
         while (fscanf(fileptr, " %512s", token) == 1) {
                 strclean(strtolower(token));
-
+		
+		int result; /* Unused */
                 /* In case of comment, ignore up to end of line. */
                 if (token[0] == '#') {
-                        fscanf(fileptr, "%*[^\n]");
+                        result = fscanf(fileptr, "%*[^\n]");
+			(void)result;
                         continue;
                 }
 
                 char buffer[129];
                 if (!strcmp(token, "community")) {
-                        fscanf(fileptr, " %128s", buffer);
+                        result = fscanf(fileptr, " %128s", buffer);
                         host->community = strdup(strclean(buffer));
                 } else if (!strcmp(token, "snmpver")) {
-                        fscanf(fileptr, " %d", &host->snmpver);
+                        result = fscanf(fileptr, " %d", &host->snmpver);
                 } else if (!strcmp(token, "target")) {
-                        fscanf(fileptr, " %128s", buffer);
+                        result = fscanf(fileptr, " %128s", buffer);
                         const char *oid = strdup(strclean(buffer));
                         queryrow *row = read_row(fileptr, oid, conf);
                         if (!check_for_duplicate(host, row))
@@ -113,6 +118,7 @@ queryhost *read_host(FILE *fileptr, const char *host_name, const rtgconf *conf)
                 } else if (!strcmp(token, "}")) {
                         break;
                 }
+		(void)result;
         }
         return host;
 }
@@ -131,7 +137,8 @@ queryhost *queryhost_create()
 
 void queryhost_free(queryhost *host)
 {
-        for (int i = 0; i < host->nrows; i++)
+	int i;
+        for (i = 0; i < host->nrows; i++)
                 queryrow_free(host->rows[i]);
         free(host->host);
         free(host->community);
@@ -175,23 +182,24 @@ queryrow *read_row(FILE *fileptr, const char *oid, const rtgconf *conf)
         while (fscanf(fileptr, " %512s", token) == 1) {
                 strclean(strtolower(token));
 
+		int result;
                 /* In case of comment, ignore up to end of line. */
                 if (token[0] == '#') {
-                        fscanf(fileptr, "%*[^\n]");
+                        result = fscanf(fileptr, "%*[^\n]");
                         continue;
                 }
 
                 char buffer[129];
                 if (!strcmp(token, "bits")) {
-                        fscanf(fileptr, " %d", &row->bits);
+                        result = fscanf(fileptr, " %d", &row->bits);
                 } else if (!strcmp(token, "table")) {
-                        fscanf(fileptr, " %128s", buffer);
+                        result = fscanf(fileptr, " %128s", buffer);
                         row->table = strdup(strclean(buffer));
                 } else if (!strcmp(token, "id")) {
-                        fscanf(fileptr, " %d", &row->id);
+                        result = fscanf(fileptr, " %d", &row->id);
                 } else if (!strcmp(token, "speed")) {
                         unsigned long long max_counter_diff;
-                        fscanf(fileptr, " %llu", &max_counter_diff);
+                        result = fscanf(fileptr, " %llu", &max_counter_diff);
                         if (row->bits == 0)
                                 row->speed = max_counter_diff;
                         else
@@ -199,6 +207,7 @@ queryrow *read_row(FILE *fileptr, const char *oid, const rtgconf *conf)
                 } else if (!strcmp(token, "}")) {
                         break;
                 }
+		(void) result;
         }
         return row;
 }
@@ -206,7 +215,8 @@ queryrow *read_row(FILE *fileptr, const char *oid, const rtgconf *conf)
 char *strtolower(char *str)
 {
         /* Lowercase string. */
-        for (int i = 0; str[i] != 0; i++)
+	int i;
+        for (i = 0; str[i] != 0; i++)
                 str[i] = tolower(str[i]);
         return str;
 }
@@ -237,7 +247,8 @@ char *strunc(char *str)
 
 int check_for_duplicate(queryhost *host, queryrow *row)
 {
-        for (unsigned i = 0; i < host->nrows; i++) {
+	unsigned i;
+        for (i = 0; i < host->nrows; i++) {
                 queryrow *it_row = host->rows[i];
                 if (!strcmp(it_row->oid, row->oid)) {
                         /* !!! Reinstate when log is pure C
@@ -292,7 +303,8 @@ rtgtargets *read_old_style_targets(const char *filename, const rtgconf *conf)
 
                 if (current_host == NULL) {
                         /* Look for an existing host. */
-                        for (int i = 0; i < targets->nhosts; i++) {
+			int i;
+                        for (i = 0; i < targets->nhosts; i++) {
                                 if (!strcmp(targets->hosts[i]->host, host)) {
                                         current_host = targets->hosts[i];
                                         break;

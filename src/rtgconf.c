@@ -14,7 +14,8 @@ rtgconf *rtgconf_create(const char *filename)
         rtgconf *conf = (rtgconf *) malloc(sizeof(rtgconf));
         while ((line = fgets(buffer, 512, fileptr))) {
                 /* Lowercase string. */
-                for (int i = 0; line[i] != 0; i++)
+		int i;
+                for (i = 0; line[i] != 0; i++)
                         line[i] = tolower(line[i]);
 
                 /* Terminate line at first comment character. */

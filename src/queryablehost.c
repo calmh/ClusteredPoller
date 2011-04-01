@@ -87,7 +87,8 @@ db_insert **get_db_inserts(queryhost *host)
         if (session) {
                 int errors = 0;
                 // Iterate over all targets in the host.
-                for (unsigned i = 0; i < host->nrows; i++) {
+		unsigned i;
+                for (i = 0; i < host->nrows; i++) {
                         queryrow *row = host->rows[i];
 
                         unsigned long long counter;
@@ -130,7 +131,8 @@ char *build_insert_query(db_insert *insert)
 
         int rows = 0;
         char buffer[16];
-        for (unsigned i = 0; i < insert->nvalues; i++) {
+	unsigned i;
+        for (i = 0; i < insert->nvalues; i++) {
                 // Check if we should insert it, based on whether or not we want db zeroes and whether it's a gauge or not.
                 if (allow_db_zero || insert->values[i].rate) {
                         // Build on the insert query. We set dtime to the time returned from snmp_get.
@@ -179,8 +181,8 @@ char **get_inserts(queryhost *host)
         unsigned n_inserts = num_inserts(inserts);
         char **queries = (char **) malloc(sizeof(char *) * n_inserts);
 
-        int j = 0;
-        for (int i = 0; i < MAX_TABLES && inserts[i]; i++) {
+        int i, j = 0;
+        for (i = 0; i < MAX_TABLES && inserts[i]; i++) {
                 char *query = build_insert_query(inserts[i]);
                 if (query)
                         queries[j++] = query;

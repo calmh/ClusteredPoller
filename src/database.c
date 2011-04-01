@@ -1,6 +1,7 @@
+#include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <mysql.h>
-
 #include "rtgconf.h"
 #include "multithread.h"
 #include "util.h"
@@ -26,6 +27,7 @@ void *database_run(void *ptr)
         MYSQL *conn = 0;
 
         while (1) {
+		if (use_db) {
                 if (queries_size() > 0) {
                         if (conn == 0 || mysql_ping(conn) != 0) {
                                 if (conn)
@@ -62,6 +64,10 @@ void *database_run(void *ptr)
 
                         sleep(1);
                 }
+		} else {
+                                char *query = dequeue_query();
+				printf("%s", query);
+		}
         }
         return 0;
 }

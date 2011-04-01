@@ -24,9 +24,9 @@ void TestMeasureOneHostsAt10MbpsForTenSeconds(CuTest *tc)
 
         CuAssertIntEquals(tc, 1, queries_size); // One insert next iteration
         char *pos = strstr(queries[0], ", 1250000, 125000)");
-        CuAssertPtrNotNull(tc, pos != NULL);
+        CuAssertPtrNotNull(tc, pos);
         pos = strstr(pos + 1, ", 1250000, 125000)");
-        CuAssertPtrNotNull(tc, pos != NULL);
+        CuAssertPtrNotNull(tc, pos);
 }
 
 void TestMeasureOneHostAt100MbpsForOneInterval(CuTest *tc)

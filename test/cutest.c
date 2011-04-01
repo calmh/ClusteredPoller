@@ -5,7 +5,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "CuTest.h"
+#include "cutest.h"
 
 /*-------------------------------------------------------------------------*
  * CuStr
