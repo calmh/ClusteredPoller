@@ -17,14 +17,14 @@ extern "C" {
                 unsigned allocated_size;
                 unsigned read_index;
                 unsigned write_index;
-                void** buffer;
+                void **buffer;
         } cbuffer;
 
-        cbuffer* cbuffer_create(unsigned size);
-        void* cbuffer_push(cbuffer* cb, void* ptr);
-        void* cbuffer_pop(cbuffer* cb);
-        unsigned cbuffer_count(cbuffer* cb);
-        unsigned cbuffer_free(cbuffer* cb);
+        cbuffer *cbuffer_create(unsigned size);
+        void *cbuffer_push(cbuffer *cb, void *ptr);
+        void *cbuffer_pop(cbuffer *cb);
+        unsigned cbuffer_count(cbuffer *cb);
+        unsigned cbuffer_free(cbuffer *cb);
 
 #ifdef __cplusplus
 }

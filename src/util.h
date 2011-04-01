@@ -11,7 +11,7 @@ extern "C" {
 // See util.cpp for comments.
 
         void daemonize(void);
-        void cllog(int level, const char* format, ...);
+        void cllog(int level, const char *format, ...);
 
 #ifdef __cplusplus
 }

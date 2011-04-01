@@ -10,16 +10,16 @@ void clsnmp_global_init()
         pthread_mutex_unlock(&clsnmp_lock);
 }
 
-clsnmp_session* clsnmp_session_create(const char* host, const char* community, int snmpver)
+clsnmp_session *clsnmp_session_create(const char *host, const char *community, int snmpver)
 {
         if (snmpver != 1 && snmpver != 2)
                 return NULL;
 
         pthread_mutex_lock(&clsnmp_lock);
-        clsnmp_session* session = (clsnmp_session*) malloc(sizeof(clsnmp_session));
+        clsnmp_session *session = (clsnmp_session *) malloc(sizeof(clsnmp_session));
         snmp_sess_init(&session->session);
-        session->session.peername = (char*) host;
-        session->session.community = (u_char*) community;
+        session->session.peername = (char *) host;
+        session->session.community = (u_char *) community;
         session->session.community_len = strlen(community);
         if (snmpver == 2)
                 session->session.version = SNMP_VERSION_2c;
@@ -40,7 +40,7 @@ clsnmp_session* clsnmp_session_create(const char* host, const char* community, i
         return session;
 }
 
-void clsnmp_session_free(clsnmp_session* session)
+void clsnmp_session_free(clsnmp_session *session)
 {
         pthread_mutex_lock(&clsnmp_lock);
         snmp_sess_close(session->sessp);
@@ -48,10 +48,10 @@ void clsnmp_session_free(clsnmp_session* session)
         free(session);
 }
 
-int clsnmp_get(clsnmp_session* session, const char* oid_str, unsigned long long* counter, time_t* response_time)
+int clsnmp_get(clsnmp_session *session, const char *oid_str, unsigned long long *counter, time_t *response_time)
 {
-        struct snmp_pdu* pdu;
-        struct snmp_pdu* response;
+        struct snmp_pdu *pdu;
+        struct snmp_pdu *response;
         oid anOID[MAX_OID_LEN];
         size_t anOID_len = MAX_OID_LEN;
         int status;
@@ -65,7 +65,7 @@ int clsnmp_get(clsnmp_session* session, const char* oid_str, unsigned long long*
 
         int success = 0;
         if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR) {
-                struct variable_list* vars = response->variables;
+                struct variable_list *vars = response->variables;
                 switch (vars->type) {
                 case SNMP_NOSUCHOBJECT:
                 case SNMP_NOSUCHINSTANCE:

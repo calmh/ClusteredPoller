@@ -11,7 +11,7 @@ extern "C" {
                 unsigned interval;
         } monitor_ctx;
 
-        void* monitor_run(void* ptr);
+        void *monitor_run(void *ptr);
 
 #ifdef __cplusplus
 }

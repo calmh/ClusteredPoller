@@ -5,14 +5,14 @@
 #include "queryablehost.h"
 #include "util.h"
 
-void* poller_run(void* ptr)
+void *poller_run(void *ptr)
 {
-        mt_context* thread_context = (mt_context*) ptr;
-        poller_ctx* poller_context = (poller_ctx*) thread_context->param;
+        mt_context *thread_context = (mt_context *) ptr;
+        poller_ctx *poller_context = (poller_ctx *) thread_context->param;
 
         unsigned id = thread_context->thread_id;
         unsigned stride = poller_context->stride;
-        rtgtargets* targets = poller_context->targets;
+        rtgtargets *targets = poller_context->targets;
 
         // Start looping.
         unsigned iterations = 0;
@@ -40,20 +40,20 @@ void* poller_run(void* ptr)
                 start = time(NULL);
                 // Loop over our share of the hosts.
                 for (unsigned i = id; i < targets->nhosts; i += stride) {
-                        queryhost* host = targets->hosts[i];
+                        queryhost *host = targets->hosts[i];
                         cllog(2, "Thread %d picked host #%d.", id, i);
                         // Process the host and get back a list of SQL updates to execute.
-                        char** host_queries = get_inserts(host);
+                        char **host_queries = get_inserts(host);
                         unsigned n_queries;
                         for (n_queries = 0; host_queries[n_queries]; n_queries++);
-                        
+
                         if (n_queries > 0) {
                                 cllog(2, "Thread %u queueing %u queries.", id, n_queries);
 
                                 pthread_mutex_lock(&db_list_lock);
                                 unsigned  i;
                                 for (i = 0; i < n_queries && cbuffer_free(queries) > 0; i++) {
-                                        cbuffer_push(queries, (void*) host_queries[i]);
+                                        cbuffer_push(queries, (void *) host_queries[i]);
                                 }
                                 unsigned qd = cbuffer_count(queries);
                                 query_queue_depth = query_queue_depth > qd ? query_queue_depth : qd;

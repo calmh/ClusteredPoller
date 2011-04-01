@@ -9,10 +9,10 @@ extern "C" {
 #endif
 
         typedef struct {
-                rtgconf* config;
+                rtgconf *config;
         } database_ctx;
 
-        void* database_run(void* ptr);
+        void *database_run(void *ptr);
 
 #ifdef __cplusplus
 }

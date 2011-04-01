@@ -6,13 +6,13 @@
 // Global variables are instantiated here.
 
 // Queue of outstanding database queries.
-cbuffer* queries;
+cbuffer *queries;
 // Maximum number of outstanding database queries.
 unsigned long query_queue_depth = 0;
 
 // Configuration variables that are modified by command line flags.
-char* rtgconf_file = (char*) "/usr/local/rtg/etc/rtg.conf";
-char* targets_file = (char*) "/usr/local/rtg/etc/targets.cfg";
+char *rtgconf_file = (char *) "/usr/local/rtg/etc/rtg.conf";
+char *targets_file = (char *) "/usr/local/rtg/etc/targets.cfg";
 int verbosity = 0;
 int detach = 1;
 int use_db = 1;

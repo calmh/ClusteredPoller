@@ -10,20 +10,20 @@
 #define COMMIT_INTERVAL 100
 
 unsigned long queries_size();
-char* dequeue_query();
-MYSQL* connection(rtgconf* config);
+char *dequeue_query();
+MYSQL *connection(rtgconf *config);
 
-void* database_run(void* ptr)
+void *database_run(void *ptr)
 {
-        mt_context* thread_context = (mt_context*) ptr;
-        database_ctx* database_context = (database_ctx*) thread_context->param;
+        mt_context *thread_context = (mt_context *) ptr;
+        database_ctx *database_context = (database_ctx *) thread_context->param;
         unsigned my_id = thread_context->thread_id;
-        rtgconf* config = database_context->config;
+        rtgconf *config = database_context->config;
 
         unsigned useless_iterations = 0;
         unsigned query_counter = 0;
 
-        MYSQL* conn = 0;
+        MYSQL *conn = 0;
 
         while (1) {
                 if (queries_size() > 0) {
@@ -74,15 +74,15 @@ unsigned long queries_size()
         return qs;
 }
 
-char* dequeue_query()
+char *dequeue_query()
 {
         pthread_mutex_lock(&db_list_lock);
-        char * query =  (char*) cbuffer_pop(queries);
+        char *query =  (char *) cbuffer_pop(queries);
         pthread_mutex_unlock(&db_list_lock);
         return query;
 }
 
-MYSQL* connection(rtgconf* config)
+MYSQL *connection(rtgconf *config)
 {
         MYSQL *conn = mysql_init(NULL);
         if (conn == NULL) {

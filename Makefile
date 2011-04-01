@@ -1,68 +1,63 @@
-OBJS = src/main.o \
-	src/util.o \
+OBJS = src/cbuffer.o \
+	src/database.o \
 	src/globals.o \
-	src/snmp.o \
+	src/gstring.o \
+	src/main.o \
+	src/monitor.o \
+	src/multithread.o \
+	src/poller.o \
 	src/queryablehost.o \
 	src/rtgconf.o \
 	src/rtgtargets.o \
-	src/multithread.o \
-	src/monitor.o \
-	src/poller.o \
-	src/database.o \
-	src/gstring.o \
-	src/cbuffer.o
+	src/snmp.o \
+	src/util.o 
 
-TESTOBJS = test/main.o \
+TESTOBJS = src/cbuffer.o \
+	src/globals.o \
+	src/gstring.o \
+	src/monitor.o \
+	src/multithread.o \
+	src/poller.o \
+	src/queryablehost.o \
+	src/rtgconf.o \
+	src/rtgtargets.o \
+	src/util.o \
 	test/cbuffertests.o \
-	test/utiltests.o \
+	test/cutest.o \
+	test/database-mock.o \
 	test/integrationtests.o \
+	test/longtests.o \
+	test/main.o \
 	test/rtgconftests.o \
 	test/rtgtargetstests.o \
-	test/longtests.o \
-	test/database-mock.o \
 	test/snmp-mock.o \
-	src/util.o \
-	src/globals.o \
-	src/queryablehost.o \
-	src/rtgconf.o \
-	src/rtgtargets.o \
-	src/multithread.o \
-	src/monitor.o \
-	src/poller.o \
-	src/gstring.o \
-	src/cbuffer.o
+	test/utiltests.o 
 
 TARGET := clpoll
 TESTTARGET := testrunner
-UNITTESTPP := UnitTest++/libUnitTest++.a
-.SUFFIXES: .o .cpp .c
+.SUFFIXES: .o .c
 
-CXXFLAGS ?= -ansi -DOS_${OS} -DUSE_MYSQL -Wall -Werror
-CFLAGS ?= --std=c99 -DOS_${OS} -DUSE_MYSQL -Wall
+CFLAGS ?= --std=c99 -DOS_${OS} -Wall
 
 OS = $(shell uname -s | awk '{print tolower($$0)}')
 ifeq ($(OS),linux)
-	CXXFLAGS += -I/usr/include/mysql
 	CFLAGS += -I/usr/include/mysql
-	LIBS = -lnetsnmp -lpthread -lmysql
+	LIBS = -lnetsnmp -lpthread -lmysqlclient
 else ifeq ($(OS),darwin)
-	CXXFLAGS += -I/usr/local/mysql/include
 	CFLAGS += -I/usr/local/mysql/include
 	LIBS = -L/usr/local/mysql/lib -lnetsnmp -lmysqlclient
 endif
 
 all: $(UNITTESTPP) $(TARGET) test
 
-$(TARGET): CXXFLAGS += -O2
 $(TARGET): CFLAGS += -O2
 $(TARGET): $(OBJS)
-	g++ $^ $(LIBS) -o $@
+	gcc $^ $(LIBS) -o $@
 	strip $@
 
-$(TESTTARGET): CXXFLAGS += -IUnitTest++/src -Isrc
-$(TESTTARGET): CFLAGS += -IUnitTest++/src -Isrc
+$(TESTTARGET): CFLAGS += -Isrc
 $(TESTTARGET): $(TESTOBJS) $(UNITTESTPP)
-	g++ $^ $(LIBS) $(UNITTESTPP) -o $@
+	gcc $^ $(LIBS) $(UNITTESTPP) -o $@
 
 .PHONY: test
 test: $(TESTTARGET)
@@ -82,14 +77,11 @@ clean:
 
 .PHONY: reformat
 reformat:
-	astyle -A8 -n --convert-tabs --align-pointer=type -z2 src/*.cpp src/*.h test/*.cpp
+	astyle -A8 -n --convert-tabs --align-pointer=name -z2 src/*.c src/*.h test/*.c
 
 .PHONY: version
 version:
 	echo "#define CLPOLL_VERSION \"${VERSION}\"" > src/version.h
-
-%.o : %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $(patsubst %.cpp, %.o, $<)
 
 %.o : %.c
 	$(CC) $(CFLAGS) -c $< -o $(patsubst %.c, %.o, $<)

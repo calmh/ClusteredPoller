@@ -25,16 +25,16 @@ void help()
         fprintf(stderr, " Copyright (c) 2009-2011 Jakob Borg\n");
 }
 
-void run_threads(rtgtargets* targets, rtgconf* config)
+void run_threads(rtgtargets *targets, rtgconf *config)
 {
         // Calculate number of database writers needed. This is just a guess.
         unsigned num_dbthreads = config->threads / 8;
         num_dbthreads = num_dbthreads ? num_dbthreads : 1;
 
         cllog(1, "Starting %d poller threads.", config->threads);
-        mt_threads* poller_threads = mt_threads_create(config->threads);
+        mt_threads *poller_threads = mt_threads_create(config->threads);
         for (unsigned i = 0; i < config->threads; i++) {
-                poller_ctx* ctx = (poller_ctx*)malloc(sizeof(poller_ctx));
+                poller_ctx *ctx = (poller_ctx *)malloc(sizeof(poller_ctx));
                 ctx->stride = config->threads;
                 ctx->targets = targets;
                 poller_threads->contexts[i].param = ctx;
@@ -42,17 +42,17 @@ void run_threads(rtgtargets* targets, rtgconf* config)
         mt_threads_start(poller_threads, poller_run);
 
         cllog(1, "Starting %d database threads.", num_dbthreads);
-        mt_threads* database_threads = mt_threads_create(num_dbthreads);
+        mt_threads *database_threads = mt_threads_create(num_dbthreads);
         for (unsigned i = 0; i < num_dbthreads; i++) {
-                database_ctx* ctx = (database_ctx*)malloc(sizeof(database_ctx));
+                database_ctx *ctx = (database_ctx *)malloc(sizeof(database_ctx));
                 ctx->config = config;
                 database_threads->contexts[i].param = ctx;
         }
         mt_threads_start(database_threads, database_run);
 
         cllog(1, "Starting monitor thread.");
-        mt_threads* monitor_threads = mt_threads_create(1);
-        monitor_ctx* ctx = (monitor_ctx*)malloc(sizeof(monitor_ctx));
+        mt_threads *monitor_threads = mt_threads_create(1);
+        monitor_ctx *ctx = (monitor_ctx *)malloc(sizeof(monitor_ctx));
         ctx->interval = config->interval;
         monitor_threads->contexts[0].param = ctx;
         mt_threads_start(monitor_threads, monitor_run);
@@ -64,14 +64,14 @@ void run_threads(rtgtargets* targets, rtgconf* config)
 
 #ifndef TESTSUITE
 // Parse command line, load caonfiguration and start threads.
-int main (int argc, char* const argv[])
+int main (int argc, char *const argv[])
 {
         if (argc < 2) {
                 help();
                 exit(0);
         }
         for (int i = 1; i < argc; i++) {
-                char* arg = argv[i];
+                char *arg = argv[i];
                 if (!strcmp(arg, "-v"))
                         verbosity++;
                 else if (!strcmp(arg, "-D"))
@@ -96,9 +96,9 @@ int main (int argc, char* const argv[])
         }
 
         // Read rtg.conf
-        rtgconf* config = rtgconf_create(rtgconf_file);
+        rtgconf *config = rtgconf_create(rtgconf_file);
         // Read targets.cfg
-        rtgtargets* targets = rtgtargets_parse(targets_file, config);
+        rtgtargets *targets = rtgtargets_parse(targets_file, config);
 
         if (targets->ntargets == 0) {
                 cllog(0, "No targets, so nothing to do.");

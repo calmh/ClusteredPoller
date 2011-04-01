@@ -12,10 +12,10 @@ extern "C" {
 
 // See globals.cpp for documentation on what these are used for.
 
-        extern cbuffer* queries;
+        extern cbuffer *queries;
         extern unsigned long query_queue_depth;
-        extern char* rtgconf_file;
-        extern char* targets_file;
+        extern char *rtgconf_file;
+        extern char *targets_file;
         extern int verbosity;
         extern int detach;
         extern int use_db;

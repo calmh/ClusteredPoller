@@ -9,14 +9,14 @@ extern "C" {
         typedef struct {
                 unsigned interval;
                 unsigned threads;
-                char* dbhost;
-                char* database;
-                char* dbuser;
-                char* dbpass;
+                char *dbhost;
+                char *database;
+                char *dbuser;
+                char *dbpass;
         } rtgconf;
 
-        rtgconf* rtgconf_create(const char* filename);
-        void rtgconf_free(rtgconf* config);
+        rtgconf *rtgconf_create(const char *filename);
+        void rtgconf_free(rtgconf *config);
 
 #ifdef __cplusplus
 }

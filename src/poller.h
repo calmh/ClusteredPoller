@@ -10,10 +10,10 @@ extern "C" {
 
         typedef struct {
                 unsigned stride;
-                rtgtargets* targets;
+                rtgtargets *targets;
         } poller_ctx;
 
-        void* poller_run(void* param);
+        void *poller_run(void *param);
 
 #ifdef __cplusplus
 }

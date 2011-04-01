@@ -33,13 +33,13 @@ void daemonize(void)
                 exit(EXIT_FAILURE);
         }
 
-        FILE* ignored;
+        FILE *ignored;
         ignored = freopen( "/dev/null", "r", stdin);
         ignored = freopen( "/dev/null", "w", stdout);
         ignored = freopen( "/dev/null", "w", stderr);
 }
 
-void cllog(int level, const char* format, ...)
+void cllog(int level, const char *format, ...)
 {
         va_list ap;
         char buffer[128];

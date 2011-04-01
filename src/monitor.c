@@ -3,10 +3,10 @@
 #include "queryablehost.h"
 #include "globals.h"
 
-void* monitor_run(void* ptr)
+void *monitor_run(void *ptr)
 {
-        mt_context* thread_context = (mt_context*) ptr;
-        monitor_ctx* monitor_context = (monitor_ctx*) thread_context->param;
+        mt_context *thread_context = (mt_context *) ptr;
+        monitor_ctx *monitor_context = (monitor_ctx *) thread_context->param;
 
         unsigned poll_interval = monitor_context->interval;
 

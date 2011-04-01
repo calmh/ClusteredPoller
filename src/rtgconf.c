@@ -7,18 +7,18 @@
 
 rtgconf *rtgconf_create(const char *filename)
 {
-        FILE* fileptr = fopen(filename, "rb");
+        FILE *fileptr = fopen(filename, "rb");
         /* !!! This might fail. Handle it. */
         char buffer[513];
-        char* line;
-	rtgconf *conf = (rtgconf*) malloc(sizeof(rtgconf));
+        char *line;
+        rtgconf *conf = (rtgconf *) malloc(sizeof(rtgconf));
         while ((line = fgets(buffer, 512, fileptr))) {
                 /* Lowercase string. */
                 for (int i = 0; line[i] != 0; i++)
                         line[i] = tolower(line[i]);
 
                 /* Terminate line at first comment character. */
-                char* comment_begin = strchr(line, '#');
+                char *comment_begin = strchr(line, '#');
                 if (comment_begin)
                         *comment_begin = '\0';
 
@@ -44,15 +44,15 @@ rtgconf *rtgconf_create(const char *filename)
                 }
         }
         fclose(fileptr);
-	return conf;
+        return conf;
 }
 
 void rtgconf_free(rtgconf *config)
 {
-	free(config->dbhost);
-	free(config->dbuser);
-	free(config->dbpass);
-	free(config->database);
-	free(config);
+        free(config->dbhost);
+        free(config->dbuser);
+        free(config->dbpass);
+        free(config->database);
+        free(config);
 }
 

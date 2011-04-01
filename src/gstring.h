@@ -18,12 +18,12 @@ extern "C" {
         typedef struct {
                 size_t length;
                 size_t allocated;
-                char* string;
+                char *string;
         } gstr;
 
-        gstr* gstr_create(size_t preallocate);
-        void gstr_free(gstr* gs);
-        void gstr_append(gstr* gs, const char* str);
+        gstr *gstr_create(size_t preallocate);
+        void gstr_free(gstr *gs);
+        void gstr_append(gstr *gs, const char *str);
 
 #ifdef __cplusplus
 }

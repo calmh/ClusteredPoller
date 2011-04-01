@@ -10,17 +10,17 @@ extern "C" {
         typedef struct {
                 unsigned thread_id;
                 pthread_t pthread;
-                void* param;
+                void *param;
         } mt_context;
 
         typedef struct {
                 unsigned nthreads;
-                mt_context* contexts;
+                mt_context *contexts;
         } mt_threads;
 
-        mt_threads* mt_threads_create(unsigned nthreads);
-        void mt_threads_start(mt_threads* threads, void*(*runner)(void*));
-        void mt_threads_join(mt_threads* threads);
+        mt_threads *mt_threads_create(unsigned nthreads);
+        void mt_threads_start(mt_threads *threads, void*(*runner)(void *));
+        void mt_threads_join(mt_threads *threads);
 
 #ifdef __cplusplus
 }
