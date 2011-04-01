@@ -2,13 +2,17 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-
 #include "rtgconf.h"
+#include "util.h"
 
 rtgconf *rtgconf_create(const char *filename)
 {
         FILE *fileptr = fopen(filename, "rb");
-        /* !!! This might fail. Handle it. */
+        if (!fileptr) {
+		cllog(0, "Couldn't open %s for reading.", filename);
+		return NULL;
+	}
+
         char buffer[513];
         char *line;
         rtgconf *conf = (rtgconf *) malloc(sizeof(rtgconf));

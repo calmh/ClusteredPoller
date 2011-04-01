@@ -32,6 +32,8 @@ void run_threads(rtgtargets *targets, rtgconf *config)
         unsigned num_dbthreads = config->threads / 8;
         num_dbthreads = num_dbthreads ? num_dbthreads : 1;
 
+	queries = cbuffer_create(max_queue_length);
+
         cllog(1, "Starting %d poller threads.", config->threads);
         mt_threads *poller_threads = mt_threads_create(config->threads);
 	unsigned i;
@@ -101,6 +103,11 @@ int main (int argc, char *const argv[])
 
         // Read rtg.conf
         rtgconf *config = rtgconf_create(rtgconf_file);
+	if (!config) {
+                cllog(0, "No configuration, so nothing to do.");
+                exit(-1);
+	}
+
         // Read targets.cfg
         rtgtargets *targets = rtgtargets_parse(targets_file, config);
 

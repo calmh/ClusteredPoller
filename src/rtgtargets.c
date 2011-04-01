@@ -50,8 +50,9 @@ rtgtargets *rtgtargets_parse(const char *filename, const rtgconf *conf)
 void rtgtargets_push_host(rtgtargets *targets, queryhost *host)
 {
         if (targets->nhosts == targets->allocated_space) {
-                targets->hosts = (queryhost **) realloc(targets->hosts, sizeof(queryhost *) * targets->allocated_space * 2);
-                targets->allocated_space *= 2;
+		unsigned new_size = targets->allocated_space * 1.5;
+                targets->hosts = (queryhost **) realloc(targets->hosts, sizeof(queryhost *) * new_size);
+                targets->allocated_space = new_size;
         }
         targets->hosts[targets->nhosts++] = host;
         targets->ntargets += host->nrows;
@@ -168,8 +169,9 @@ void queryrow_free(queryrow *row)
 void queryhost_push_row(queryhost *host, queryrow *row)
 {
         if (host->nrows == host->allocated_rowspace) {
-                host->rows = (queryrow **) realloc(host->rows, sizeof(queryrow *) * host->allocated_rowspace * 2);
-                host->allocated_rowspace *= 2;
+		unsigned new_size =  host->allocated_rowspace * 1.5;
+                host->rows = (queryrow **) realloc(host->rows, sizeof(queryrow *) * new_size);
+                host->allocated_rowspace = new_size;
         }
         host->rows[host->nrows++] = row;
 }

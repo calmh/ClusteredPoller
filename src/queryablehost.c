@@ -6,7 +6,7 @@
 #include "gstring.h"
 
 #define MAXERRORSPERHOST 3
-#define MAX_TABLES 512
+#define MAX_TABLES 32
 
 db_insert *db_insert_create(const char *table)
 {
@@ -24,13 +24,15 @@ void db_insert_free(db_insert *insert)
 {
         free(insert->table);
         free(insert->values);
+	free(insert);
 }
 
 void db_insert_push_value(db_insert *insert, unsigned id, unsigned long long counter, unsigned rate, time_t dtime)
 {
         if (insert->nvalues == insert->allocated_space) {
-                insert->values = (db_insert_value *) realloc(insert->values, sizeof(db_insert_value) * insert->allocated_space * 2);
-                insert->allocated_space *= 2;
+		unsigned new_size = insert->allocated_space * 1.5;
+                insert->values = (db_insert_value *) realloc(insert->values, sizeof(db_insert_value) * new_size);
+                insert->allocated_space = new_size;
         }
 
         insert->values[insert->nvalues].id = id;
@@ -124,7 +126,7 @@ db_insert **get_db_inserts(queryhost *host)
 
 char *build_insert_query(db_insert *insert)
 {
-        gstr *gs = gstr_create(256);
+        gstr *gs = gstr_create(64);
         gstr_append(gs, "INSERT INTO ");
         gstr_append(gs, insert->table);
         gstr_append(gs, " (id, dtime, counter, rate) VALUES ");

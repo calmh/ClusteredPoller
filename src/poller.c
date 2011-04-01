@@ -61,8 +61,8 @@ void *poller_run(void *ptr)
                                 if (i != n_queries)
                                         cllog(0, "Thread %d dropped queries due to database queue full.", id);
                                 pthread_mutex_unlock(&db_list_lock);
-
                         }
+			free(host_queries);
                 }
 
                 // Note how long it took.

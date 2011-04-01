@@ -42,7 +42,6 @@ void *cbuffer_pop(cbuffer *cb)
         cb->read_index++;
         cb->read_index %= cb->allocated_size;
         return ptr;
-
 }
 
 unsigned cbuffer_count(cbuffer *cb)
