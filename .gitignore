@@ -5,8 +5,3 @@ targets.cfg
 *.d
 clpoll
 testrunner
-Makefile.bak
-.cproject
-.project
-
-UnitTest++/TestUnitTest++
