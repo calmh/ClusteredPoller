@@ -78,7 +78,7 @@ distclean: clean
 	make -C UnitTest++ clean
 
 clean:
-	rm -f $(OBJS) $(TESTOBJS) $(TARGET) $(TESTTARGET)
+	rm -f $(OBJS) $(TESTOBJS) $(TARGET) $(TESTTARGET) $(TARGET)-dbg
 
 .PHONY: reformat
 reformat:
