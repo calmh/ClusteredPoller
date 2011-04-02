@@ -67,7 +67,7 @@ void *database_run(void *ptr)
                 } else {
                         char *query = (char *) cbuffer_pop(queries);
                         if (query) {
-                                printf("%s\n", query);
+                                cllog(3, "%s", query);
                                 free(query);
                         }
                         if (cbuffer_count(queries) == 0)

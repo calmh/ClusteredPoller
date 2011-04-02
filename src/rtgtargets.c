@@ -5,6 +5,7 @@
 
 #include "rtgtargets.h"
 #include "rtgconf.h"
+#include "util.h"
 
 queryhost *read_host(FILE *fileptr, char *host_name, const rtgconf *conf);
 queryrow *read_row(FILE *fileptr, char *oid, const rtgconf *conf);
@@ -42,8 +43,7 @@ rtgtargets *rtgtargets_parse(const char *filename, const rtgconf *conf)
                 rtgtargets_free(targets);
                 targets = read_old_style_targets(filename, conf);
         }
-        /* !!! Reinstate when log is pure C
-        log(0, "Read %d targets in %d hosts.", targets->ntargets, targets->nhosts); */
+        cllog(0, "Read %d targets in %d hosts.", targets->ntargets, targets->nhosts);
         return targets;
 }
 
@@ -256,13 +256,11 @@ int check_for_duplicate(queryhost *host, queryrow *row)
         for (i = 0; i < host->nrows; i++) {
                 queryrow *it_row = host->rows[i];
                 if (!strcmp(it_row->oid, row->oid)) {
-                        /* !!! Reinstate when log is pure C
-                        log(0, "WARNING: Host %s OID %s is a duplicate. Ignoring.", host->host, row->oid); */
+                        cllog(0, "WARNING: Host %s OID %s is a duplicate. Ignoring.", host->host, row->oid);
                         return 1;
                 }
                 if (!strcmp(it_row->table, row->table) && it_row->id == row->id) {
-                        /* !!! Reinstate when log is pure C
-                        log(0, "WARNING: Host %s table %s id %d is a duplicate. Ignoring.", host->host, row->table, row->id); */
+                        cllog(0, "WARNING: Host %s table %s id %d is a duplicate. Ignoring.", host->host, row->table, row->id);
                         return 1;
                 }
         }
