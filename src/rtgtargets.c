@@ -1,9 +1,10 @@
+#define _XOPEN_SOURCE 500
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <pthread.h>
-
 #include "rtgtargets.h"
 #include "rtgconf.h"
 #include "util.h"
@@ -119,7 +120,7 @@ queryhost *read_host(FILE *fileptr, char *host_name, const rtgconf *conf)
                         result = fscanf(fileptr, " %d", &host->snmpver);
                 } else if (!strcmp(token, "target")) {
                         result = fscanf(fileptr, " %128s", buffer);
-                        const char *oid = strdup(strclean(buffer));
+                        char *oid = strdup(strclean(buffer));
                         queryrow *row = read_row(fileptr, oid, conf);
                         if (!check_for_duplicate(host, row))
                                 queryhost_push_row(host, row);

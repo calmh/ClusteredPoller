@@ -17,11 +17,6 @@ rtgconf *rtgconf_create(const char *filename)
         char *line;
         rtgconf *conf = (rtgconf *) malloc(sizeof(rtgconf));
         while ((line = fgets(buffer, 512, fileptr))) {
-                /* Lowercase string. */
-                int i;
-                for (i = 0; line[i] != 0; i++)
-                        line[i] = tolower(line[i]);
-
                 /* Terminate line at first comment character. */
                 char *comment_begin = strchr(line, '#');
                 if (comment_begin)
@@ -33,7 +28,11 @@ rtgconf *rtgconf_create(const char *filename)
 
                 const char *sep = " \t\n";
                 char *token = strtok(line, sep);
+                /* Lowercase token. */
                 if (token) {
+                        int i;
+                        for (i = 0; token[i] != 0; i++)
+                                token[i] = tolower(token[i]);
                         if (!strcmp(token, "interval"))
                                 conf->interval = atoi(strtok(NULL, sep));
                         else if (!strcmp(token, "db_host"))

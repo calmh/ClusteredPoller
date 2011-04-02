@@ -69,7 +69,7 @@ void calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cu
         }
 }
 
-db_insert *db_insert_for_table(db_insert **inserts, const char *table)
+db_insert *db_insert_for_table(db_insert **inserts, char *table)
 {
         int i;
         for (i = 0; i < MAX_TABLES && inserts[i]; i++) {

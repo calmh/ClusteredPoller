@@ -32,6 +32,8 @@ void *database_run(void *ptr)
                                                 mysql_close(conn);
                                         cllog(2, "DB thread %d connecting to MySQL.", my_id);
                                         conn = connection(config);
+                                        if (conn)
+                                                cllog(2, "DB thread %d is connected to MySQL.", my_id);
                                 } else {
                                         useless_iterations = 0;
                                         query_counter++;
@@ -43,8 +45,11 @@ void *database_run(void *ptr)
 
                                         char *query = (char *) cbuffer_pop(queries);
                                         if (query) {
-                                                mysql_query(conn, query);
+                                                int result = mysql_query(conn, query);
+                                                cllog(3, "DB thread %d executed query with result %d.", my_id, result);
                                                 free(query);
+                                        } else {
+                                                cllog(2, "DB thread %d dequeued NULL query.", my_id);
                                         }
                                 }
                         } else {

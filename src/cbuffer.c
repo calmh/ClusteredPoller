@@ -6,6 +6,8 @@
 //  Copyright 2011 Nym Networks. All rights reserved.
 //
 
+#define _XOPEN_SOURCE 500
+
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>

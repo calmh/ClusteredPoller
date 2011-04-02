@@ -7,10 +7,10 @@ void TestParseConfigurationVariables(CuTest *tc)
         rtgconf *conf = rtgconf_create("test/example-rtg.conf");
         CuAssertIntEquals(tc, 30, conf->interval);
         CuAssertIntEquals(tc, 2, conf->threads);
-        CuAssertStrEquals(tc, "rtguser", conf->dbuser);
-        CuAssertStrEquals(tc, "password", conf->dbpass);
-        CuAssertStrEquals(tc, "sql-server", conf->dbhost);
-        CuAssertStrEquals(tc, "rtgdb", conf->database);
+        CuAssertStrEquals(tc, "Rtguser", conf->dbuser);
+        CuAssertStrEquals(tc, "Password", conf->dbpass);
+        CuAssertStrEquals(tc, "Sql-server", conf->dbhost);
+        CuAssertStrEquals(tc, "Rtgdb", conf->database);
         rtgconf_free(conf);
 }
 

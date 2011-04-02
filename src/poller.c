@@ -39,7 +39,7 @@ void *poller_run(void *ptr)
                 start = time(NULL);
                 // Loop over our share of the hosts.
                 queryhost *host;
-                while (host = rtgtargets_next(targets)) {
+                while ((host = rtgtargets_next(targets))) {
                         cllog(2, "Thread %d picked host '%s'.", id, host->host);
                         // Process the host and get back a list of SQL updates to execute.
                         char **host_queries = get_inserts(host);
