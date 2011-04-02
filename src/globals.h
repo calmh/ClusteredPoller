@@ -10,6 +10,8 @@
 
 extern cbuffer *queries;
 extern unsigned long query_queue_depth;
+extern int full_stop_requested;
+extern int thread_stop_requested;
 extern char *rtgconf_file;
 extern char *targets_file;
 extern int verbosity;

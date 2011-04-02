@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <signal.h>
 
 #include "util.h"
 #include "globals.h"
@@ -9,6 +10,8 @@
 #include "version.h"
 
 void help();
+void sighup_handler(int signum);
+void sigterm_handler(int signum);
 
 // Setup and initialization.
 
@@ -28,6 +31,12 @@ void help()
 
 void run_threads(rtgtargets *targets, rtgconf *config)
 {
+        thread_stop_requested = 0;
+        active_threads = 0;
+        stat_inserts = 0;
+        stat_queries = 0;
+        stat_iterations = 0;
+
         // Calculate number of database writers needed. This is just a guess.
         unsigned num_dbthreads = config->threads / 8;
         num_dbthreads = num_dbthreads ? num_dbthreads : 1;
@@ -64,6 +73,19 @@ void run_threads(rtgtargets *targets, rtgconf *config)
         mt_threads_join(database_threads);
         mt_threads_join(poller_threads);
         mt_threads_join(monitor_threads);
+
+        cbuffer_free(queries);
+
+        for (i = 0; i < config->threads; i++)
+                free(poller_threads->contexts[i].param);
+        mt_threads_free(poller_threads);
+
+        for (i = 0; i < num_dbthreads; i++)
+                free(database_threads->contexts[i].param);
+        mt_threads_free(database_threads);
+
+        free(monitor_threads->contexts[0].param);
+        mt_threads_free(monitor_threads);
 }
 
 #ifndef TESTSUITE
@@ -101,27 +123,54 @@ int main (int argc, char *const argv[])
                 }
         }
 
-        // Read rtg.conf
-        rtgconf *config = rtgconf_create(rtgconf_file);
-        if (!config) {
-                cllog(0, "No configuration, so nothing to do.");
-                exit(-1);
-        }
-
-        // Read targets.cfg
-        rtgtargets *targets = rtgtargets_parse(targets_file, config);
-
-        if (targets->ntargets == 0) {
-                cllog(0, "No targets, so nothing to do.");
-                exit(-1);
-        }
-
-        cllog(1, "Polling every %d seconds.", config->interval);
-
         if (detach)
                 daemonize();
 
-        run_threads(targets, config);
+        signal(SIGHUP, sighup_handler);
+        signal(SIGTERM, sigterm_handler);
+
+        while (!full_stop_requested) {
+                // Read rtg.conf
+                rtgconf *config = rtgconf_create(rtgconf_file);
+                if (!config) {
+                        cllog(0, "No configuration, so nothing to do.");
+                        exit(-1);
+                }
+
+                // Read targets.cfg
+                rtgtargets *targets = rtgtargets_parse(targets_file, config);
+
+                if (targets->ntargets == 0) {
+                        cllog(0, "No targets, so nothing to do.");
+                        exit(-1);
+                }
+
+                cllog(1, "Polling every %d seconds.", config->interval);
+
+                run_threads(targets, config);
+
+                rtgconf_free(config);
+                rtgtargets_free(targets);
+        }
         return 0;
 }
 #endif
+
+void sighup_handler(int signum)
+{
+        cllog(0, "Received SIGHUP. Shutting down threads and reinitializing...");
+        thread_stop_requested = 1;
+        pthread_mutex_lock(&global_lock);
+        pthread_cond_broadcast(&global_cond);
+        pthread_mutex_unlock(&global_lock);
+}
+
+void sigterm_handler(int signum)
+{
+        cllog(0, "Received SIGTERM. Shutting down...");
+        thread_stop_requested = 1;
+        full_stop_requested = 1;
+        pthread_mutex_lock(&global_lock);
+        pthread_cond_broadcast(&global_cond);
+        pthread_mutex_unlock(&global_lock);
+}

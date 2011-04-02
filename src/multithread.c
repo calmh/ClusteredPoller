@@ -16,6 +16,12 @@ mt_threads *mt_threads_create(unsigned nthreads)
         return threads;
 }
 
+void mt_threads_free(mt_threads *threads)
+{
+        free(threads->contexts);
+        free(threads);
+}
+
 void mt_threads_start(mt_threads *threads, void*(*runner)(void *))
 {
         unsigned i;

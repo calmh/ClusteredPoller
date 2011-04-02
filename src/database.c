@@ -24,7 +24,7 @@ void *database_run(void *ptr)
 
         MYSQL *conn = 0;
 
-        while (1) {
+        while (!thread_stop_requested) {
                 if (use_db) {
                         if (cbuffer_count(queries) > 0) {
                                 if (conn == 0 || mysql_ping(conn) != 0) {
@@ -79,6 +79,13 @@ void *database_run(void *ptr)
                                 sleep(1);
                 }
         }
+
+        if (conn) {
+                cllog(1, "DB thread %d shutting down.", my_id);
+                mysql_commit(conn);
+                mysql_close(conn);
+        }
+
         return 0;
 }
 

@@ -10,6 +10,10 @@ cbuffer *queries;
 // Maximum number of outstanding database queries.
 unsigned long query_queue_depth = 0;
 
+// Signal flags
+int full_stop_requested = 0;
+int thread_stop_requested = 0;
+
 // Configuration variables that are modified by command line flags.
 char *rtgconf_file = (char *) "/usr/local/rtg/etc/rtg.conf";
 char *targets_file = (char *) "/usr/local/rtg/etc/targets.cfg";

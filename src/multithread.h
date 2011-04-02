@@ -19,6 +19,7 @@ extern "C" {
         } mt_threads;
 
         mt_threads *mt_threads_create(unsigned nthreads);
+        void mt_threads_free(mt_threads *threads);
         void mt_threads_start(mt_threads *threads, void*(*runner)(void *));
         void mt_threads_join(mt_threads *threads);
 

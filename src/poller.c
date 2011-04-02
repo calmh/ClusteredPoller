@@ -16,7 +16,7 @@ void *poller_run(void *ptr)
         // Start looping.
         unsigned iterations = 0;
         time_t start = 0, end = 0;
-        while (1) {
+        while (!thread_stop_requested) {
 
                 // Mark ourself sleeping
                 if (iterations > 0)
@@ -29,6 +29,9 @@ void *poller_run(void *ptr)
                 pthread_cond_wait(&global_cond, &global_lock);
                 pthread_mutex_unlock(&global_lock);
 
+                if (thread_stop_requested)
+                        break;
+
                 cllog(2, "Thread %d starting.", id);
                 // Mark ourself active.
                 pthread_mutex_lock(&global_lock);
@@ -39,7 +42,7 @@ void *poller_run(void *ptr)
                 start = time(NULL);
                 // Loop over our share of the hosts.
                 queryhost *host;
-                while ((host = rtgtargets_next(targets))) {
+                while (!thread_stop_requested && (host = rtgtargets_next(targets))) {
                         cllog(2, "Thread %d picked host '%s'.", id, host->host);
                         // Process the host and get back a list of SQL updates to execute.
                         char **host_queries = get_inserts(host);

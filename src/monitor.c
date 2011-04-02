@@ -15,7 +15,7 @@ void *monitor_run(void *ptr)
         time_t interval = 0;
         time_t iteration_completed = 0;
         time_t in_iteration = 0;
-        while (1) {
+        while (!thread_stop_requested) {
                 sleep(1);
                 if (active_threads == 0 && in_iteration) {
                         stat_iterations++;
