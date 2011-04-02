@@ -9,7 +9,6 @@ extern "C" {
 #endif
 
         typedef struct {
-                unsigned stride;
                 rtgtargets *targets;
         } poller_ctx;
 

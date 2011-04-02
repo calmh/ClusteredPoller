@@ -11,7 +11,6 @@ void *poller_run(void *ptr)
         poller_ctx *poller_context = (poller_ctx *) thread_context->param;
 
         unsigned id = thread_context->thread_id;
-        unsigned stride = poller_context->stride;
         rtgtargets *targets = poller_context->targets;
 
         // Start looping.
@@ -39,10 +38,9 @@ void *poller_run(void *ptr)
                 // Note our start time, so we know how long an iteration takes.
                 start = time(NULL);
                 // Loop over our share of the hosts.
-                unsigned i;
-                for (i = id; i < targets->nhosts; i += stride) {
-                        queryhost *host = targets->hosts[i];
-                        cllog(2, "Thread %d picked host #%d.", id, i);
+                queryhost *host;
+                while (host = rtgtargets_next(targets)) {
+                        cllog(2, "Thread %d picked host '%s'.", id, host->host);
                         // Process the host and get back a list of SQL updates to execute.
                         char **host_queries = get_inserts(host);
                         unsigned n_queries;

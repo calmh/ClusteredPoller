@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <pthread.h>
 
 #include "rtgtargets.h"
 #include "rtgconf.h"
@@ -24,6 +25,11 @@ rtgtargets *rtgtargets_create()
         targets->hosts = (queryhost **) malloc(sizeof(queryhost *) * 8);
         targets->allocated_space = 8;
         targets->ntargets = 0;
+        targets->next_host = 0;
+        pthread_mutexattr_t mta;
+        pthread_mutexattr_init(&mta);
+        pthread_mutexattr_settype(&mta, PTHREAD_MUTEX_RECURSIVE);
+        pthread_mutex_init(&targets->next_host_lock, &mta);
         return targets;
 }
 
@@ -340,4 +346,19 @@ rtgtargets *read_old_style_targets(const char *filename, const rtgconf *conf)
 
         fclose(fileptr);
         return targets;
+}
+
+queryhost *rtgtargets_next(rtgtargets *targets)
+{
+        queryhost *host = NULL;
+        pthread_mutex_lock(&targets->next_host_lock);
+        if (targets->next_host < targets->nhosts)
+                host = targets->hosts[targets->next_host++];
+        pthread_mutex_unlock(&targets->next_host_lock);
+        return host;
+}
+
+void rtgtargets_reset_next(rtgtargets *targets)
+{
+        targets->next_host = 0;
 }

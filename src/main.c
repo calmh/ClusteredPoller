@@ -39,7 +39,6 @@ void run_threads(rtgtargets *targets, rtgconf *config)
         unsigned i;
         for (i = 0; i < config->threads; i++) {
                 poller_ctx *ctx = (poller_ctx *)malloc(sizeof(poller_ctx));
-                ctx->stride = config->threads;
                 ctx->targets = targets;
                 poller_threads->contexts[i].param = ctx;
         }
@@ -58,6 +57,7 @@ void run_threads(rtgtargets *targets, rtgconf *config)
         mt_threads *monitor_threads = mt_threads_create(1);
         monitor_ctx *ctx = (monitor_ctx *)malloc(sizeof(monitor_ctx));
         ctx->interval = config->interval;
+        ctx->targets = targets;
         monitor_threads->contexts[0].param = ctx;
         mt_threads_start(monitor_threads, monitor_run);
 

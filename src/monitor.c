@@ -2,6 +2,7 @@
 #include "monitor.h"
 #include "queryablehost.h"
 #include "globals.h"
+#include "rtgtargets.h"
 
 void *monitor_run(void *ptr)
 {
@@ -9,6 +10,7 @@ void *monitor_run(void *ptr)
         monitor_ctx *monitor_context = (monitor_ctx *) thread_context->param;
 
         unsigned poll_interval = monitor_context->interval;
+        rtgtargets *targets = monitor_context->targets;
 
         time_t interval = 0;
         time_t iteration_completed = 0;
@@ -53,6 +55,7 @@ void *monitor_run(void *ptr)
                                         cllog(1, "  Queue at depth %d at poll start.", qd);
                                 iteration_completed = 0;
                         }
+                        rtgtargets_reset_next(targets);
                         pthread_cond_broadcast(&global_cond);
                 }
                 pthread_mutex_unlock(&global_lock);

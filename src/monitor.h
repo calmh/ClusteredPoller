@@ -2,19 +2,13 @@
 #define MONITOR_H_
 
 #include "multithread.h"
+#include "rtgtargets.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+typedef struct {
+        unsigned interval;
+        rtgtargets *targets;
+} monitor_ctx;
 
-        typedef struct {
-                unsigned interval;
-        } monitor_ctx;
-
-        void *monitor_run(void *ptr);
-
-#ifdef __cplusplus
-}
-#endif
+void *monitor_run(void *ptr);
 
 #endif /* MONITOR_H_ */
