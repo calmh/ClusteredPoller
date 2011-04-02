@@ -48,7 +48,7 @@ else ifeq ($(OS),darwin)
 	LIBS = -L/usr/local/mysql/lib -lnetsnmp -lmysqlclient
 endif
 
-all: $(UNITTESTPP) $(TARGET) test
+all: $(TARGET) quicktest
 
 $(TARGET): CFLAGS += -O2
 $(TARGET): $(OBJS)
@@ -61,21 +61,15 @@ $(TARGET)-dbg: $(OBJS)
 	strip $@
 
 $(TESTTARGET): CFLAGS += -Isrc
-$(TESTTARGET): $(TESTOBJS) $(UNITTESTPP)
-	gcc $^ $(LIBS) $(UNITTESTPP) -o $@
+$(TESTTARGET): $(TESTOBJS)
+	gcc $^ $(LIBS) -o $@
 
 .PHONY: test
 test: $(TESTTARGET)
-	./$(TESTTARGET) 2>/dev/null
-
-longtest: $(TESTTARGET)
 	./$(TESTTARGET) long 2>/dev/null
 
-$(UNITTESTPP):
-	make -C UnitTest++
-
-distclean: clean
-	make -C UnitTest++ clean
+quicktest: $(TESTTARGET)
+	./$(TESTTARGET) 2>/dev/null
 
 clean:
 	rm -f $(OBJS) $(TESTOBJS) $(TARGET) $(TESTTARGET) $(TARGET)-dbg
