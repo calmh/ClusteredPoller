@@ -34,5 +34,5 @@ int main(int argc, char **argv)
                 RunAllTests(1);
         else
                 RunAllTests(0);
-	return 0;
+        return 0;
 }

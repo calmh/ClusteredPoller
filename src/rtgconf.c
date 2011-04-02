@@ -9,16 +9,16 @@ rtgconf *rtgconf_create(const char *filename)
 {
         FILE *fileptr = fopen(filename, "rb");
         if (!fileptr) {
-		cllog(0, "Couldn't open %s for reading.", filename);
-		return NULL;
-	}
+                cllog(0, "Couldn't open %s for reading.", filename);
+                return NULL;
+        }
 
         char buffer[513];
         char *line;
         rtgconf *conf = (rtgconf *) malloc(sizeof(rtgconf));
         while ((line = fgets(buffer, 512, fileptr))) {
                 /* Lowercase string. */
-		int i;
+                int i;
                 for (i = 0; line[i] != 0; i++)
                         line[i] = tolower(line[i]);
 

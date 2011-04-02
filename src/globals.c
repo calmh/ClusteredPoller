@@ -21,7 +21,6 @@ unsigned max_queue_length = 10000;
 
 // Locking and statistics
 pthread_mutex_t global_lock = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t db_list_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t cerr_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t global_cond = PTHREAD_COND_INITIALIZER;
 unsigned active_threads = 0;

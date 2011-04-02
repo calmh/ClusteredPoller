@@ -39,7 +39,7 @@ void *poller_run(void *ptr)
                 // Note our start time, so we know how long an iteration takes.
                 start = time(NULL);
                 // Loop over our share of the hosts.
-		unsigned i;
+                unsigned i;
                 for (i = id; i < targets->nhosts; i += stride) {
                         queryhost *host = targets->hosts[i];
                         cllog(2, "Thread %d picked host #%d.", id, i);
@@ -51,18 +51,20 @@ void *poller_run(void *ptr)
                         if (n_queries > 0) {
                                 cllog(2, "Thread %u queueing %u queries.", id, n_queries);
 
-                                pthread_mutex_lock(&db_list_lock);
                                 unsigned  i;
                                 for (i = 0; i < n_queries && cbuffer_free(queries) > 0; i++) {
-                                        cbuffer_push(queries, (void *) host_queries[i]);
+                                        void *result = cbuffer_push(queries, strdup(host_queries[i]));
+                                        if (!result)
+                                                break;
                                 }
                                 unsigned qd = cbuffer_count(queries);
                                 query_queue_depth = query_queue_depth > qd ? query_queue_depth : qd;
                                 if (i != n_queries)
                                         cllog(0, "Thread %d dropped queries due to database queue full.", id);
-                                pthread_mutex_unlock(&db_list_lock);
                         }
-			free(host_queries);
+                        for (n_queries = 0; host_queries[n_queries]; n_queries++)
+                                free(host_queries[n_queries]);
+                        free(host_queries);
                 }
 
                 // Note how long it took.

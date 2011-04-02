@@ -37,7 +37,7 @@ TARGET := clpoll
 TESTTARGET := testrunner
 .SUFFIXES: .o .c
 
-CFLAGS ?= --std=c99 -DOS_${OS} -Wall
+CFLAGS ?= -DOS_${OS} -Wall
 
 OS = $(shell uname -s | awk '{print tolower($$0)}')
 ifeq ($(OS),linux)
@@ -52,6 +52,11 @@ all: $(UNITTESTPP) $(TARGET) test
 
 $(TARGET): CFLAGS += -O2
 $(TARGET): $(OBJS)
+	gcc $^ $(LIBS) -o $@
+	strip $@
+
+$(TARGET)-dbg: CFLAGS += -g
+$(TARGET)-dbg: $(OBJS)
 	gcc $^ $(LIBS) -o $@
 	strip $@
 

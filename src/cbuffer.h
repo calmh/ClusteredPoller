@@ -9,25 +9,20 @@
 #ifndef CBUFFER_H
 #define CBUFFER_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <pthread.h>
 
-        typedef struct {
-                unsigned allocated_size;
-                unsigned read_index;
-                unsigned write_index;
-                void **buffer;
-        } cbuffer;
+typedef struct {
+        pthread_mutex_t lock;
+        unsigned allocated_size;
+        unsigned read_index;
+        unsigned write_index;
+        void **buffer;
+} cbuffer;
 
-        cbuffer *cbuffer_create(unsigned size);
-        void *cbuffer_push(cbuffer *cb, void *ptr);
-        void *cbuffer_pop(cbuffer *cb);
-        unsigned cbuffer_count(cbuffer *cb);
-        unsigned cbuffer_free(cbuffer *cb);
-
-#ifdef __cplusplus
-}
-#endif
+cbuffer *cbuffer_create(unsigned size);
+void *cbuffer_push(cbuffer *cb, void *ptr);
+void *cbuffer_pop(cbuffer *cb);
+unsigned cbuffer_count(cbuffer *cb);
+unsigned cbuffer_free(cbuffer *cb);
 
 #endif /* CBUFFER_H */

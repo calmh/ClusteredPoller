@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "rtgtargets.h"
 #include "queryablehost.h"
 #include "globals.h"
@@ -8,12 +10,12 @@
 #define MAXERRORSPERHOST 3
 #define MAX_TABLES 32
 
-db_insert *db_insert_create(const char *table)
+db_insert *db_insert_create(char *table)
 {
         db_insert *insert = (db_insert *) malloc(sizeof(db_insert));
         if (!insert)
                 return NULL;
-        insert->table = strdup(table);
+        insert->table = table;
         insert->values = (db_insert_value *) malloc(sizeof(db_insert_value) * 8);
         insert->allocated_space = 8;
         insert->nvalues = 0;
@@ -22,15 +24,14 @@ db_insert *db_insert_create(const char *table)
 
 void db_insert_free(db_insert *insert)
 {
-        free(insert->table);
         free(insert->values);
-	free(insert);
+        free(insert);
 }
 
 void db_insert_push_value(db_insert *insert, unsigned id, unsigned long long counter, unsigned rate, time_t dtime)
 {
         if (insert->nvalues == insert->allocated_space) {
-		unsigned new_size = insert->allocated_space * 1.5;
+                unsigned new_size = insert->allocated_space * 1.5;
                 insert->values = (db_insert_value *) realloc(insert->values, sizeof(db_insert_value) * new_size);
                 insert->allocated_space = new_size;
         }
@@ -72,8 +73,9 @@ db_insert *db_insert_for_table(db_insert **inserts, const char *table)
 {
         int i;
         for (i = 0; i < MAX_TABLES && inserts[i]; i++) {
-                if (!strcmp(inserts[i]->table, table))
+                if (!strcmp(inserts[i]->table, table)) {
                         return inserts[i];
+                }
         }
         inserts[i] = db_insert_create(table);
         return inserts[i];
@@ -89,7 +91,7 @@ db_insert **get_db_inserts(queryhost *host)
         if (session) {
                 int errors = 0;
                 // Iterate over all targets in the host.
-		unsigned i;
+                unsigned i;
                 for (i = 0; i < host->nrows; i++) {
                         queryrow *row = host->rows[i];
 
@@ -97,7 +99,7 @@ db_insert **get_db_inserts(queryhost *host)
                         time_t dtime;
                         int success = clsnmp_get(session, row->oid, &counter, &dtime);
                         if (success) {
-                                if (row->cached_time) {
+                                if (row->bits == 0 || row->cached_time) {
                                         unsigned long long counter_diff;
                                         unsigned rate;
                                         calculate_rate(row->cached_time, row->cached_counter, dtime, counter, row->bits, &counter_diff, &rate);
@@ -133,11 +135,9 @@ char *build_insert_query(db_insert *insert)
 
         int rows = 0;
         char buffer[16];
-	unsigned i;
+        unsigned i;
         for (i = 0; i < insert->nvalues; i++) {
-                // Check if we should insert it, based on whether or not we want db zeroes and whether it's a gauge or not.
                 if (allow_db_zero || insert->values[i].rate) {
-                        // Build on the insert query. We set dtime to the time returned from snmp_get.
                         if (rows > 0)
                                 gstr_append(gs, ", ");
                         gstr_append(gs, "(");
@@ -166,6 +166,7 @@ char *build_insert_query(db_insert *insert)
                 gstr_free(gs);
                 return return_str;
         } else {
+                gstr_free(gs);
                 return NULL;
         }
 }
@@ -181,10 +182,12 @@ char **get_inserts(queryhost *host)
 {
         db_insert **inserts = get_db_inserts(host);
         unsigned n_inserts = num_inserts(inserts);
-        char **queries = (char **) malloc(sizeof(char *) * n_inserts);
+
+        /* Space for (at most) one insert query per table, plus an end marker. */
+        char **queries = (char **) malloc(sizeof(char *) * n_inserts + 1);
 
         int i, j = 0;
-        for (i = 0; i < MAX_TABLES && inserts[i]; i++) {
+        for (i = 0; i < n_inserts; i++) {
                 char *query = build_insert_query(inserts[i]);
                 if (query)
                         queries[j++] = query;
@@ -193,6 +196,5 @@ char **get_inserts(queryhost *host)
         queries[j] = 0; /* End marker */
 
         free(inserts);
-
         return queries;
 }
