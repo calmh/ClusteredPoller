@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
+#include <syslog.h>
 
 #include "util.h"
 #include "globals.h"
@@ -125,6 +126,13 @@ int main (int argc, char *const argv[])
 
         if (detach)
                 daemonize();
+
+        char *last_component = strrchr(argv[0], '/');
+        if (last_component)
+                last_component++;
+        else
+                last_component = argv[0];
+        openlog(last_component, LOG_PID, LOG_USER);
 
         signal(SIGHUP, sighup_handler);
         signal(SIGTERM, sigterm_handler);
