@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/net-snmp-includes.h>
 #include <pthread.h>

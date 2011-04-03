@@ -199,12 +199,12 @@ struct queryrow *read_row(FILE *fileptr, char *oid, const struct rtgconf *conf) 
 
                 char buffer[129];
                 if (!strcmp(token, "bits")) {
-                        result = fscanf(fileptr, " %d", &row->bits);
+                        result = fscanf(fileptr, " %u", &row->bits);
                 } else if (!strcmp(token, "table")) {
                         result = fscanf(fileptr, " %128s", buffer);
                         row->table = strdup(strclean(buffer));
                 } else if (!strcmp(token, "id")) {
-                        result = fscanf(fileptr, " %d", &row->id);
+                        result = fscanf(fileptr, " %u", &row->id);
                 } else if (!strcmp(token, "speed")) {
                         unsigned long long max_counter_diff;
                         result = fscanf(fileptr, " %llu", &max_counter_diff);

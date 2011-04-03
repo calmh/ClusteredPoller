@@ -1,3 +1,7 @@
+#define _GNU_SOURCE
+
+#include <string.h>
+
 #include "clbuf.h"
 #include "multithread.h"
 #include "globals.h"

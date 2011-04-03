@@ -4,6 +4,7 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <stdlib.h>
 
 #include "clbuf.h"
 #include "util.h"
@@ -14,6 +15,7 @@
 #include "version.h"
 #include "multithread.h"
 #include "rtgtargets.h"
+#include "rtgconf.h"
 
 void help();
 void sighup_handler(int signum);

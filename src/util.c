@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <syslog.h>
 #include <unistd.h>
+#include <stdlib.h>
+#include <stdarg.h>
 
 #include "globals.h"
 #include "util.h"

@@ -2,8 +2,6 @@
 #define _GLOBALS_H
 
 #include <pthread.h>
-#include "rtgconf.h"
-#include "rtgtargets.h"
 
 // See globals.cpp for documentation on what these are used for.
 
