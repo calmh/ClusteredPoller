@@ -4,11 +4,12 @@
 #include <pthread.h>
 #include "rtgconf.h"
 #include "rtgtargets.h"
-#include "cbuffer.h"
 
 // See globals.cpp for documentation on what these are used for.
 
-extern cbuffer *queries;
+struct clbuf;
+
+extern struct clbuf *queries;
 extern unsigned long query_queue_depth;
 extern int full_stop_requested;
 extern int thread_stop_requested;

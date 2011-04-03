@@ -5,15 +5,15 @@
 
 void TestParseNonexistentTargets(CuTest *tc)
 {
-        rtgconf *conf = rtgconf_create("test/example-rtg.conf");
-        rtgtargets *hosts = rtgtargets_parse("test/none.cfg", conf);
+        struct rtgconf *conf = rtgconf_create("test/example-rtg.conf");
+        struct rtgtargets *hosts = rtgtargets_parse("test/none.cfg", conf);
         CuAssertIntEquals(tc, 0, hosts->nhosts);
 }
 
 void TestParseNewStyleTargets(CuTest *tc)
 {
-        rtgconf *conf = rtgconf_create("test/example-rtg.conf");
-        rtgtargets *hosts = rtgtargets_parse("test/example-targets.cfg", conf);
+        struct rtgconf *conf = rtgconf_create("test/example-rtg.conf");
+        struct rtgtargets *hosts = rtgtargets_parse("test/example-targets.cfg", conf);
         CuAssertIntEquals(tc, 2, hosts->nhosts); // Two hosts
         CuAssertIntEquals(tc, 2, hosts->hosts[0]->nrows); // Two rows for host one
         CuAssertIntEquals(tc, 2, hosts->hosts[1]->nrows); // Two rows for host two
@@ -23,8 +23,8 @@ void TestParseNewStyleTargets(CuTest *tc)
 
 void TestParseOldStyleTargets(CuTest *tc)
 {
-        rtgconf *conf = rtgconf_create("test/example-rtg.conf");
-        rtgtargets *hosts = rtgtargets_parse("test/oldstyle-targets.cfg", conf);
+        struct rtgconf *conf = rtgconf_create("test/example-rtg.conf");
+        struct rtgtargets *hosts = rtgtargets_parse("test/oldstyle-targets.cfg", conf);
         CuAssertIntEquals(tc, 2, hosts->nhosts); // Two hosts
         CuAssertIntEquals(tc, 8, hosts->hosts[0]->nrows); // Eight rows for host one
         CuAssertIntEquals(tc, 7, hosts->hosts[1]->nrows); // Seven rows for host two
@@ -34,8 +34,8 @@ void TestParseOldStyleTargets(CuTest *tc)
 
 void TestParseNewStyleTargetsHost(CuTest *tc)
 {
-        rtgconf *conf = rtgconf_create("test/example-rtg.conf");
-        rtgtargets *hosts = rtgtargets_parse("test/example-targets.cfg", conf);
+        struct rtgconf *conf = rtgconf_create("test/example-rtg.conf");
+        struct rtgtargets *hosts = rtgtargets_parse("test/example-targets.cfg", conf);
         CuAssertStrEquals(tc, "172.16.1.1", hosts->hosts[0]->host);
         CuAssertStrEquals(tc, "172.16.1.2", hosts->hosts[1]->host);
         CuAssertStrEquals(tc, "c0mmun1ty", hosts->hosts[0]->community);
@@ -46,8 +46,8 @@ void TestParseNewStyleTargetsHost(CuTest *tc)
 
 void TestParseOldStyleTargetsHost(CuTest *tc)
 {
-        rtgconf *conf = rtgconf_create("test/example-rtg.conf");
-        rtgtargets *hosts = rtgtargets_parse("test/oldstyle-targets.cfg", conf);
+        struct rtgconf *conf = rtgconf_create("test/example-rtg.conf");
+        struct rtgtargets *hosts = rtgtargets_parse("test/oldstyle-targets.cfg", conf);
         CuAssertStrEquals(tc, "172.16.17.18", hosts->hosts[0]->host);
         CuAssertStrEquals(tc, "172.16.17.20", hosts->hosts[1]->host);
         CuAssertStrEquals(tc, "public", hosts->hosts[0]->community);
@@ -58,8 +58,8 @@ void TestParseOldStyleTargetsHost(CuTest *tc)
 
 void TestParseNewStyleTargetsRow(CuTest *tc)
 {
-        rtgconf *conf = rtgconf_create("test/example-rtg.conf");
-        rtgtargets *hosts = rtgtargets_parse("test/example-targets.cfg", conf);
+        struct rtgconf *conf = rtgconf_create("test/example-rtg.conf");
+        struct rtgtargets *hosts = rtgtargets_parse("test/example-targets.cfg", conf);
         CuAssertStrEquals(tc, ".1.3.6.1.2.1.2.2.1.16.1001002", hosts->hosts[0]->rows[0]->oid);
         CuAssertStrEquals(tc, "ifOutOctets_362", hosts->hosts[0]->rows[0]->table);
         CuAssertIntEquals(tc, 4309u, hosts->hosts[0]->rows[0]->id);
@@ -69,8 +69,8 @@ void TestParseNewStyleTargetsRow(CuTest *tc)
 
 void TestParseOldStyleTargetsRow(CuTest *tc)
 {
-        rtgconf *conf = rtgconf_create("test/example-rtg.conf");
-        rtgtargets *hosts = rtgtargets_parse("test/oldstyle-targets.cfg", conf);
+        struct rtgconf *conf = rtgconf_create("test/example-rtg.conf");
+        struct rtgtargets *hosts = rtgtargets_parse("test/oldstyle-targets.cfg", conf);
         CuAssertStrEquals(tc, "1.3.6.1.2.1.2.2.1.10.13", hosts->hosts[0]->rows[0]->oid);
         CuAssertStrEquals(tc, "data", hosts->hosts[0]->rows[0]->table);
         CuAssertIntEquals(tc, 55u, hosts->hosts[0]->rows[0]->id);

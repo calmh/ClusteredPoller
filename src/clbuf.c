@@ -1,5 +1,5 @@
 //
-//  cbuffer.c
+//  clbuf.c
 //  clpoll
 //
 //  Created by Jakob Borg on 2011-04-01.
@@ -11,11 +11,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
-#include "cbuffer.h"
+#include "clbuf.h"
 
-cbuffer *cbuffer_create(unsigned size)
-{
-        cbuffer *cb = (cbuffer *) malloc(sizeof(cbuffer));
+struct clbuf *clbuf_create(unsigned size) {
+        struct clbuf *cb = (struct clbuf *) malloc(sizeof(struct clbuf));
 
         pthread_mutexattr_t mta;
         pthread_mutexattr_init(&mta);
@@ -30,7 +29,7 @@ cbuffer *cbuffer_create(unsigned size)
         return cb;
 }
 
-void *cbuffer_push(cbuffer *cb, void *ptr)
+void *clbuf_push(struct clbuf *cb, void *ptr)
 {
         if (!ptr)
                 return NULL;
@@ -46,7 +45,7 @@ void *cbuffer_push(cbuffer *cb, void *ptr)
         return ptr;
 }
 
-void *cbuffer_pop(cbuffer *cb)
+void *clbuf_pop(struct clbuf *cb)
 {
         pthread_mutex_lock(&cb->lock);
         if (cb->write_index == cb->read_index && cb->buffer[cb->read_index] == 0) {
@@ -61,7 +60,7 @@ void *cbuffer_pop(cbuffer *cb)
         return ptr;
 }
 
-unsigned cbuffer_count(cbuffer *cb)
+unsigned clbuf_count(struct clbuf *cb)
 {
         unsigned count;
         pthread_mutex_lock(&cb->lock);
@@ -77,10 +76,10 @@ unsigned cbuffer_count(cbuffer *cb)
         return count;
 }
 
-unsigned cbuffer_free(cbuffer *cb)
+unsigned clbuf_free(struct clbuf *cb)
 {
         pthread_mutex_lock(&cb->lock);
-        unsigned free = cb->allocated_size - cbuffer_count(cb);
+        unsigned free = cb->allocated_size - clbuf_count(cb);
         pthread_mutex_unlock(&cb->lock);
         return free;
 }

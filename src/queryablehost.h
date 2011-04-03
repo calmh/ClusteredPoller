@@ -2,25 +2,26 @@
 #define _QUERYABLEHOST_H
 
 #include <time.h>
-#include "snmp.h"
-#include "rtgtargets.h"
 
-typedef struct {
+struct clsnmp_session;
+struct queryhost;
+
+struct db_insert_value {
         unsigned id;
         unsigned long long counter;
         unsigned rate;
         time_t dtime;
-} db_insert_value;
+};
 
-typedef struct {
+struct db_insert {
         char *table;
-        db_insert_value *values;
+        struct db_insert_value *values;
         unsigned nvalues;
         unsigned allocated_space;
-} db_insert;
+};
 
-char **get_inserts(queryhost *host);
+char **get_inserts(struct queryhost *host);
 void calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cur_time, unsigned long long cur_counter, int bits, unsigned long long *counter_diff, unsigned *rate);
-db_insert **get_db_inserts(queryhost *host);
+struct db_insert **get_db_inserts(struct queryhost *host);
 
 #endif

@@ -1,13 +1,12 @@
 #ifndef MONITOR_H_
 #define MONITOR_H_
 
-#include "multithread.h"
-#include "rtgtargets.h"
+struct rtgtargets;
 
-typedef struct {
+struct monitor_ctx {
         unsigned interval;
-        rtgtargets *targets;
-} monitor_ctx;
+        struct rtgtargets *targets;
+};
 
 void *monitor_run(void *ptr);
 

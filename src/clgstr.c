@@ -1,30 +1,31 @@
 //
-//  gstring.c
+//  clgstr.c
 //  ClusteredPoller
 //
 //  Created by Jakob Borg on 2011-03-31.
 //  Copyright 2011 Nym Networks. All rights reserved.
 //
 
+#include <stdlib.h>
 #include <string.h>
-#include "gstring.h"
 
-gstr *gstr_create(size_t preallocate)
-{
-        gstr *gs = (gstr *) malloc(sizeof(gstr));
+#include "clgstr.h"
+
+struct clgstr *clgstr_create(size_t preallocate) {
+        struct clgstr *gs = (struct clgstr *) malloc(sizeof(struct clgstr));
         gs->string = (char *) malloc(sizeof(char) * preallocate);
         gs->allocated = preallocate;
         gs->length = 0;
         return gs;
 }
 
-void gstr_free(gstr *gs)
+void clgstr_free(struct clgstr *gs)
 {
         free(gs->string);
         free(gs);
 }
 
-void gstr_append(gstr *gs, const char *str)
+void clgstr_append(struct clgstr *gs, const char *str)
 {
         size_t add_len = strlen(str);
         if (gs->allocated < gs->length + add_len + 1) {

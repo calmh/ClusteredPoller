@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <mysql.h>
+
+#include "clbuf.h"
 #include "rtgconf.h"
 #include "multithread.h"
 #include "util.h"
@@ -10,14 +12,14 @@
 
 #define COMMIT_INTERVAL 100
 
-MYSQL *connection(rtgconf *config);
+MYSQL *connection(struct rtgconf *config);
 
 void *database_run(void *ptr)
 {
-        mt_context *thread_context = (mt_context *) ptr;
-        database_ctx *database_context = (database_ctx *) thread_context->param;
+        struct mt_context *thread_context = (struct mt_context *) ptr;
+        struct database_ctx *database_context = (struct database_ctx *) thread_context->param;
         unsigned my_id = thread_context->thread_id;
-        rtgconf *config = database_context->config;
+        struct rtgconf *config = database_context->config;
 
         unsigned useless_iterations = 0;
         unsigned query_counter = 0;
@@ -26,7 +28,7 @@ void *database_run(void *ptr)
 
         while (!thread_stop_requested) {
                 if (use_db) {
-                        if (cbuffer_count(queries) > 0) {
+                        if (clbuf_count(queries) > 0) {
                                 if (conn == 0 || mysql_ping(conn) != 0) {
                                         if (conn)
                                                 mysql_close(conn);
@@ -43,7 +45,7 @@ void *database_run(void *ptr)
                                                 cllog(2, "DB thread %d committed transaction due to configured commit interval (query_counter = %u).", my_id, query_counter);
                                         }
 
-                                        char *query = (char *) cbuffer_pop(queries);
+                                        char *query = (char *) clbuf_pop(queries);
                                         if (query) {
                                                 int result = mysql_query(conn, query);
                                                 cllog(3, "DB thread %d executed query with result %d.", my_id, result);
@@ -70,12 +72,12 @@ void *database_run(void *ptr)
                                 sleep(1);
                         }
                 } else {
-                        char *query = (char *) cbuffer_pop(queries);
+                        char *query = (char *) clbuf_pop(queries);
                         if (query) {
                                 cllog(3, "%s", query);
                                 free(query);
                         }
-                        if (cbuffer_count(queries) == 0)
+                        if (clbuf_count(queries) == 0)
                                 sleep(1);
                 }
         }
@@ -89,7 +91,7 @@ void *database_run(void *ptr)
         return 0;
 }
 
-MYSQL *connection(rtgconf *config)
+MYSQL *connection(struct rtgconf *config)
 {
         MYSQL *conn = mysql_init(NULL);
         if (conn == NULL) {

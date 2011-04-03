@@ -3,12 +3,15 @@
 #include <signal.h>
 #include <syslog.h>
 
+#include "clbuf.h"
 #include "util.h"
 #include "globals.h"
 #include "monitor.h"
 #include "poller.h"
 #include "database.h"
 #include "version.h"
+#include "multithread.h"
+#include "rtgtargets.h"
 
 void help();
 void sighup_handler(int signum);
@@ -30,7 +33,7 @@ void help()
         fprintf(stderr, " Copyright (c) 2009-2011 Jakob Borg\n");
 }
 
-void run_threads(rtgtargets *targets, rtgconf *config)
+void run_threads(struct rtgtargets *targets, struct rtgconf *config)
 {
         thread_stop_requested = 0;
         active_threads = 0;
@@ -42,30 +45,30 @@ void run_threads(rtgtargets *targets, rtgconf *config)
         unsigned num_dbthreads = config->threads / 8;
         num_dbthreads = num_dbthreads ? num_dbthreads : 1;
 
-        queries = cbuffer_create(max_queue_length);
+        queries = clbuf_create(max_queue_length);
 
         cllog(1, "Starting %d poller threads.", config->threads);
-        mt_threads *poller_threads = mt_threads_create(config->threads);
+        struct mt_threads *poller_threads = mt_threads_create(config->threads);
         unsigned i;
         for (i = 0; i < config->threads; i++) {
-                poller_ctx *ctx = (poller_ctx *)malloc(sizeof(poller_ctx));
+                struct poller_ctx *ctx = (struct poller_ctx *)malloc(sizeof(struct poller_ctx));
                 ctx->targets = targets;
                 poller_threads->contexts[i].param = ctx;
         }
         mt_threads_start(poller_threads, poller_run);
 
         cllog(1, "Starting %d database threads.", num_dbthreads);
-        mt_threads *database_threads = mt_threads_create(num_dbthreads);
+        struct mt_threads *database_threads = mt_threads_create(num_dbthreads);
         for (i = 0; i < num_dbthreads; i++) {
-                database_ctx *ctx = (database_ctx *)malloc(sizeof(database_ctx));
+                struct database_ctx *ctx = (struct database_ctx *)malloc(sizeof(struct database_ctx));
                 ctx->config = config;
                 database_threads->contexts[i].param = ctx;
         }
         mt_threads_start(database_threads, database_run);
 
         cllog(1, "Starting monitor thread.");
-        mt_threads *monitor_threads = mt_threads_create(1);
-        monitor_ctx *ctx = (monitor_ctx *)malloc(sizeof(monitor_ctx));
+        struct mt_threads *monitor_threads = mt_threads_create(1);
+        struct monitor_ctx *ctx = (struct monitor_ctx *)malloc(sizeof(struct monitor_ctx));
         ctx->interval = config->interval;
         ctx->targets = targets;
         monitor_threads->contexts[0].param = ctx;
@@ -75,7 +78,7 @@ void run_threads(rtgtargets *targets, rtgconf *config)
         mt_threads_join(poller_threads);
         mt_threads_join(monitor_threads);
 
-        cbuffer_free(queries);
+        clbuf_free(queries);
 
         for (i = 0; i < config->threads; i++)
                 free(poller_threads->contexts[i].param);
@@ -139,14 +142,14 @@ int main (int argc, char *const argv[])
 
         while (!full_stop_requested) {
                 // Read rtg.conf
-                rtgconf *config = rtgconf_create(rtgconf_file);
+                struct rtgconf *config = rtgconf_create(rtgconf_file);
                 if (!config) {
                         cllog(0, "No configuration, so nothing to do.");
                         exit(-1);
                 }
 
                 // Read targets.cfg
-                rtgtargets *targets = rtgtargets_parse(targets_file, config);
+                struct rtgtargets *targets = rtgtargets_parse(targets_file, config);
 
                 if (targets->ntargets == 0) {
                         cllog(0, "No targets, so nothing to do.");

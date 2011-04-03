@@ -1,4 +1,8 @@
-#include "snmp.h"
+#include <net-snmp/net-snmp-config.h>
+#include <net-snmp/net-snmp-includes.h>
+#include <pthread.h>
+
+#include "clsnmp.h"
 
 static pthread_mutex_t clsnmp_lock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -10,13 +14,12 @@ void clsnmp_global_init()
         pthread_mutex_unlock(&clsnmp_lock);
 }
 
-clsnmp_session *clsnmp_session_create(const char *host, const char *community, int snmpver)
-{
+struct clsnmp_session *clsnmp_session_create(const char *host, const char *community, int snmpver) {
         if (snmpver != 1 && snmpver != 2)
                 return NULL;
 
         pthread_mutex_lock(&clsnmp_lock);
-        clsnmp_session *session = (clsnmp_session *) malloc(sizeof(clsnmp_session));
+        struct clsnmp_session *session = (struct clsnmp_session *) malloc(sizeof(struct clsnmp_session));
         snmp_sess_init(&session->session);
         session->session.peername = (char *) host;
         session->session.community = (u_char *) community;
@@ -40,7 +43,7 @@ clsnmp_session *clsnmp_session_create(const char *host, const char *community, i
         return session;
 }
 
-void clsnmp_session_free(clsnmp_session *session)
+void clsnmp_session_free(struct clsnmp_session *session)
 {
         pthread_mutex_lock(&clsnmp_lock);
         snmp_sess_close(session->sessp);
@@ -48,7 +51,7 @@ void clsnmp_session_free(clsnmp_session *session)
         free(session);
 }
 
-int clsnmp_get(clsnmp_session *session, const char *oid_str, unsigned long long *counter, time_t *response_time)
+int clsnmp_get(struct clsnmp_session *session, const char *oid_str, unsigned long long *counter, time_t *response_time)
 {
         struct snmp_pdu *pdu;
         struct snmp_pdu *response;

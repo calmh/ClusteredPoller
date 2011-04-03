@@ -1,21 +1,12 @@
 #ifndef DATABASE_H_
 #define DATABASE_H_
 
-#include "rtgconf.h"
-#include "multithread.h"
+struct rtgconf;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct database_ctx {
+        struct rtgconf *config;
+};
 
-        typedef struct {
-                rtgconf *config;
-        } database_ctx;
-
-        void *database_run(void *ptr);
-
-#ifdef __cplusplus
-}
-#endif
+void *database_run(void *ptr);
 
 #endif /* DATABASE_H_ */

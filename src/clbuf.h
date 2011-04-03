@@ -1,5 +1,5 @@
 //
-//  cbuffer.h
+//  clbuf.h
 //  clpoll
 //
 //  Created by Jakob Borg on 2011-04-01.
@@ -11,18 +11,18 @@
 
 #include <pthread.h>
 
-typedef struct {
+struct clbuf {
         pthread_mutex_t lock;
         unsigned allocated_size;
         unsigned read_index;
         unsigned write_index;
         void **buffer;
-} cbuffer;
+};
 
-cbuffer *cbuffer_create(unsigned size);
-void *cbuffer_push(cbuffer *cb, void *ptr);
-void *cbuffer_pop(cbuffer *cb);
-unsigned cbuffer_count(cbuffer *cb);
-unsigned cbuffer_free(cbuffer *cb);
+struct clbuf *clbuf_create(unsigned size);
+void *clbuf_push(struct clbuf *cb, void *ptr);
+void *clbuf_pop(struct clbuf *cb);
+unsigned clbuf_count(struct clbuf *cb);
+unsigned clbuf_free(struct clbuf *cb);
 
 #endif /* CBUFFER_H */

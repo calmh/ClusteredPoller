@@ -1,4 +1,6 @@
 #include <string.h>
+#include <unistd.h>
+
 #include "queryablehost.h"
 #include "rtgconf.h"
 #include "rtgtargets.h"
@@ -96,10 +98,10 @@ void TestGaugeValueChanged(CuTest *tc)
 
 void TestResultSetForOneHost(CuTest *tc)
 {
-        rtgconf *conf = rtgconf_create("test/example-rtg.conf");
-        rtgtargets *hosts = rtgtargets_parse("test/example-targets.cfg", conf);
+        struct rtgconf *conf = rtgconf_create("test/example-rtg.conf");
+        struct rtgtargets *hosts = rtgtargets_parse("test/example-targets.cfg", conf);
 
-        db_insert **inserts = get_db_inserts(hosts->hosts[0]);
+        struct db_insert **inserts = get_db_inserts(hosts->hosts[0]);
         sleep(1);
         inserts = get_db_inserts(hosts->hosts[0]);
 

@@ -1,7 +1,7 @@
-OBJS = src/cbuffer.o \
+OBJS = src/clbuf.o \
 	src/database.o \
 	src/globals.o \
-	src/gstring.o \
+	src/clgstr.o \
 	src/main.o \
 	src/monitor.o \
 	src/multithread.o \
@@ -9,12 +9,12 @@ OBJS = src/cbuffer.o \
 	src/queryablehost.o \
 	src/rtgconf.o \
 	src/rtgtargets.o \
-	src/snmp.o \
+	src/clsnmp.o \
 	src/util.o 
 
-TESTOBJS = src/cbuffer.o \
+TESTOBJS = src/clbuf.o \
 	src/globals.o \
-	src/gstring.o \
+	src/clgstr.o \
 	src/monitor.o \
 	src/multithread.o \
 	src/poller.o \
@@ -22,7 +22,7 @@ TESTOBJS = src/cbuffer.o \
 	src/rtgconf.o \
 	src/rtgtargets.o \
 	src/util.o \
-	test/cbuffertests.o \
+	test/clbuftests.o \
 	test/cutest.o \
 	test/database-mock.o \
 	test/integrationtests.o \
@@ -30,7 +30,7 @@ TESTOBJS = src/cbuffer.o \
 	test/main.o \
 	test/rtgconftests.o \
 	test/rtgtargetstests.o \
-	test/snmp-mock.o \
+	test/clsnmp-mock.o \
 	test/utiltests.o 
 
 TARGET := clpoll

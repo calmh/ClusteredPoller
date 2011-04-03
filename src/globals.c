@@ -1,12 +1,13 @@
+#include "clbuf.h"
 #include "rtgconf.h"
 #include "rtgtargets.h"
-#include "cbuffer.h"
+#include "clbuf.h"
 #include "pthread.h"
 
 // Global variables are instantiated here.
 
 // Queue of outstanding database queries.
-cbuffer *queries;
+struct clbuf *queries;
 // Maximum number of outstanding database queries.
 unsigned long query_queue_depth = 0;
 

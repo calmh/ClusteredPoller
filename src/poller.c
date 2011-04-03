@@ -1,17 +1,19 @@
+#include "clbuf.h"
 #include "multithread.h"
 #include "globals.h"
 #include "poller.h"
-#include "snmp.h"
+#include "clsnmp.h"
 #include "queryablehost.h"
 #include "util.h"
+#include "rtgtargets.h"
 
 void *poller_run(void *ptr)
 {
-        mt_context *thread_context = (mt_context *) ptr;
-        poller_ctx *poller_context = (poller_ctx *) thread_context->param;
+        struct mt_context *thread_context = (struct mt_context *) ptr;
+        struct poller_ctx *poller_context = (struct poller_ctx *) thread_context->param;
 
         unsigned id = thread_context->thread_id;
-        rtgtargets *targets = poller_context->targets;
+        struct rtgtargets *targets = poller_context->targets;
 
         // Start looping.
         unsigned iterations = 0;
@@ -41,7 +43,7 @@ void *poller_run(void *ptr)
                 // Note our start time, so we know how long an iteration takes.
                 start = time(NULL);
                 // Loop over our share of the hosts.
-                queryhost *host;
+                struct queryhost *host;
                 while (!thread_stop_requested && (host = rtgtargets_next(targets))) {
                         cllog(2, "Thread %d picked host '%s'.", id, host->host);
                         // Process the host and get back a list of SQL updates to execute.
@@ -53,12 +55,12 @@ void *poller_run(void *ptr)
                                 cllog(2, "Thread %u queueing %u queries.", id, n_queries);
 
                                 unsigned  i;
-                                for (i = 0; i < n_queries && cbuffer_free(queries) > 0; i++) {
-                                        void *result = cbuffer_push(queries, strdup(host_queries[i]));
+                                for (i = 0; i < n_queries && clbuf_free(queries) > 0; i++) {
+                                        void *result = clbuf_push(queries, strdup(host_queries[i]));
                                         if (!result)
                                                 break;
                                 }
-                                unsigned qd = cbuffer_count(queries);
+                                unsigned qd = clbuf_count(queries);
                                 query_queue_depth = query_queue_depth > qd ? query_queue_depth : qd;
                                 if (i != n_queries)
                                         cllog(0, "Thread %d dropped queries due to database queue full.", id);

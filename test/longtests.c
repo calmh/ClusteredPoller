@@ -1,3 +1,6 @@
+#include <unistd.h>
+#include <string.h>
+
 #include "cutest.h"
 #include "queryablehost.h"
 #include "rtgconf.h"
@@ -8,8 +11,8 @@ void mock_set_speed(unsigned int newspeed); // From snmp-mock.cpp
 void TestMeasureOneHostsAt10MbpsForTenSeconds(CuTest *tc)
 {
         mock_set_speed(1000000 / 8);
-        rtgconf *conf = rtgconf_create("test/example-rtg.conf");
-        rtgtargets *hosts = rtgtargets_parse("test/example-targets.cfg", conf);
+        struct rtgconf *conf = rtgconf_create("test/example-rtg.conf");
+        struct rtgtargets *hosts = rtgtargets_parse("test/example-targets.cfg", conf);
 
         char **queries = get_inserts(hosts->hosts[0]);
         unsigned queries_size;
@@ -32,8 +35,8 @@ void TestMeasureOneHostsAt10MbpsForTenSeconds(CuTest *tc)
 void TestMeasureOneHostAt100MbpsForOneInterval(CuTest *tc)
 {
         mock_set_speed(100000000 / 8);
-        rtgconf *conf = rtgconf_create("test/example-rtg.conf");
-        rtgtargets *hosts = rtgtargets_parse("test/example-targets.cfg", conf);
+        struct rtgconf *conf = rtgconf_create("test/example-rtg.conf");
+        struct rtgtargets *hosts = rtgtargets_parse("test/example-targets.cfg", conf);
 
         char **queries = get_inserts(hosts->hosts[0]);
         unsigned queries_size;

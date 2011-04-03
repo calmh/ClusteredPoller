@@ -4,26 +4,28 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <time.h>
 #include <pthread.h>
+
 #include "rtgtargets.h"
 #include "rtgconf.h"
 #include "util.h"
 
-queryhost *read_host(FILE *fileptr, char *host_name, const rtgconf *conf);
-queryrow *read_row(FILE *fileptr, char *oid, const rtgconf *conf);
-int check_for_duplicate(queryhost *host, queryrow *row);
-rtgtargets *read_new_style_targets(const char *filename, const rtgconf *conf);
-rtgtargets *read_old_style_targets(const char *filename, const rtgconf *conf);
+struct queryhost *read_host(FILE *fileptr, char *host_name, const struct rtgconf *conf);
+struct queryrow *read_row(FILE *fileptr, char *oid, const struct rtgconf *conf);
+int check_for_duplicate(struct queryhost *host, struct queryrow *row);
+struct rtgtargets *read_new_style_targets(const char *filename, const struct rtgconf *conf);
+struct rtgtargets *read_old_style_targets(const char *filename, const struct rtgconf *conf);
 char *strtolower(char *str);
 char *strclean(char *str);
 char *strunc(char *str);
-void queryhost_push_row(queryhost *host, queryrow *row);
+void queryhost_push_row(struct queryhost *host, struct queryrow *row);
 
-rtgtargets *rtgtargets_create()
+struct rtgtargets *rtgtargets_create()
 {
-        rtgtargets *targets = (rtgtargets *) malloc(sizeof(rtgtargets));
+        struct rtgtargets *targets = (struct rtgtargets *) malloc(sizeof(struct rtgtargets));
         targets->nhosts = 0;
-        targets->hosts = (queryhost **) malloc(sizeof(queryhost *) * 8);
+        targets->hosts = (struct queryhost **) malloc(sizeof(struct queryhost *) * 8);
         targets->allocated_space = 8;
         targets->ntargets = 0;
         targets->next_host = 0;
@@ -34,7 +36,7 @@ rtgtargets *rtgtargets_create()
         return targets;
 }
 
-void rtgtargets_free(rtgtargets *targets)
+void rtgtargets_free(struct rtgtargets *targets)
 {
         int i;
         for (i = 0; i < targets->nhosts; i++)
@@ -43,9 +45,9 @@ void rtgtargets_free(rtgtargets *targets)
         free(targets);
 }
 
-rtgtargets *rtgtargets_parse(const char *filename, const rtgconf *conf)
+struct rtgtargets *rtgtargets_parse(const char *filename, const struct rtgconf *conf)
 {
-        rtgtargets *targets = read_new_style_targets(filename, conf);
+        struct rtgtargets *targets = read_new_style_targets(filename, conf);
         if (targets->nhosts == 0) {
                 rtgtargets_free(targets);
                 targets = read_old_style_targets(filename, conf);
@@ -54,20 +56,20 @@ rtgtargets *rtgtargets_parse(const char *filename, const rtgconf *conf)
         return targets;
 }
 
-void rtgtargets_push_host(rtgtargets *targets, queryhost *host)
+void rtgtargets_push_host(struct rtgtargets *targets, struct queryhost *host)
 {
         if (targets->nhosts == targets->allocated_space) {
                 unsigned new_size = targets->allocated_space * 1.5;
-                targets->hosts = (queryhost **) realloc(targets->hosts, sizeof(queryhost *) * new_size);
+                targets->hosts = (struct queryhost **) realloc(targets->hosts, sizeof(struct queryhost *) * new_size);
                 targets->allocated_space = new_size;
         }
         targets->hosts[targets->nhosts++] = host;
         targets->ntargets += host->nrows;
 }
 
-rtgtargets *read_new_style_targets(const char *filename, const rtgconf *conf)
+struct rtgtargets *read_new_style_targets(const char *filename, const struct rtgconf *conf)
 {
-        rtgtargets *targets = rtgtargets_create();
+        struct rtgtargets *targets = rtgtargets_create();
         FILE *fileptr = fopen(filename, "rb");
         if (!fileptr)
                 return targets;
@@ -87,7 +89,7 @@ rtgtargets *read_new_style_targets(const char *filename, const rtgconf *conf)
                         int result = fscanf(fileptr, " %512s", token);
                         (void)result;
                         char *host_name = strdup(token);
-                        queryhost *host = read_host(fileptr, host_name, conf);
+                        struct queryhost *host = read_host(fileptr, host_name, conf);
                         rtgtargets_push_host(targets, host);
                 }
         }
@@ -96,9 +98,9 @@ rtgtargets *read_new_style_targets(const char *filename, const rtgconf *conf)
         return targets;
 }
 
-queryhost *read_host(FILE *fileptr, char *host_name, const rtgconf *conf)
+struct queryhost *read_host(FILE *fileptr, char *host_name, const struct rtgconf *conf)
 {
-        queryhost *host = queryhost_create();
+        struct queryhost *host = queryhost_create();
         host->host = host_name;
         char token[513];
         while (fscanf(fileptr, " %512s", token) == 1) {
@@ -121,7 +123,7 @@ queryhost *read_host(FILE *fileptr, char *host_name, const rtgconf *conf)
                 } else if (!strcmp(token, "target")) {
                         result = fscanf(fileptr, " %128s", buffer);
                         char *oid = strdup(strclean(buffer));
-                        queryrow *row = read_row(fileptr, oid, conf);
+                        struct queryrow *row = read_row(fileptr, oid, conf);
                         if (!check_for_duplicate(host, row))
                                 queryhost_push_row(host, row);
                         else
@@ -134,19 +136,19 @@ queryhost *read_host(FILE *fileptr, char *host_name, const rtgconf *conf)
         return host;
 }
 
-queryhost *queryhost_create()
+struct queryhost *queryhost_create()
 {
-        queryhost *host = (queryhost *) malloc(sizeof(queryhost));
+        struct queryhost *host = (struct queryhost *) malloc(sizeof(struct queryhost));
         host->host = "<uninitialized>";
         host->community = "<uninitialized>";
         host->snmpver = 0;
         host->nrows = 0;
-        host->rows = (queryrow **) malloc(sizeof(queryrow *) * 8);
+        host->rows = (struct queryrow **) malloc(sizeof(struct queryrow *) * 8);
         host->allocated_rowspace = 8;
         return host;
 }
 
-void queryhost_free(queryhost *host)
+void queryhost_free(struct queryhost *host)
 {
         int i;
         for (i = 0; i < host->nrows; i++)
@@ -156,9 +158,9 @@ void queryhost_free(queryhost *host)
         free(host);
 }
 
-queryrow *queryrow_create()
+struct queryrow *queryrow_create()
 {
-        queryrow *row = (queryrow *) malloc(sizeof(queryrow));
+        struct queryrow *row = (struct queryrow *) malloc(sizeof(struct queryrow));
         row->oid = "<uninitialized>";
         row->table = "<uninitialized>";
         row->id = 0;
@@ -169,26 +171,26 @@ queryrow *queryrow_create()
         return row;
 }
 
-void queryrow_free(queryrow *row)
+void queryrow_free(struct queryrow *row)
 {
         free(row->oid);
         free(row->table);
         free(row);
 }
 
-void queryhost_push_row(queryhost *host, queryrow *row)
+void queryhost_push_row(struct queryhost *host, struct queryrow *row)
 {
         if (host->nrows == host->allocated_rowspace) {
                 unsigned new_size =  host->allocated_rowspace * 1.5;
-                host->rows = (queryrow **) realloc(host->rows, sizeof(queryrow *) * new_size);
+                host->rows = (struct queryrow **) realloc(host->rows, sizeof(struct queryrow *) * new_size);
                 host->allocated_rowspace = new_size;
         }
         host->rows[host->nrows++] = row;
 }
 
-queryrow *read_row(FILE *fileptr, char *oid, const rtgconf *conf)
+struct queryrow *read_row(FILE *fileptr, char *oid, const struct rtgconf *conf)
 {
-        queryrow *row = queryrow_create();
+        struct queryrow *row = queryrow_create();
         row->oid = oid;
         char token[513];
         while (fscanf(fileptr, " %512s", token) == 1) {
@@ -257,11 +259,11 @@ char *strunc(char *str)
         return str;
 }
 
-int check_for_duplicate(queryhost *host, queryrow *row)
+int check_for_duplicate(struct queryhost *host, struct queryrow *row)
 {
         unsigned i;
         for (i = 0; i < host->nrows; i++) {
-                queryrow *it_row = host->rows[i];
+                struct queryrow *it_row = host->rows[i];
                 if (!strcmp(it_row->oid, row->oid)) {
                         cllog(0, "WARNING: Host %s OID %s is a duplicate. Ignoring.", host->host, row->oid);
                         return 1;
@@ -274,16 +276,16 @@ int check_for_duplicate(queryhost *host, queryrow *row)
         return 0;
 }
 
-rtgtargets *read_old_style_targets(const char *filename, const rtgconf *conf)
+struct rtgtargets *read_old_style_targets(const char *filename, const struct rtgconf *conf)
 {
-        rtgtargets *targets = rtgtargets_create();
+        struct rtgtargets *targets = rtgtargets_create();
         FILE *fileptr = fopen(filename, "rb");
         if (!fileptr)
                 return targets;
 
         char linebuffer[257];
         char *line;
-        queryhost *current_host = NULL;
+        struct queryhost *current_host = NULL;
         while ((line = fgets(linebuffer, 256, fileptr))) {
                 strunc(line);
                 if (strlen(line) == 0)
@@ -324,7 +326,7 @@ rtgtargets *read_old_style_targets(const char *filename, const rtgconf *conf)
 
                 if (current_host == NULL) {
                         /* Create a new host. We lack data, so we assume SNMP version 2. */
-                        queryhost *qhost = queryhost_create();
+                        struct queryhost *qhost = queryhost_create();
                         qhost->host = host;
                         qhost->community = community;
                         qhost->snmpver = 2;
@@ -335,7 +337,7 @@ rtgtargets *read_old_style_targets(const char *filename, const rtgconf *conf)
                         free(community);
                 }
 
-                queryrow *row = queryrow_create();
+                struct queryrow *row = queryrow_create();
                 row->oid = oid;
                 row->table = table;
                 row->id = id;
@@ -349,9 +351,9 @@ rtgtargets *read_old_style_targets(const char *filename, const rtgconf *conf)
         return targets;
 }
 
-queryhost *rtgtargets_next(rtgtargets *targets)
+struct queryhost *rtgtargets_next(struct rtgtargets *targets)
 {
-        queryhost *host = NULL;
+        struct queryhost *host = NULL;
         pthread_mutex_lock(&targets->next_host_lock);
         if (targets->next_host < targets->nhosts)
                 host = targets->hosts[targets->next_host++];
@@ -359,7 +361,7 @@ queryhost *rtgtargets_next(rtgtargets *targets)
         return host;
 }
 
-void rtgtargets_reset_next(rtgtargets *targets)
+void rtgtargets_reset_next(struct rtgtargets *targets)
 {
         targets->next_host = 0;
 }

@@ -4,7 +4,7 @@
 
 void TestParseConfigurationVariables(CuTest *tc)
 {
-        rtgconf *conf = rtgconf_create("test/example-rtg.conf");
+        struct rtgconf *conf = rtgconf_create("test/example-rtg.conf");
         CuAssertIntEquals(tc, 30, conf->interval);
         CuAssertIntEquals(tc, 2, conf->threads);
         CuAssertStrEquals(tc, "Rtguser", conf->dbuser);

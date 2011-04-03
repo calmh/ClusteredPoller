@@ -3,10 +3,11 @@
 
 #include <time.h>
 #include <pthread.h>
-#include "rtgconf.h"
+
+struct rtgconf;
 
 /* Holds query instructions for one row (table+id). */
-typedef struct {
+struct queryrow {
         char *oid;
         char *table;
         unsigned id;
@@ -14,39 +15,39 @@ typedef struct {
         unsigned long long speed;
         unsigned long long cached_counter;
         time_t cached_time;
-} queryrow;
+};
 
-queryrow *queryrow_create();
-void queryrow_free(queryrow *row);
+struct queryrow *queryrow_create();
+void queryrow_free(struct queryrow *row);
 
 /* Holds query instructions for one host. */
-typedef struct {
+struct queryhost {
         char *host;
         char *community;
         int snmpver;
 
-        queryrow **rows;
+        struct queryrow **rows;
         unsigned nrows;
         unsigned allocated_rowspace;
-} queryhost;
+};
 
-queryhost *queryhost_create();
-void queryhost_free(queryhost *host);
+struct queryhost *queryhost_create();
+void queryhost_free(struct queryhost *host);
 
 // Holds information from targets.cfg.
-typedef struct {
-        queryhost **hosts;
+struct rtgtargets {
+        struct queryhost **hosts;
         unsigned nhosts;
         unsigned allocated_space;
         unsigned ntargets;
         unsigned next_host;
         pthread_mutex_t next_host_lock;
-} rtgtargets;
+};
 
-rtgtargets *rtgtargets_create();
-rtgtargets *rtgtargets_parse(const char *filename, const rtgconf *config);
-void rtgtargets_free(rtgtargets *targets);
-queryhost *rtgtargets_next(rtgtargets *targets);
-void rtgtargets_reset_next(rtgtargets *targets);
+struct rtgtargets *rtgtargets_create();
+struct rtgtargets *rtgtargets_parse(const char *filename, const struct rtgconf *config);
+void rtgtargets_free(struct rtgtargets *targets);
+struct queryhost *rtgtargets_next(struct rtgtargets *targets);
+void rtgtargets_reset_next(struct rtgtargets *targets);
 
 #endif
