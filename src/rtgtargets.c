@@ -150,6 +150,7 @@ void queryhost_free(struct queryhost *host)
                 queryrow_free(host->rows[i]);
         free(host->host);
         free(host->community);
+        free(host->rows);
         free(host);
 }
 

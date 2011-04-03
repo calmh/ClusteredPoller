@@ -28,7 +28,7 @@ void *database_run(void *ptr)
 
         while (!thread_stop_requested) {
                 if (use_db) {
-                        if (clbuf_count(queries) > 0) {
+                        if (clbuf_count_used(queries) > 0) {
                                 if (conn == 0 || mysql_ping(conn) != 0) {
                                         if (conn)
                                                 mysql_close(conn);
@@ -77,7 +77,7 @@ void *database_run(void *ptr)
                                 cllog(3, "%s", query);
                                 free(query);
                         }
-                        if (clbuf_count(queries) == 0)
+                        if (clbuf_count_used(queries) == 0)
                                 sleep(1);
                 }
         }

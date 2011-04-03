@@ -55,12 +55,12 @@ void *poller_run(void *ptr)
                                 cllog(2, "Thread %u queueing %u queries.", id, n_queries);
 
                                 unsigned  i;
-                                for (i = 0; i < n_queries && clbuf_free(queries) > 0; i++) {
+                                for (i = 0; i < n_queries && clbuf_count_free(queries) > 0; i++) {
                                         void *result = clbuf_push(queries, strdup(host_queries[i]));
                                         if (!result)
                                                 break;
                                 }
-                                unsigned qd = clbuf_count(queries);
+                                unsigned qd = clbuf_count_used(queries);
                                 query_queue_depth = query_queue_depth > qd ? query_queue_depth : qd;
                                 if (i != n_queries)
                                         cllog(0, "Thread %d dropped queries due to database queue full.", id);

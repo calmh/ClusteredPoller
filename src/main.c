@@ -79,6 +79,7 @@ void run_threads(struct rtgtargets *targets, struct rtgconf *config)
         mt_threads_join(monitor_threads);
 
         clbuf_free(queries);
+        queries = 0;
 
         for (i = 0; i < config->threads; i++)
                 free(poller_threads->contexts[i].param);

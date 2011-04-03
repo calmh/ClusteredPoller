@@ -24,7 +24,7 @@ void *monitor_run(void *ptr)
                 if (active_threads == 0 && in_iteration) {
                         stat_iterations++;
                         if (verbosity > 0) {
-                                unsigned qd = clbuf_count(queries);
+                                unsigned qd = clbuf_count_used(queries);
                                 cllog(1, "Iteration complete, elapsed time for #%d was %d s.", stat_iterations, time(NULL) - in_iteration);
                                 cllog(1, "Time until next iteration is %d s.", interval - time(NULL));
                                 cllog(1, "  Rows inserted: %d", stat_inserts);
@@ -41,7 +41,7 @@ void *monitor_run(void *ptr)
                 }
 
                 if (active_threads == 0 && iteration_completed) {
-                        unsigned qd = clbuf_count(queries);
+                        unsigned qd = clbuf_count_used(queries);
                         if (qd == 0) {
                                 cllog(1,  "  Queue empty %d s after poll completion.", time(NULL) - iteration_completed);
                                 iteration_completed = 0;
@@ -54,7 +54,7 @@ void *monitor_run(void *ptr)
                         in_iteration = time(NULL);
                         if (verbosity >= 1) {
                                 cllog(1, "Monitor signals wakeup.");
-                                unsigned qd = clbuf_count(queries);
+                                unsigned qd = clbuf_count_used(queries);
                                 if (qd > 0 && verbosity > 0)
                                         cllog(1, "  Queue at depth %d at poll start.", qd);
                                 iteration_completed = 0;

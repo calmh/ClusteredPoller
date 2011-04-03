@@ -58,7 +58,6 @@ $(TARGET): $(OBJS)
 $(TARGET)-dbg: CFLAGS += -g
 $(TARGET)-dbg: $(OBJS)
 	gcc $^ $(LIBS) -o $@
-	strip $@
 
 $(TESTTARGET): CFLAGS += -Isrc
 $(TESTTARGET): $(TESTOBJS)

@@ -14,8 +14,8 @@ void CuAssertPtrNotNull(CuTest* tc, void* pointer);
 void TestEmptyBufferSize(CuTest *tc)
 {
         struct clbuf *cb = clbuf_create(16);
-        CuAssertIntEquals(tc,  0, clbuf_count(cb));
-        CuAssertIntEquals(tc, 16, clbuf_free(cb));
+        CuAssertIntEquals(tc,  0, clbuf_count_used(cb));
+        CuAssertIntEquals(tc, 16, clbuf_count_free(cb));
 }
 
 void TestEmptyBufferPop(CuTest *tc)
@@ -29,10 +29,10 @@ void TestBufferTwoItems(CuTest *tc)
         struct clbuf *cb = clbuf_create(16);
         clbuf_push(cb, "Test1");
         clbuf_push(cb, "Test2");
-        CuAssertIntEquals(tc, 2, clbuf_count(cb));
+        CuAssertIntEquals(tc, 2, clbuf_count_used(cb));
         CuAssertStrEquals(tc, "Test1", clbuf_pop(cb));
         CuAssertStrEquals(tc, "Test2", clbuf_pop(cb));
-        CuAssertIntEquals(tc, 0, clbuf_count(cb));
+        CuAssertIntEquals(tc, 0, clbuf_count_used(cb));
         CuAssertPtrEquals(tc, NULL, clbuf_pop(cb));
 }
 
@@ -42,16 +42,16 @@ void TestBufferManyItems(CuTest *tc)
         clbuf_push(cb, "Test1");
         clbuf_push(cb, "Test2");
         clbuf_push(cb, "Test3");
-        CuAssertIntEquals(tc, 3, clbuf_count(cb));
+        CuAssertIntEquals(tc, 3, clbuf_count_used(cb));
         CuAssertStrEquals(tc, "Test1", clbuf_pop(cb));
         CuAssertStrEquals(tc, "Test2", clbuf_pop(cb));
-        CuAssertIntEquals(tc, 1, clbuf_count(cb));
-        CuAssertIntEquals(tc, 3, clbuf_free(cb));
+        CuAssertIntEquals(tc, 1, clbuf_count_used(cb));
+        CuAssertIntEquals(tc, 3, clbuf_count_free(cb));
         clbuf_push(cb, "Test4");
         clbuf_push(cb, "Test5");
         clbuf_push(cb, "Test6");
-        CuAssertIntEquals(tc, 4, clbuf_count(cb));
-        CuAssertIntEquals(tc, 0, clbuf_free(cb));
+        CuAssertIntEquals(tc, 4, clbuf_count_used(cb));
+        CuAssertIntEquals(tc, 0, clbuf_count_free(cb));
         CuAssertStrEquals(tc, "Test3", clbuf_pop(cb));
         CuAssertStrEquals(tc, "Test4", clbuf_pop(cb));
         CuAssertStrEquals(tc, "Test5", clbuf_pop(cb));

@@ -20,9 +20,10 @@ struct clbuf {
 };
 
 struct clbuf *clbuf_create(unsigned size);
+void clbuf_free(struct clbuf *cb);
 void *clbuf_push(struct clbuf *cb, void *ptr);
 void *clbuf_pop(struct clbuf *cb);
-unsigned clbuf_count(struct clbuf *cb);
-unsigned clbuf_free(struct clbuf *cb);
+unsigned clbuf_count_used(struct clbuf *cb);
+unsigned clbuf_count_free(struct clbuf *cb);
 
 #endif /* CBUFFER_H */

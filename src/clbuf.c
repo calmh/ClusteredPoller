@@ -29,6 +29,12 @@ struct clbuf *clbuf_create(unsigned size) {
         return cb;
 }
 
+void clbuf_free(struct clbuf *cb)
+{
+        free(cb->buffer);
+        free(cb);
+}
+
 void *clbuf_push(struct clbuf *cb, void *ptr)
 {
         if (!ptr)
@@ -60,7 +66,7 @@ void *clbuf_pop(struct clbuf *cb)
         return ptr;
 }
 
-unsigned clbuf_count(struct clbuf *cb)
+unsigned clbuf_count_used(struct clbuf *cb)
 {
         unsigned count;
         pthread_mutex_lock(&cb->lock);
@@ -76,10 +82,10 @@ unsigned clbuf_count(struct clbuf *cb)
         return count;
 }
 
-unsigned clbuf_free(struct clbuf *cb)
+unsigned clbuf_count_free(struct clbuf *cb)
 {
         pthread_mutex_lock(&cb->lock);
-        unsigned free = cb->allocated_size - clbuf_count(cb);
+        unsigned count_free = cb->allocated_size - clbuf_count_used(cb);
         pthread_mutex_unlock(&cb->lock);
-        return free;
+        return count_free;
 }
