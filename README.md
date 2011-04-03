@@ -35,7 +35,7 @@ format. It **should** be a simple drop-in replacement.
 Installation
 ------------
 
-`clpoll` depends on `libmysql++` and `net-snmp`. Make sure these are
+`clpoll` depends on `libmysqlclient` and `net-snmp`. Make sure these are
 available.
 
 Run `make`. It should produce a binary called `clpoll`. Use this in

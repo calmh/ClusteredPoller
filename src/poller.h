@@ -1,16 +1,12 @@
 #ifndef POLLER_H_
 #define POLLER_H_
 
-#include "multithread.h"
+struct rtgtargets;
 
-class Poller : public Multithread
-{
-protected:
-        void create_thread(pthread_t* thread, int* thread_id);
-        static void* run(void* id_ptr);
-
-public:
-        Poller(int num_threads);
+struct poller_ctx {
+        struct rtgtargets *targets;
 };
+
+void *poller_run(void *param);
 
 #endif /* POLLER_H_ */

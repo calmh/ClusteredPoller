@@ -1,94 +1,86 @@
-SOURCES = src/main.cpp \
-	src/util.cpp \
-	src/globals.cpp \
-	src/snmp.cpp \
-	src/queryablehost.cpp \
-	src/rtgconf.cpp \
-	src/rtgtargets.cpp \
-	src/multithread.cpp \
-	src/monitor.cpp \
-	src/poller.cpp \
-	src/database.cpp
+OBJS = src/clbuf.o \
+	src/clgstr.o \
+	src/clsnmp.o \
+	src/database.o \
+	src/globals.o \
+	src/main.o \
+	src/monitor.o \
+	src/multithread.o \
+	src/poller.o \
+	src/queryablehost.o \
+	src/rtgconf.o \
+	src/rtgtargets.o \
+	src/util.o
 
-TESTSOURCES = test/main.cpp \
-	test/utiltests.cpp \
-	test/integrationtests.cpp \
-	test/rtgconftests.cpp \
-	test/rtgtargetstests.cpp \
-	test/longtests.cpp \
-	test/database-mock.cpp \
-	test/snmp-mock.cpp \
-	src/util.cpp \
-	src/globals.cpp \
-	src/queryablehost.cpp \
-	src/rtgconf.cpp \
-	src/rtgtargets.cpp \
-	src/multithread.cpp \
-	src/monitor.cpp \
-	src/poller.cpp \
+TESTOBJS = src/clbuf.o \
+	src/clgstr.o \
+	src/globals.o \
+	src/monitor.o \
+	src/multithread.o \
+	src/poller.o \
+	src/queryablehost.o \
+	src/rtgconf.o \
+	src/rtgtargets.o \
+	src/util.o \
+	test/clbuftests.o \
+	test/clsnmp-mock.o \
+	test/cutest.o \
+	test/database-mock.o \
+	test/integrationtests.o \
+	test/longtests.o \
+	test/main.o \
+	test/rtgconftests.o \
+	test/rtgtargetstests.o \
+	test/utiltests.o
 
-OBJS := $(SOURCES)
-OBJS := $(OBJS:.cpp=.o)
-OBJS := $(OBJS:.c=.o)
-TESTOBJS := $(TESTSOURCES)
-TESTOBJS := $(TESTOBJS:.cpp=.o)
-TESTOBJS := $(TESTOBJS:.c=.o)
 TARGET := clpoll
 TESTTARGET := testrunner
-UNITTESTPP := UnitTest++/libUnitTest++.a
-.SUFFIXES: .o .cpp
+.SUFFIXES: .o .c
 
-CXXFLAGS ?= -ansi -DOS_${OS} -DUSE_MYSQL -Wall -Werror
+CFLAGS ?= -Wall
 
 OS = $(shell uname -s | awk '{print tolower($$0)}')
 ifeq ($(OS),linux)
-	CXXFLAGS += -I/usr/include/mysql -I/usr/include/mysql++
-	LIBS = -lnetsnmp -lpthread -lmysqlpp
+	CFLAGS += -pthread -I/usr/include/mysql
+	LIBS = -lnetsnmp -lmysqlclient
 else ifeq ($(OS),darwin)
-	CXXFLAGS += -I/usr/local/mysql/include -I/usr/local/include/mysql++
-	LIBS = -lnetsnmp -lmysqlpp
+	CFLAGS += -I/usr/local/mysql/include
+	LIBS = -L/usr/local/mysql/lib -lnetsnmp -lmysqlclient
 endif
 
-all: $(UNITTESTPP) $(TARGET) test
+all: $(TARGET) quicktest
 
-$(TARGET): CXXFLAGS += -O2
+$(TARGET): CFLAGS += -O2
 $(TARGET): $(OBJS)
-	@echo Linking $@...
-	@g++ $^ $(LIBS) -o $@
-	@strip $@
+	gcc $^ $(LIBS) -o $@
+	strip $@
 
-$(TESTTARGET): CXXFLAGS += -IUnitTest++/src -Isrc
-$(TESTTARGET): $(TESTOBJS) $(UNITTESTPP)
-	@echo Linking $@...
-	@g++ $^ $(LIBS) $(UNITTESTPP) -o $@
+$(TARGET)-dbg: CFLAGS += -g
+$(TARGET)-dbg: $(OBJS)
+	gcc $^ $(LIBS) -o $@
+
+$(TESTTARGET): CFLAGS += -Isrc
+$(TESTTARGET): $(TESTOBJS)
+	gcc $^ $(LIBS) -o $@
 
 .PHONY: test
 test: $(TESTTARGET)
-	@echo Running unit tests...
-	@./$(TESTTARGET) 2>/dev/null
+	./$(TESTTARGET) long 2>/dev/null
 
-longtest: $(TESTTARGET)
-	@echo Running unit tests...
-	@./$(TESTTARGET) long 2>/dev/null
-
-$(UNITTESTPP):
-	@make -C UnitTest++
-
-distclean: clean
-	@make -C UnitTest++ clean
+quicktest: $(TESTTARGET)
+	./$(TESTTARGET) 2>/dev/null
 
 clean:
-	@rm -f $(OBJS) $(TESTOBJS) $(TARGET) $(TESTTARGET)
+	rm -f $(OBJS) $(TESTOBJS) $(TARGET) $(TESTTARGET) $(TARGET)-dbg
 
 .PHONY: reformat
 reformat:
-	@astyle -A8 -n --convert-tabs --align-pointer=type -z2 src/*.cpp src/*.h test/*.cpp
+	astyle -A8 -n --convert-tabs --align-pointer=name -z2 src/*.c src/*.h test/*.c
 
 .PHONY: version
 version:
-	@echo "#define CLPOLL_VERSION \"${VERSION}\"" > src/version.h
+	echo "#define CLPOLL_VERSION \"${VERSION}\"" > src/version.h
 
-%.o : %.cpp
-	@echo $<
-	@$(CXX) $(CXXFLAGS) -c $< -o $(patsubst %.cpp, %.o, $<)
+%.o : %.c
+	$(CC) $(CFLAGS) -c $< -o $(patsubst %.c, %.o, $<)
 

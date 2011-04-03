@@ -1,21 +1,17 @@
 #ifndef _RTGCONF_H
 #define _RTGCONF_H
 
-#include <string>
-
-// Holds information from rtg.conf.
-struct RTGConf {
-        RTGConf();
-        RTGConf(std::string filename);
-
+/* Holds information from rtg.conf. */
+struct rtgconf {
         unsigned interval;
         unsigned threads;
-        double high_skew_slop;
-        double low_skew_slop;
-        std::string dbhost;
-        std::string database;
-        std::string dbuser;
-        std::string dbpass;
+        char *dbhost;
+        char *database;
+        char *dbuser;
+        char *dbpass;
 };
+
+struct rtgconf *rtgconf_create(const char *filename);
+void rtgconf_free(struct rtgconf *config);
 
 #endif

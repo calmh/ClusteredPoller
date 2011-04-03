@@ -3,21 +3,20 @@
 
 #include <pthread.h>
 
-class Multithread
-{
-private:
-        int num_threads;
-        pthread_t* threads;
-        int* thread_ids;
-
-protected:
-        virtual void create_thread(pthread_t* thread, int* thread_id) = 0;
-
-public:
-        Multithread(int num_threads);
-        virtual ~Multithread();
-        void start();
-        void join_all();
+struct mt_context {
+        unsigned thread_id;
+        pthread_t pthread;
+        void *param;
 };
+
+struct mt_threads {
+        unsigned nthreads;
+        struct mt_context *contexts;
+};
+
+struct mt_threads *mt_threads_create(unsigned nthreads);
+void mt_threads_free(struct mt_threads *threads);
+void mt_threads_start(struct mt_threads *threads, void*(*runner)(void *));
+void mt_threads_join(struct mt_threads *threads);
 
 #endif /* MULTITHREAD_H_ */

@@ -1,74 +1,53 @@
 #ifndef _RTGTARGETS_H
 #define _RTGTARGETS_H
 
-class RTGConf;
+#include <time.h>
+#include <pthread.h>
 
-#include <string>
-#include <vector>
+struct rtgconf;
 
-// Holds query instructions for one row (table+id).
-struct QueryRow {
-        std::string oid;
-        std::string table;
+/* Holds query instructions for one row (table+id). */
+struct queryrow {
+        char *oid;
+        char *table;
         unsigned id;
         unsigned bits;
         unsigned long long speed;
-
-        QueryRow() {}
-        QueryRow(std::string ioid, std::string itable, int iid, int ibits) {
-                oid = ioid;
-                table = itable;
-                id = iid;
-                bits = ibits;
-        }
+        unsigned long long cached_counter;
+        time_t cached_time;
 };
 
-// Holds query instructions for one host.
-struct QueryHost {
-        std::string host;
-        std::string community;
+struct queryrow *queryrow_create();
+void queryrow_free(struct queryrow *row);
+
+/* Holds query instructions for one host. */
+struct queryhost {
+        char *host;
+        char *community;
         int snmpver;
-        std::vector<QueryRow> rows;
 
-        QueryHost() {
-                host = "none";
-        }
-        QueryHost(std::string ihost, std::string icommunity, int isnmpver) {
-                host = ihost;
-                community = icommunity;
-                snmpver = isnmpver;
-        }
+        struct queryrow **rows;
+        unsigned nrows;
+        unsigned allocated_rowspace;
 };
 
-// Results from targets file reading
-struct ParseResults {
-        unsigned hosts;
-        unsigned targets;
-};
+struct queryhost *queryhost_create();
+void queryhost_free(struct queryhost *host);
 
 // Holds information from targets.cfg.
-class RTGTargets : public std::vector<QueryHost>
-{
-public:
-        RTGTargets();
-        RTGTargets(std::string filename, RTGConf& config);
-
-        unsigned interval;
-        unsigned threads;
-        double high_skew_slop;
-        double low_skew_slop;
-        std::string dbhost;
-        std::string database;
-        std::string dbuser;
-        std::string dbpass;
-        ParseResults results;
-
-private:
-        QueryHost read_host(std::ifstream& targets, std::string& host_name, RTGConf& conf);
-        QueryRow read_row(std::ifstream& targets, std::string& oid, RTGConf& conf);
-        bool check_for_duplicate(QueryHost& host, QueryRow& row);
-        ParseResults read_new_style_targets(std::string filename, RTGConf& conf);
-        ParseResults read_old_style_targets(std::string filename, RTGConf& conf);
+struct rtgtargets {
+        struct queryhost **hosts;
+        unsigned nhosts;
+        unsigned allocated_space;
+        unsigned ntargets;
+        unsigned next_host;
+        pthread_mutex_t next_host_lock;
 };
+
+struct rtgtargets *rtgtargets_create();
+struct rtgtargets *rtgtargets_parse(const char *filename, const struct rtgconf *config);
+void rtgtargets_free(struct rtgtargets *targets);
+struct queryhost *rtgtargets_next(struct rtgtargets *targets);
+void rtgtargets_reset_next(struct rtgtargets *targets);
 
 #endif

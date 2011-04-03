@@ -1,16 +1,13 @@
 #ifndef MONITOR_H_
 #define MONITOR_H_
 
-#include "multithread.h"
+struct rtgtargets;
 
-class Monitor : public Multithread
-{
-protected:
-        void create_thread(pthread_t* thread, int* thread_id);
-        static void* run(void* id_ptr);
-
-public:
-        Monitor();
+struct monitor_ctx {
+        unsigned interval;
+        struct rtgtargets *targets;
 };
+
+void *monitor_run(void *ptr);
 
 #endif /* MONITOR_H_ */
