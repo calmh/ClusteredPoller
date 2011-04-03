@@ -37,12 +37,12 @@ TARGET := clpoll
 TESTTARGET := testrunner
 .SUFFIXES: .o .c
 
-CFLAGS ?= -DOS_${OS} -Wall
+CFLAGS ?= -Wall
 
 OS = $(shell uname -s | awk '{print tolower($$0)}')
 ifeq ($(OS),linux)
-	CFLAGS += -I/usr/include/mysql
-	LIBS = -lnetsnmp -lpthread -lmysqlclient
+	CFLAGS += -pthread -I/usr/include/mysql
+	LIBS = -lnetsnmp -lmysqlclient
 else ifeq ($(OS),darwin)
 	CFLAGS += -I/usr/local/mysql/include
 	LIBS = -L/usr/local/mysql/lib -lnetsnmp -lmysqlclient
