@@ -7,6 +7,9 @@
 
 // See globals.cpp for documentation on what these are used for.
 
+#define MIN_QUEUE_LENGTH 100
+#define DEFAULT_QUEUE_LENGTH 10000
+
 struct clbuf;
 
 extern struct clbuf *queries;

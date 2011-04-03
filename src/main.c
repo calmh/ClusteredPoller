@@ -2,6 +2,8 @@
 #include <string.h>
 #include <signal.h>
 #include <syslog.h>
+#include <unistd.h>
+#include <ctype.h>
 
 #include "clbuf.h"
 #include "util.h"
@@ -29,7 +31,7 @@ void help()
         fprintf(stderr, " -t <file>   Specify target file [%s]\n", targets_file);
         fprintf(stderr, " -v          Increase verbosity\n");
         fprintf(stderr, " -z          Database zero delta inserts\n");
-        fprintf(stderr, " -ql <num>   Maximum database queue length [%d]\n", max_queue_length);
+        fprintf(stderr, " -Q <num>    Maximum database queue length [%d]\n", max_queue_length);
         fprintf(stderr, " Copyright (c) 2009-2011 Jakob Borg\n");
 }
 
@@ -99,33 +101,49 @@ int main (int argc, char *const argv[])
 {
         if (argc < 2) {
                 help();
-                exit(0);
+                exit(-1);
         }
 
-        int i;
-        for (i = 1; i < argc; i++) {
-                char *arg = argv[i];
-                if (!strcmp(arg, "-v"))
-                        verbosity++;
-                else if (!strcmp(arg, "-D"))
-                        detach = 0;
-                else if (!strcmp(arg, "-d"))
+        int c;
+        while ((c = getopt (argc, argv, "c:dDt:vzQ:")) != -1) {
+                switch (c) {
+                case 'c':
+                        rtgconf_file = optarg;
+                        break;
+                case 'd':
                         use_db = 0;
-                else if (!strcmp(arg, "-z"))
+                        break;
+                case 'D':
+                        detach = 0;
+                        break;
+                case 't':
+                        targets_file = optarg;
+                        break;
+                case 'v':
+                        verbosity++;
+                        break;
+                case 'Q':
+                        max_queue_length = atoi(optarg);
+                        if (max_queue_length < MIN_QUEUE_LENGTH) {
+                                fprintf(stderr, "Error: minimum queue length is %d.\n", MIN_QUEUE_LENGTH);
+                                help();
+                                exit(-1);
+                        }
+                        break;
+                case 'z':
                         allow_db_zero = 1;
-                else if (!strcmp(arg, "-h")) {
+                        break;
+
+                case '?':
+                default:
                         help();
-                        exit(0);
-                } else if (!strcmp(arg, "-c")) {
-                        i++;
-                        rtgconf_file = argv[i];
-                } else if (!strcmp(arg, "-t")) {
-                        i++;
-                        targets_file = argv[i];
-                } else if (!strcmp(arg, "-ql")) {
-                        i++;
-                        max_queue_length = atoi(argv[i]);
+                        exit(-1);
                 }
+        }
+
+        if (argc != optind) {
+                help();
+                exit(-1);
         }
 
         if (detach)
