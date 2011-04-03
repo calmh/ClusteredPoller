@@ -19,20 +19,19 @@ void help();
 void sighup_handler(int signum);
 void sigterm_handler(int signum);
 
-// Setup and initialization.
-
-// Display usage.
 void help()
 {
-        fprintf(stderr, "clpoll %s\n", CLPOLL_VERSION);
+        fprintf(stderr, "clpoll %s Copyright (c) 2009-2011 Jakob Borg\n", CLPOLL_VERSION);
+        fprintf(stderr, "** rtgpoll compatible options\n");
         fprintf(stderr, " -c <file>   Specify configuration file [%s]\n", rtgconf_file);
-        fprintf(stderr, " -D          Don't detach, run in foreground\n");
         fprintf(stderr, " -d          Disable database inserts\n");
         fprintf(stderr, " -t <file>   Specify target file [%s]\n", targets_file);
         fprintf(stderr, " -v          Increase verbosity\n");
         fprintf(stderr, " -z          Database zero delta inserts\n");
-        fprintf(stderr, " -Q <num>    Maximum database queue length [%d]\n", max_queue_length);
-        fprintf(stderr, " Copyright (c) 2009-2011 Jakob Borg\n");
+        fprintf(stderr, "** extended options\n");
+        fprintf(stderr, " -D          Don't detach, run in foreground\n");
+        fprintf(stderr, " -T <num>    Number of poller threads per database thread [%d]\n", DEFAULT_DBTHREADS_DIVISOR);
+        fprintf(stderr, " -Q <num>    Maximum database queue length [%d]\n", DEFAULT_QUEUE_LENGTH);
 }
 
 void run_threads(struct rtgtargets *targets, struct rtgconf *config)
@@ -43,8 +42,8 @@ void run_threads(struct rtgtargets *targets, struct rtgconf *config)
         stat_queries = 0;
         stat_iterations = 0;
 
-        // Calculate number of database writers needed. This is just a guess.
-        unsigned num_dbthreads = config->threads / 8;
+        // Calculate number of database writers needed.
+        unsigned num_dbthreads = config->threads / dbthreads_divisor;
         num_dbthreads = num_dbthreads ? num_dbthreads : 1;
 
         queries = clbuf_create(max_queue_length);
@@ -105,7 +104,7 @@ int main (int argc, char *const argv[])
         }
 
         int c;
-        while ((c = getopt (argc, argv, "c:dDt:vzQ:")) != -1) {
+        while ((c = getopt (argc, argv, "c:dDt:T:vzQ:")) != -1) {
                 switch (c) {
                 case 'c':
                         rtgconf_file = optarg;
@@ -126,6 +125,14 @@ int main (int argc, char *const argv[])
                         max_queue_length = atoi(optarg);
                         if (max_queue_length < MIN_QUEUE_LENGTH) {
                                 fprintf(stderr, "Error: minimum queue length is %d.\n", MIN_QUEUE_LENGTH);
+                                help();
+                                exit(-1);
+                        }
+                        break;
+                case 'T':
+                        dbthreads_divisor = atoi(optarg);
+                        if (dbthreads_divisor < 1) {
+                                fprintf(stderr, "Error: minimum 1 poller thread per database thread (more recommended).\n");
                                 help();
                                 exit(-1);
                         }

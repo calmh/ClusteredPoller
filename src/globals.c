@@ -20,6 +20,7 @@ int verbosity = 0;
 int detach = 1;
 int use_db = 1;
 int allow_db_zero = 0;
+int dbthreads_divisor = DEFAULT_DBTHREADS_DIVISOR;
 unsigned max_queue_length = DEFAULT_QUEUE_LENGTH;
 
 // Locking and statistics
