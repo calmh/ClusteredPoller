@@ -21,17 +21,21 @@ void sigterm_handler(int signum);
 
 void help()
 {
+        fprintf(stderr, "\n");
         fprintf(stderr, "clpoll %s Copyright (c) 2009-2011 Jakob Borg\n", CLPOLL_VERSION);
-        fprintf(stderr, "** rtgpoll compatible options\n");
+        fprintf(stderr, "\n");
+        fprintf(stderr, "Legacy (rtgpoll compatible) options:\n");
         fprintf(stderr, " -c <file>   Specify configuration file [%s]\n", rtgconf_file);
         fprintf(stderr, " -d          Disable database inserts\n");
         fprintf(stderr, " -t <file>   Specify target file [%s]\n", targets_file);
         fprintf(stderr, " -v          Increase verbosity\n");
         fprintf(stderr, " -z          Database zero delta inserts\n");
-        fprintf(stderr, "** extended options\n");
+        fprintf(stderr, "\n");
+        fprintf(stderr, "Extended options:\n");
         fprintf(stderr, " -D          Don't detach, run in foreground\n");
         fprintf(stderr, " -T <num>    Number of poller threads per database thread [%d]\n", DEFAULT_DBTHREADS_DIVISOR);
         fprintf(stderr, " -Q <num>    Maximum database queue length [%d]\n", DEFAULT_QUEUE_LENGTH);
+        fprintf(stderr, "\n");
 }
 
 void run_threads(struct rtgtargets *targets, struct rtgconf *config)
@@ -95,7 +99,6 @@ void run_threads(struct rtgtargets *targets, struct rtgconf *config)
 }
 
 #ifndef TESTSUITE
-// Parse command line, load caonfiguration and start threads.
 int main (int argc, char *const argv[])
 {
         if (argc < 2) {
