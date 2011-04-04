@@ -2,6 +2,9 @@
 #include <string.h>
 #include <signal.h>
 #include <syslog.h>
+#include <unistd.h>
+#include <ctype.h>
+#include <stdlib.h>
 
 #include "clbuf.h"
 #include "util.h"
@@ -12,25 +15,29 @@
 #include "version.h"
 #include "multithread.h"
 #include "rtgtargets.h"
+#include "rtgconf.h"
 
 void help();
 void sighup_handler(int signum);
 void sigterm_handler(int signum);
 
-// Setup and initialization.
-
-// Display usage.
 void help()
 {
-        fprintf(stderr, "clpoll %s\n", CLPOLL_VERSION);
+        fprintf(stderr, "\n");
+        fprintf(stderr, "clpoll %s Copyright (c) 2009-2011 Jakob Borg\n", CLPOLL_VERSION);
+        fprintf(stderr, "\n");
+        fprintf(stderr, "Legacy (rtgpoll compatible) options:\n");
         fprintf(stderr, " -c <file>   Specify configuration file [%s]\n", rtgconf_file);
-        fprintf(stderr, " -D          Don't detach, run in foreground\n");
         fprintf(stderr, " -d          Disable database inserts\n");
         fprintf(stderr, " -t <file>   Specify target file [%s]\n", targets_file);
         fprintf(stderr, " -v          Increase verbosity\n");
         fprintf(stderr, " -z          Database zero delta inserts\n");
-        fprintf(stderr, " -ql <num>   Maximum database queue length [%d]\n", max_queue_length);
-        fprintf(stderr, " Copyright (c) 2009-2011 Jakob Borg\n");
+        fprintf(stderr, "\n");
+        fprintf(stderr, "Extended options:\n");
+        fprintf(stderr, " -D          Don't detach, run in foreground\n");
+        fprintf(stderr, " -T <num>    Number of poller threads per database thread [%d]\n", DEFAULT_DBTHREADS_DIVISOR);
+        fprintf(stderr, " -Q <num>    Maximum database queue length [%d]\n", DEFAULT_QUEUE_LENGTH);
+        fprintf(stderr, "\n");
 }
 
 void run_threads(struct rtgtargets *targets, struct rtgconf *config)
@@ -41,8 +48,8 @@ void run_threads(struct rtgtargets *targets, struct rtgconf *config)
         stat_queries = 0;
         stat_iterations = 0;
 
-        // Calculate number of database writers needed. This is just a guess.
-        unsigned num_dbthreads = config->threads / 8;
+        // Calculate number of database writers needed.
+        unsigned num_dbthreads = config->threads / dbthreads_divisor;
         num_dbthreads = num_dbthreads ? num_dbthreads : 1;
 
         queries = clbuf_create(max_queue_length);
@@ -94,38 +101,61 @@ void run_threads(struct rtgtargets *targets, struct rtgconf *config)
 }
 
 #ifndef TESTSUITE
-// Parse command line, load caonfiguration and start threads.
 int main (int argc, char *const argv[])
 {
         if (argc < 2) {
                 help();
-                exit(0);
+                exit(-1);
         }
 
-        int i;
-        for (i = 1; i < argc; i++) {
-                char *arg = argv[i];
-                if (!strcmp(arg, "-v"))
-                        verbosity++;
-                else if (!strcmp(arg, "-D"))
-                        detach = 0;
-                else if (!strcmp(arg, "-d"))
+        int c;
+        while ((c = getopt (argc, argv, "c:dDt:T:vzQ:")) != -1) {
+                switch (c) {
+                case 'c':
+                        rtgconf_file = optarg;
+                        break;
+                case 'd':
                         use_db = 0;
-                else if (!strcmp(arg, "-z"))
+                        break;
+                case 'D':
+                        detach = 0;
+                        break;
+                case 't':
+                        targets_file = optarg;
+                        break;
+                case 'v':
+                        verbosity++;
+                        break;
+                case 'Q':
+                        max_queue_length = atoi(optarg);
+                        if (max_queue_length < MIN_QUEUE_LENGTH) {
+                                fprintf(stderr, "Error: minimum queue length is %d.\n", MIN_QUEUE_LENGTH);
+                                help();
+                                exit(-1);
+                        }
+                        break;
+                case 'T':
+                        dbthreads_divisor = atoi(optarg);
+                        if (dbthreads_divisor < 1) {
+                                fprintf(stderr, "Error: minimum 1 poller thread per database thread (more recommended).\n");
+                                help();
+                                exit(-1);
+                        }
+                        break;
+                case 'z':
                         allow_db_zero = 1;
-                else if (!strcmp(arg, "-h")) {
+                        break;
+
+                case '?':
+                default:
                         help();
-                        exit(0);
-                } else if (!strcmp(arg, "-c")) {
-                        i++;
-                        rtgconf_file = argv[i];
-                } else if (!strcmp(arg, "-t")) {
-                        i++;
-                        targets_file = argv[i];
-                } else if (!strcmp(arg, "-ql")) {
-                        i++;
-                        max_queue_length = atoi(argv[i]);
+                        exit(-1);
                 }
+        }
+
+        if (argc != optind) {
+                help();
+                exit(-1);
         }
 
         if (detach)
