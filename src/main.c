@@ -35,10 +35,24 @@ void help()
         fprintf(stderr, "\n");
         fprintf(stderr, "Extended options:\n");
         fprintf(stderr, " -D          Don't detach, run in foreground\n");
-        fprintf(stderr, " -T <num>    Number of poller threads per database thread [%d]\n", DEFAULT_DBTHREADS_DIVISOR);
-        fprintf(stderr, " -Q <num>    Maximum database queue length [%d]\n", DEFAULT_QUEUE_LENGTH);
         fprintf(stderr, " -O          Use old database schema, no `rate` column\n");
+        fprintf(stderr, " -Q <num>    Maximum database queue length [%d]\n", DEFAULT_QUEUE_LENGTH);
+        fprintf(stderr, " -T <num>    Number of poller threads per database thread [%d]\n", DEFAULT_DBTHREADS_DIVISOR);
         fprintf(stderr, "\n");
+}
+
+mt_threads *create_poller_threads(config->threads)
+{
+        cllog(1, "Starting %d poller threads.", config->threads);
+        struct mt_threads *poller_threads = mt_threads_create(config->threads);
+        unsigned i;
+        for (i = 0; i < config->threads; i++) {
+                struct poller_ctx *ctx = (struct poller_ctx *)malloc(sizeof(struct poller_ctx));
+                ctx->targets = targets;
+                poller_threads->contexts[i].param = ctx;
+        }
+        mt_threads_start(poller_threads, poller_run);
+        return poller_threads;
 }
 
 void run_threads(struct rtgtargets *targets, struct rtgconf *config)
@@ -55,15 +69,7 @@ void run_threads(struct rtgtargets *targets, struct rtgconf *config)
 
         queries = clbuf_create(max_queue_length);
 
-        cllog(1, "Starting %d poller threads.", config->threads);
-        struct mt_threads *poller_threads = mt_threads_create(config->threads);
-        unsigned i;
-        for (i = 0; i < config->threads; i++) {
-                struct poller_ctx *ctx = (struct poller_ctx *)malloc(sizeof(struct poller_ctx));
-                ctx->targets = targets;
-                poller_threads->contexts[i].param = ctx;
-        }
-        mt_threads_start(poller_threads, poller_run);
+        mt_threads *poller_threads = create_poller_cthreads(config->threads);
 
         cllog(1, "Starting %d database threads.", num_dbthreads);
         struct mt_threads *database_threads = mt_threads_create(num_dbthreads);
@@ -110,7 +116,7 @@ int main (int argc, char *const argv[])
         }
 
         int c;
-        while ((c = getopt (argc, argv, "c:dDt:T:vzQ:O")) != -1) {
+        while ((c = getopt (argc, argv, "c:dt:vzDOOT:Q:")) != -1) {
                 switch (c) {
                 case 'c':
                         rtgconf_file = optarg;
@@ -118,14 +124,20 @@ int main (int argc, char *const argv[])
                 case 'd':
                         use_db = 0;
                         break;
-                case 'D':
-                        detach = 0;
-                        break;
                 case 't':
                         targets_file = optarg;
                         break;
                 case 'v':
                         verbosity++;
+                        break;
+                case 'z':
+                        allow_db_zero = 1;
+                        break;
+                case 'D':
+                        detach = 0;
+                        break;
+                case 'O':
+                        use_rate_column = 0;
                         break;
                 case 'Q':
                         max_queue_length = atoi(optarg);
@@ -142,12 +154,6 @@ int main (int argc, char *const argv[])
                                 help();
                                 exit(-1);
                         }
-                        break;
-                case 'z':
-                        allow_db_zero = 1;
-                        break;
-                case 'O':
-                        use_rate_column = 0;
                         break;
 
                 case '?':
