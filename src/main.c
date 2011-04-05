@@ -37,6 +37,7 @@ void help()
         fprintf(stderr, " -D          Don't detach, run in foreground\n");
         fprintf(stderr, " -T <num>    Number of poller threads per database thread [%d]\n", DEFAULT_DBTHREADS_DIVISOR);
         fprintf(stderr, " -Q <num>    Maximum database queue length [%d]\n", DEFAULT_QUEUE_LENGTH);
+        fprintf(stderr, " -O          Use old database schema, no `rate` column\n");
         fprintf(stderr, "\n");
 }
 
@@ -109,7 +110,7 @@ int main (int argc, char *const argv[])
         }
 
         int c;
-        while ((c = getopt (argc, argv, "c:dDt:T:vzQ:")) != -1) {
+        while ((c = getopt (argc, argv, "c:dDt:T:vzQ:O")) != -1) {
                 switch (c) {
                 case 'c':
                         rtgconf_file = optarg;
@@ -144,6 +145,9 @@ int main (int argc, char *const argv[])
                         break;
                 case 'z':
                         allow_db_zero = 1;
+                        break;
+                case 'O':
+                        use_rate_column = 0;
                         break;
 
                 case '?':
