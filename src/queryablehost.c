@@ -3,7 +3,7 @@
 #include "rtgtargets.h"
 #include "queryablehost.h"
 #include "globals.h"
-#include "util.h"
+#include "cllog.h"
 #include "clsnmp.h"
 #include "clgstr.h"
 

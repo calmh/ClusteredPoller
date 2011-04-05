@@ -1,7 +1,7 @@
 #include <unistd.h>
 
 #include "clbuf.h"
-#include "util.h"
+#include "cllog.h"
 #include "monitor.h"
 #include "queryablehost.h"
 #include "globals.h"

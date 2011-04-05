@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "rtgconf.h"
-#include "util.h"
+#include "cllog.h"
 
 struct rtgconf *rtgconf_create(const char *filename) {
         FILE *fileptr = fopen(filename, "rb");

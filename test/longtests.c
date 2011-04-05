@@ -7,7 +7,7 @@
 #include "rtgtargets.h"
 #include "globals.h"
 
-void mock_set_speed(unsigned int newspeed); // From snmp-mock.cpp
+void mock_set_speed(unsigned int newspeed); // From snmp-mock.c
 
 void TestMeasureOneHostsAt10MbpsForTenSeconds(CuTest *tc)
 {

@@ -1,3 +1,4 @@
+#include <sys/stat.h>
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
@@ -7,7 +8,7 @@
 #include <stdlib.h>
 
 #include "clbuf.h"
-#include "util.h"
+#include "cllog.h"
 #include "globals.h"
 #include "monitor.h"
 #include "poller.h"
@@ -18,96 +19,15 @@
 #include "rtgconf.h"
 
 void help();
+void run_threads(struct rtgtargets *targets, struct rtgconf *config);
+struct mt_threads *create_poller_threads(unsigned nthreads, struct rtgtargets *targets);
+struct mt_threads *create_database_threads(unsigned nthreads, struct rtgconf *config);
+struct mt_threads *create_monitor_thread(struct rtgtargets *targets, unsigned interval);
+void free_threads_params(struct mt_threads *threads);
 void sighup_handler(int signum);
 void sigterm_handler(int signum);
+void daemonize();
 
-void help()
-{
-        fprintf(stderr, "\n");
-        fprintf(stderr, "clpoll %s Copyright (c) 2009-2011 Jakob Borg\n", CLPOLL_VERSION);
-        fprintf(stderr, "\n");
-        fprintf(stderr, "Legacy (rtgpoll compatible) options:\n");
-        fprintf(stderr, " -c <file>   Specify configuration file [%s]\n", rtgconf_file);
-        fprintf(stderr, " -d          Disable database inserts\n");
-        fprintf(stderr, " -t <file>   Specify target file [%s]\n", targets_file);
-        fprintf(stderr, " -v          Increase verbosity\n");
-        fprintf(stderr, " -z          Database zero delta inserts\n");
-        fprintf(stderr, "\n");
-        fprintf(stderr, "Extended options:\n");
-        fprintf(stderr, " -D          Don't detach, run in foreground\n");
-        fprintf(stderr, " -O          Use old database schema, no `rate` column\n");
-        fprintf(stderr, " -Q <num>    Maximum database queue length [%d]\n", DEFAULT_QUEUE_LENGTH);
-        fprintf(stderr, " -T <num>    Number of poller threads per database thread [%d]\n", DEFAULT_DBTHREADS_DIVISOR);
-        fprintf(stderr, "\n");
-}
-
-mt_threads *create_poller_threads(config->threads)
-{
-        cllog(1, "Starting %d poller threads.", config->threads);
-        struct mt_threads *poller_threads = mt_threads_create(config->threads);
-        unsigned i;
-        for (i = 0; i < config->threads; i++) {
-                struct poller_ctx *ctx = (struct poller_ctx *)malloc(sizeof(struct poller_ctx));
-                ctx->targets = targets;
-                poller_threads->contexts[i].param = ctx;
-        }
-        mt_threads_start(poller_threads, poller_run);
-        return poller_threads;
-}
-
-void run_threads(struct rtgtargets *targets, struct rtgconf *config)
-{
-        thread_stop_requested = 0;
-        active_threads = 0;
-        stat_inserts = 0;
-        stat_queries = 0;
-        stat_iterations = 0;
-
-        // Calculate number of database writers needed.
-        unsigned num_dbthreads = config->threads / dbthreads_divisor;
-        num_dbthreads = num_dbthreads ? num_dbthreads : 1;
-
-        queries = clbuf_create(max_queue_length);
-
-        mt_threads *poller_threads = create_poller_cthreads(config->threads);
-
-        cllog(1, "Starting %d database threads.", num_dbthreads);
-        struct mt_threads *database_threads = mt_threads_create(num_dbthreads);
-        for (i = 0; i < num_dbthreads; i++) {
-                struct database_ctx *ctx = (struct database_ctx *)malloc(sizeof(struct database_ctx));
-                ctx->config = config;
-                database_threads->contexts[i].param = ctx;
-        }
-        mt_threads_start(database_threads, database_run);
-
-        cllog(1, "Starting monitor thread.");
-        struct mt_threads *monitor_threads = mt_threads_create(1);
-        struct monitor_ctx *ctx = (struct monitor_ctx *)malloc(sizeof(struct monitor_ctx));
-        ctx->interval = config->interval;
-        ctx->targets = targets;
-        monitor_threads->contexts[0].param = ctx;
-        mt_threads_start(monitor_threads, monitor_run);
-
-        mt_threads_join(database_threads);
-        mt_threads_join(poller_threads);
-        mt_threads_join(monitor_threads);
-
-        clbuf_free(queries);
-        queries = 0;
-
-        for (i = 0; i < config->threads; i++)
-                free(poller_threads->contexts[i].param);
-        mt_threads_free(poller_threads);
-
-        for (i = 0; i < num_dbthreads; i++)
-                free(database_threads->contexts[i].param);
-        mt_threads_free(database_threads);
-
-        free(monitor_threads->contexts[0].param);
-        mt_threads_free(monitor_threads);
-}
-
-#ifndef TESTSUITE
 int main (int argc, char *const argv[])
 {
         if (argc < 2) {
@@ -206,7 +126,100 @@ int main (int argc, char *const argv[])
         }
         return 0;
 }
-#endif
+
+void help()
+{
+        fprintf(stderr, "\n");
+        fprintf(stderr, "clpoll %s Copyright (c) 2009-2011 Jakob Borg\n", CLPOLL_VERSION);
+        fprintf(stderr, "\n");
+        fprintf(stderr, "Legacy (rtgpoll compatible) options:\n");
+        fprintf(stderr, " -c <file>   Specify configuration file [%s]\n", rtgconf_file);
+        fprintf(stderr, " -d          Disable database inserts\n");
+        fprintf(stderr, " -t <file>   Specify target file [%s]\n", targets_file);
+        fprintf(stderr, " -v          Increase verbosity\n");
+        fprintf(stderr, " -z          Database zero delta inserts\n");
+        fprintf(stderr, "\n");
+        fprintf(stderr, "Extended options:\n");
+        fprintf(stderr, " -D          Don't detach, run in foreground\n");
+        fprintf(stderr, " -O          Use old database schema, no `rate` column\n");
+        fprintf(stderr, " -Q <num>    Maximum database queue length [%d]\n", DEFAULT_QUEUE_LENGTH);
+        fprintf(stderr, " -T <num>    Number of poller threads per database thread [%d]\n", DEFAULT_DBTHREADS_DIVISOR);
+        fprintf(stderr, "\n");
+}
+
+void run_threads(struct rtgtargets *targets, struct rtgconf *config)
+{
+        thread_stop_requested = 0;
+        active_threads = 0;
+        stat_inserts = 0;
+        stat_queries = 0;
+        stat_iterations = 0;
+
+        unsigned num_dbthreads = config->threads / dbthreads_divisor;
+        num_dbthreads = num_dbthreads ? num_dbthreads : 1;
+
+        queries = clbuf_create(max_queue_length);
+
+        struct mt_threads *poller_threads = create_poller_threads(config->threads, targets);
+        struct mt_threads *database_threads = create_database_threads(num_dbthreads, config);
+        struct mt_threads *monitor_thread = create_monitor_thread(targets, config->interval);
+
+        mt_threads_join(database_threads);
+        mt_threads_join(poller_threads);
+        mt_threads_join(monitor_thread);
+
+        free_threads_params(poller_threads);
+        free_threads_params(database_threads);
+        free_threads_params(monitor_thread);
+
+        clbuf_free(queries);
+        queries = 0;
+}
+
+struct mt_threads *create_poller_threads(unsigned nthreads, struct rtgtargets *targets) {
+        cllog(1, "Starting %d poller threads.", nthreads);
+        struct mt_threads *poller_threads = mt_threads_create(nthreads);
+        unsigned i;
+        for (i = 0; i < nthreads; i++) {
+                struct poller_ctx *ctx = (struct poller_ctx *)malloc(sizeof(struct poller_ctx));
+                ctx->targets = targets;
+                poller_threads->contexts[i].param = ctx;
+        }
+        mt_threads_start(poller_threads, poller_run);
+        return poller_threads;
+}
+
+struct mt_threads *create_database_threads(unsigned nthreads, struct rtgconf *config) {
+        unsigned i;
+        cllog(1, "Starting %d database threads.", nthreads);
+        struct mt_threads *database_threads = mt_threads_create(nthreads);
+        for (i = 0; i < nthreads; i++) {
+                struct database_ctx *ctx = (struct database_ctx *)malloc(sizeof(struct database_ctx));
+                ctx->config = config;
+                database_threads->contexts[i].param = ctx;
+        }
+        mt_threads_start(database_threads, database_run);
+        return database_threads;
+}
+
+struct mt_threads *create_monitor_thread(struct rtgtargets *targets, unsigned interval) {
+        cllog(1, "Starting monitor thread.");
+        struct mt_threads *monitor_threads = mt_threads_create(1);
+        struct monitor_ctx *ctx = (struct monitor_ctx *)malloc(sizeof(struct monitor_ctx));
+        ctx->interval = interval;
+        ctx->targets = targets;
+        monitor_threads->contexts[0].param = ctx;
+        mt_threads_start(monitor_threads, monitor_run);
+        return monitor_threads;
+}
+
+void free_threads_params(struct mt_threads *threads)
+{
+        unsigned i;
+        for (i = 0; i < threads->nthreads; i++)
+                free(threads->contexts[i].param);
+        mt_threads_free(threads);
+}
 
 void sighup_handler(int signum)
 {
@@ -225,4 +238,36 @@ void sigterm_handler(int signum)
         pthread_mutex_lock(&global_lock);
         pthread_cond_broadcast(&global_cond);
         pthread_mutex_unlock(&global_lock);
+}
+
+void daemonize()
+{
+        pid_t pid, sid;
+
+        if ( getppid() == 1 ) return;
+
+        pid = fork();
+        if (pid < 0) {
+                exit(EXIT_FAILURE);
+        }
+
+        if (pid > 0) {
+                exit(EXIT_SUCCESS);
+        }
+
+        umask(0);
+
+        sid = setsid();
+        if (sid < 0) {
+                exit(EXIT_FAILURE);
+        }
+
+        if ((chdir("/")) < 0) {
+                exit(EXIT_FAILURE);
+        }
+
+        FILE *ignored;
+        ignored = freopen( "/dev/null", "r", stdin);
+        ignored = freopen( "/dev/null", "w", stdout);
+        ignored = freopen( "/dev/null", "w", stderr);
 }

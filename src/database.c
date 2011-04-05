@@ -6,7 +6,7 @@
 #include "clbuf.h"
 #include "rtgconf.h"
 #include "multithread.h"
-#include "util.h"
+#include "cllog.h"
 #include "database.h"
 #include "globals.h"
 
