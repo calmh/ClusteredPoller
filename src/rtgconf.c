@@ -15,7 +15,15 @@ struct rtgconf *rtgconf_create(const char *filename) {
 
         char buffer[513];
         char *line;
+
         struct rtgconf *conf = (struct rtgconf *) malloc(sizeof(struct rtgconf));
+        conf->interval = 300;
+        conf->threads = 4;
+        conf->dbhost = NULL;
+        conf->database = NULL;
+        conf->dbuser = NULL;
+        conf->dbpass = NULL;
+
         while ((line = fgets(buffer, 512, fileptr))) {
                 /* Terminate line at first comment character. */
                 char *comment_begin = strchr(line, '#');
@@ -49,6 +57,23 @@ struct rtgconf *rtgconf_create(const char *filename) {
         }
         fclose(fileptr);
         return conf;
+}
+
+int rtgconf_verify(struct rtgconf *config)
+{
+        if (!config->dbhost) {
+                cllog(0, "Missing directive for database host in RTG config file.");
+                return 0;
+        }
+        if (!config->database) {
+                cllog(0, "Missing directive for database name in RTG config file.");
+                return 0;
+        }
+        if (!config->dbuser) {
+                cllog(0, "Missing directive for database user in RTG config file.");
+                return 0;
+        }
+        return 1;
 }
 
 void rtgconf_free(struct rtgconf *config)

@@ -1,7 +1,6 @@
 #ifndef _RTGCONF_H
 #define _RTGCONF_H
 
-/* Holds information from rtg.conf. */
 struct rtgconf {
         unsigned interval;
         unsigned threads;
@@ -12,6 +11,7 @@ struct rtgconf {
 };
 
 struct rtgconf *rtgconf_create(const char *filename);
+int rtgconf_verify(struct rtgconf *config);
 void rtgconf_free(struct rtgconf *config);
 
 #endif

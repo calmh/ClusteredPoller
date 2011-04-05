@@ -104,8 +104,8 @@ int main (int argc, char *const argv[])
         while (!full_stop_requested) {
                 // Read rtg.conf
                 struct rtgconf *config = rtgconf_create(rtgconf_file);
-                if (!config) {
-                        cllog(0, "No configuration, so nothing to do.");
+                if (!config || !rtgconf_verify(config)) {
+                        cllog(0, "Missing or incorrect configuration file, so nothing to do.");
                         exit(-1);
                 }
 
