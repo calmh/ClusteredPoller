@@ -8,7 +8,7 @@
 #include "poller.h"
 #include "clsnmp.h"
 #include "queryablehost.h"
-#include "util.h"
+#include "cllog.h"
 #include "rtgtargets.h"
 
 void *poller_run(void *ptr)

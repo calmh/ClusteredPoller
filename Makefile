@@ -1,5 +1,6 @@
 OBJS = src/clbuf.o \
 	src/clgstr.o \
+	src/cllog.o \
 	src/clsnmp.o \
 	src/database.o \
 	src/globals.o \
@@ -9,11 +10,11 @@ OBJS = src/clbuf.o \
 	src/poller.o \
 	src/queryablehost.o \
 	src/rtgconf.o \
-	src/rtgtargets.o \
-	src/util.o
+	src/rtgtargets.o
 
 TESTOBJS = src/clbuf.o \
 	src/clgstr.o \
+	src/cllog.o \
 	src/globals.o \
 	src/monitor.o \
 	src/multithread.o \
@@ -21,7 +22,6 @@ TESTOBJS = src/clbuf.o \
 	src/queryablehost.o \
 	src/rtgconf.o \
 	src/rtgtargets.o \
-	src/util.o \
 	test/clbuftests.o \
 	test/clsnmp-mock.o \
 	test/cutest.o \

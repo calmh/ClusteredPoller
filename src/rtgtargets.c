@@ -9,7 +9,7 @@
 
 #include "rtgtargets.h"
 #include "rtgconf.h"
-#include "util.h"
+#include "cllog.h"
 
 struct queryhost *read_host(FILE *fileptr, char *host_name, const struct rtgconf *conf);
 struct queryrow *read_row(FILE *fileptr, char *oid, const struct rtgconf *conf);

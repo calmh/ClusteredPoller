@@ -1,6 +1,6 @@
 #include <string.h>
 #include "cutest.h"
-#include "util.h"
+#include "cllog.h"
 #include "clgstr.h"
 
 void TestGrowingString(CuTest *ct)

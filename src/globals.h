@@ -3,7 +3,7 @@
 
 #include <pthread.h>
 
-// See globals.cpp for documentation on what these are used for.
+// See globals.c for documentation on what these are used for.
 
 #define MIN_QUEUE_LENGTH 100
 #define DEFAULT_QUEUE_LENGTH 10000
@@ -20,6 +20,7 @@ extern char *targets_file;
 extern int verbosity;
 extern int detach;
 extern int use_db;
+extern int use_rate_column;
 extern int allow_db_zero;
 extern int dbthreads_divisor;
 extern unsigned max_queue_length;

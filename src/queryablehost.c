@@ -3,7 +3,7 @@
 #include "rtgtargets.h"
 #include "queryablehost.h"
 #include "globals.h"
-#include "util.h"
+#include "cllog.h"
 #include "clsnmp.h"
 #include "clgstr.h"
 
@@ -128,7 +128,10 @@ char *build_insert_query(struct db_insert *insert)
         struct clgstr *gs = clgstr_create(64);
         clgstr_append(gs, "INSERT INTO ");
         clgstr_append(gs, insert->table);
-        clgstr_append(gs, " (id, dtime, counter, rate) VALUES ");
+        if (use_rate_column)
+                clgstr_append(gs, " (id, dtime, counter, rate) VALUES ");
+        else
+                clgstr_append(gs, " (id, dtime, counter) VALUES ");
 
         int rows = 0;
         char buffer[16];
@@ -146,9 +149,11 @@ char *build_insert_query(struct db_insert *insert)
                         clgstr_append(gs, "), ");
                         snprintf(buffer, 15, "%llu", insert->values[i].counter);
                         clgstr_append(gs, buffer);
-                        clgstr_append(gs, ", ");
-                        snprintf(buffer, 15, "%u", insert->values[i].rate);
-                        clgstr_append(gs, buffer);
+                        if (use_rate_column) {
+                                clgstr_append(gs, ", ");
+                                snprintf(buffer, 15, "%u", insert->values[i].rate);
+                                clgstr_append(gs, buffer);
+                        }
                         clgstr_append(gs, ")");
                         rows++;
                 }
