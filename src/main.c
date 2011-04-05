@@ -130,7 +130,7 @@ int main (int argc, char *const argv[])
 void help()
 {
         fprintf(stderr, "\n");
-        fprintf(stderr, "clpoll %s Copyright (c) 2009-2011 Jakob Borg\n", CLPOLL_VERSION);
+        fprintf(stderr, "clpoll v%s Copyright (c) 2009-2011 Jakob Borg\n", CLPOLL_VERSION);
         fprintf(stderr, "\n");
         fprintf(stderr, "Legacy (rtgpoll compatible) options:\n");
         fprintf(stderr, " -c <file>   Specify configuration file [%s]\n", rtgconf_file);
