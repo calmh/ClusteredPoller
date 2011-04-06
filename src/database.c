@@ -48,8 +48,8 @@ void *database_run(void *ptr)
                         }
 
                         process_database_queue(conn);
-                        sleep(1);
                 }
+                sleep(1);
         }
 
         if (conn) {

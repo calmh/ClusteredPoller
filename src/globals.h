@@ -34,5 +34,6 @@ extern unsigned stat_iterations;
 extern unsigned stat_snmp_fail;
 extern unsigned stat_snmp_success;
 extern unsigned stat_dropped_queries;
+extern struct timeval query_threads_finished;
 
 #endif

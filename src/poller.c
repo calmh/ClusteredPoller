@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 
 #include <string.h>
+#include <time.h>
 
 #include "clbuf.h"
 #include "multithread.h"
@@ -32,6 +33,8 @@ void *poller_run(void *ptr)
                 pthread_mutex_lock(&global_lock);
                 if (iterations > 0)
                         active_threads--;
+                if (!active_threads) // We are the last one
+                        gettimeofday(&query_threads_finished, NULL);
                 pthread_cond_wait(&global_cond, &global_lock);
                 pthread_mutex_unlock(&global_lock);
 
