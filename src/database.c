@@ -36,6 +36,8 @@ void *database_run(void *ptr)
                                         conn = connection(config);
                                         if (conn)
                                                 cllog(2, "DB thread %d is connected to MySQL.", my_id);
+                                        else
+                                                sleep(1); /* Don't get stuck in a tight loop if we can't connect. */
                                 } else {
                                         useless_iterations = 0;
                                         query_counter++;
@@ -95,11 +97,11 @@ MYSQL *connection(struct rtgconf *config)
 {
         MYSQL *conn = mysql_init(NULL);
         if (conn == NULL) {
-                cllog(0, "Error %u: %s\n", mysql_errno(conn), mysql_error(conn));
+                cllog(0, "MySQL error %u: %s", mysql_errno(conn), mysql_error(conn));
                 return NULL;
         }
         if (mysql_real_connect(conn, config->dbhost, config->dbuser, config->dbpass, config->database, 0, NULL, 0) == NULL) {
-                cllog(0, "Error %u: %s\n", mysql_errno(conn), mysql_error(conn));
+                cllog(0, "MySQL error %u: %s", mysql_errno(conn), mysql_error(conn));
                 return NULL;
         }
         mysql_autocommit(conn, 0);
