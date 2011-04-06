@@ -32,4 +32,7 @@ unsigned active_threads = 0;
 unsigned stat_inserts = 0;
 unsigned stat_queries = 0;
 unsigned stat_iterations = 0;
+unsigned stat_snmp_fail = 0;
+unsigned stat_snmp_success = 0;
+unsigned stat_dropped_queries = 0;
 

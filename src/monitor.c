@@ -25,17 +25,27 @@ void *monitor_run(void *ptr)
                         stat_iterations++;
                         if (verbosity > 0) {
                                 unsigned qd = clbuf_count_used(queries);
-                                cllog(1, "Iteration complete, elapsed time for #%d was %d s.", stat_iterations, time(NULL) - in_iteration);
-                                cllog(1, "Time until next iteration is %d s.", interval - time(NULL));
-                                cllog(1, "  Rows inserted: %d", stat_inserts);
-                                cllog(1, "  Queries queued: %d", stat_queries);
-                                cllog(1, "  Max queue depth: %d", query_queue_depth);
-                                cllog(1, "  Remaining queue: %d", qd);
+                                time_t now = time(NULL);
+                                time_t elapsed = now - in_iteration;
+                                cllog(1, "Iteration #%d complete.", stat_iterations);
+                                cllog(1, "  Elapsed time:      %4d s.", elapsed);
+                                cllog(1, "  Next iteration in: %4d s.", interval - now);
+                                if (elapsed > 0) {
+                                        cllog(1, "  Queries total:   %6d (%5d queries/s)", (stat_snmp_success+stat_snmp_fail), (stat_snmp_success+stat_snmp_fail)/elapsed);
+                                        cllog(1, "  Queries failed:  %6d (%5d queries/s)", stat_snmp_fail, stat_snmp_fail/elapsed);
+                                        cllog(1, "  Inserts Queued:  %6d (%5d queries/s)", (stat_queries-stat_dropped_queries), (stat_queries-stat_dropped_queries)/elapsed);
+                                }
+                                cllog(1, "  Inserts Dropped: %6d", stat_dropped_queries);
+                                cllog(1, "  Max Queue Depth:  %5d (%4d%% of max)", query_queue_depth, 100*query_queue_depth/max_queue_length);
+                                cllog(1, "  Remaining Queue:  %5d", qd);
                                 if (qd > 0)
-                                        iteration_completed = time(NULL);
+                                        iteration_completed = now;
                         }
                         stat_inserts = 0;
                         stat_queries = 0;
+                        stat_snmp_fail = 0;
+                        stat_snmp_success = 0;
+                        stat_dropped_queries = 0;
                         in_iteration = 0;
                         query_queue_depth = 0;
                 }
@@ -43,7 +53,7 @@ void *monitor_run(void *ptr)
                 if (active_threads == 0 && iteration_completed) {
                         unsigned qd = clbuf_count_used(queries);
                         if (qd == 0) {
-                                cllog(1,  "  Queue empty %d s after poll completion.", time(NULL) - iteration_completed);
+                                cllog(1,  "Queue empty %d s after poll completion.", time(NULL) - iteration_completed);
                                 iteration_completed = 0;
                         }
                 }
