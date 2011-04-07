@@ -41,8 +41,8 @@ CFLAGS ?= -Wall
 
 OS = $(shell uname -s | awk '{print tolower($$0)}')
 ifeq ($(OS),linux)
-	CFLAGS += -pthread -I/usr/include/mysql
-	LIBS = -lnetsnmp -lmysqlclient
+	CFLAGS += -pthread $(shell mysql_config --include)
+	LIBS = -lnetsnmp $(shell mysql_config --libs)
 else ifeq ($(OS),darwin)
 	CFLAGS += -I/usr/local/mysql/include
 	LIBS = -L/usr/local/mysql/lib -lnetsnmp -lmysqlclient
