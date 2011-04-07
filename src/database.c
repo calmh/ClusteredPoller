@@ -15,10 +15,10 @@
 
 #define COMMIT_INTERVAL 100
 
-void process_database_queue(MYSQL *conn);
-void print_database_queue();
+void process_database_queue(MYSQL *conn, struct rtgconf *config);
+void print_database_queue(struct rtgconf *config);
 MYSQL *connection(struct rtgconf *config);
-char *build_insert_query(struct db_insert *insert);
+char *build_insert_query(struct db_insert *insert, struct rtgconf *config);
 
 void *database_run(void *ptr)
 {
@@ -30,8 +30,8 @@ void *database_run(void *ptr)
         MYSQL *conn = 0;
 
         while (!thread_stop_requested) {
-                if (!use_db) {
-                        print_database_queue();
+                if (!config->use_db) {
+                        print_database_queue(config);
                 } else {
                         if (!conn) {
                                 cllog(1, "DB thread %d connecting to MySQL.", my_id);
@@ -47,7 +47,7 @@ void *database_run(void *ptr)
                                 continue;
                         }
 
-                        process_database_queue(conn);
+                        process_database_queue(conn, config);
                 }
                 sleep(1);
         }
@@ -61,14 +61,14 @@ void *database_run(void *ptr)
         return 0;
 }
 
-void process_database_queue(MYSQL *conn)
+void process_database_queue(MYSQL *conn, struct rtgconf *config)
 {
         unsigned query_counter = 0;
 
         while (clbuf_count_used(queries) > 0) {
                 struct db_insert *insert = (struct db_insert *) clbuf_pop(queries);
                 if (insert) {
-                        char *query = build_insert_query(insert);
+                        char *query = build_insert_query(insert, config);
                         if (query) {
                                 int result = mysql_query(conn, query);
                                 if (result == 0)
@@ -94,12 +94,12 @@ void process_database_queue(MYSQL *conn)
         }
 }
 
-void print_database_queue()
+void print_database_queue(struct rtgconf *config)
 {
         while (clbuf_count_used(queries) > 0) {
                 struct db_insert *insert = (struct db_insert *) clbuf_pop(queries);
                 if (insert) {
-                        char *query = build_insert_query(insert);
+                        char *query = build_insert_query(insert, config);
                         if (query) {
                                 cllog(3, "%s", query);
                                 free(query);
@@ -130,12 +130,12 @@ MYSQL *connection(struct rtgconf *config)
         return conn;
 }
 
-char *build_insert_query(struct db_insert *insert)
+char *build_insert_query(struct db_insert *insert, struct rtgconf *config)
 {
         struct clgstr *gs = clgstr_create(64);
         clgstr_append(gs, "INSERT INTO ");
         clgstr_append(gs, insert->table);
-        if (use_rate_column)
+        if (config->use_rate_column)
                 clgstr_append(gs, " (id, dtime, counter, rate) VALUES ");
         else
                 clgstr_append(gs, " (id, dtime, counter) VALUES ");
@@ -144,7 +144,7 @@ char *build_insert_query(struct db_insert *insert)
         char buffer[16];
         unsigned i;
         for (i = 0; i < insert->nvalues; i++) {
-                if (allow_db_zero || insert->values[i].rate) {
+                if (config->allow_db_zero || insert->values[i].rate) {
                         if (rows > 0)
                                 clgstr_append(gs, ", ");
                         clgstr_append(gs, "(");
@@ -156,7 +156,7 @@ char *build_insert_query(struct db_insert *insert)
                         clgstr_append(gs, "), ");
                         snprintf(buffer, 15, "%llu", insert->values[i].counter);
                         clgstr_append(gs, buffer);
-                        if (use_rate_column) {
+                        if (config->use_rate_column) {
                                 clgstr_append(gs, ", ");
                                 snprintf(buffer, 15, "%u", insert->values[i].rate);
                                 clgstr_append(gs, buffer);

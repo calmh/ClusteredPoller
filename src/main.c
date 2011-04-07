@@ -22,7 +22,7 @@ void help();
 void run_threads(struct rtgtargets *targets, struct rtgconf *config);
 struct mt_threads *create_poller_threads(unsigned nthreads, struct rtgtargets *targets);
 struct mt_threads *create_database_threads(unsigned nthreads, struct rtgconf *config);
-struct mt_threads *create_monitor_thread(struct rtgtargets *targets, unsigned interval);
+struct mt_threads *create_monitor_thread(struct rtgtargets *targets, struct rtgconf *config);
 void free_threads_params(struct mt_threads *threads);
 void sighup_handler(int signum);
 void sigterm_handler(int signum);
@@ -34,6 +34,15 @@ int main(int argc, char *const argv[])
                 help();
                 exit(-1);
         }
+
+        int detach = 1;
+        char *rtgconf_file = DEFAULT_RTGCONF_FILE;
+        char *targets_file = DEFAULT_TARGETS_FILE;
+        int use_db = 1;
+        int use_rate_column = 1;
+        int allow_db_zero = 0;
+        int dbthreads_divisor = DEFAULT_DBTHREADS_DIVISOR;
+        unsigned max_db_queue = DEFAULT_QUEUE_LENGTH;
 
         int c;
         while ((c = getopt(argc, argv, "c:dt:vzDOOT:Q:")) != -1) {
@@ -60,8 +69,8 @@ int main(int argc, char *const argv[])
                         use_rate_column = 0;
                         break;
                 case 'Q':
-                        max_queue_length = atoi(optarg);
-                        if (max_queue_length < MIN_QUEUE_LENGTH) {
+                        max_db_queue = atoi(optarg);
+                        if (max_db_queue < MIN_QUEUE_LENGTH) {
                                 fprintf(stderr, "Error: minimum queue length is %d.\n", MIN_QUEUE_LENGTH);
                                 help();
                                 exit(-1);
@@ -108,6 +117,13 @@ int main(int argc, char *const argv[])
                         cllog(0, "Missing or incorrect configuration file, so nothing to do.");
                         exit(-1);
                 }
+                // "Patch" rtgconf with command line values
+                config->use_db = use_db;
+                config->use_rate_column = use_rate_column;
+                config->allow_db_zero = allow_db_zero;
+                config->dbthreads_divisor = dbthreads_divisor;
+                config->max_db_queue = max_db_queue;
+
                 // Read targets.cfg
                 struct rtgtargets *targets = rtgtargets_parse(targets_file, config);
 
@@ -132,9 +148,9 @@ void help()
         fprintf(stderr, "clpoll v%s Copyright (c) 2009-2011 Jakob Borg\n", CLPOLL_VERSION);
         fprintf(stderr, "\n");
         fprintf(stderr, "Legacy (rtgpoll compatible) options:\n");
-        fprintf(stderr, " -c <file>   Specify configuration file [%s]\n", rtgconf_file);
+        fprintf(stderr, " -c <file>   Specify configuration file [%s]\n", DEFAULT_RTGCONF_FILE);
         fprintf(stderr, " -d          Disable database inserts\n");
-        fprintf(stderr, " -t <file>   Specify target file [%s]\n", targets_file);
+        fprintf(stderr, " -t <file>   Specify target file [%s]\n", DEFAULT_TARGETS_FILE);
         fprintf(stderr, " -v          Increase verbosity\n");
         fprintf(stderr, " -z          Database zero delta inserts\n");
         fprintf(stderr, "\n");
@@ -150,18 +166,18 @@ void run_threads(struct rtgtargets *targets, struct rtgconf *config)
 {
         thread_stop_requested = 0;
         active_threads = 0;
-        stat_inserts = 0;
-        stat_queries = 0;
-        stat_iterations = 0;
+        statistics.insert_rows = 0;
+        statistics.insert_queries = 0;
+        statistics.iterations = 0;
 
-        unsigned num_dbthreads = config->threads / dbthreads_divisor;
+        unsigned num_dbthreads = config->threads / config->dbthreads_divisor;
         num_dbthreads = num_dbthreads ? num_dbthreads : 1;
 
-        queries = clbuf_create(max_queue_length);
+        queries = clbuf_create(config->max_db_queue);
 
         struct mt_threads *poller_threads = create_poller_threads(config->threads, targets);
         struct mt_threads *database_threads = create_database_threads(num_dbthreads, config);
-        struct mt_threads *monitor_thread = create_monitor_thread(targets, config->interval);
+        struct mt_threads *monitor_thread = create_monitor_thread(targets, config);
 
         mt_threads_join(database_threads);
         mt_threads_join(poller_threads);
@@ -203,13 +219,14 @@ struct mt_threads *create_database_threads(unsigned nthreads, struct rtgconf *co
         return database_threads;
 }
 
-struct mt_threads *create_monitor_thread(struct rtgtargets *targets, unsigned interval)
+struct mt_threads *create_monitor_thread(struct rtgtargets *targets, struct rtgconf *config)
 {
         cllog(1, "Starting monitor thread.");
         struct mt_threads *monitor_threads = mt_threads_create(1);
         struct monitor_ctx *ctx = (struct monitor_ctx *) malloc(sizeof(struct monitor_ctx));
-        ctx->interval = interval;
+        ctx->interval = config->interval;
         ctx->targets = targets;
+        ctx->config = config;
         monitor_threads->contexts[0].param = ctx;
         mt_threads_start(monitor_threads, monitor_run);
         return monitor_threads;

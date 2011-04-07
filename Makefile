@@ -76,6 +76,7 @@ clean:
 .PHONY: reformat
 reformat:
 	indent src/*.c src/*.h test/*.c
+	rm */*~
 
 .PHONY: version
 version:
