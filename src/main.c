@@ -28,7 +28,7 @@ void sighup_handler(int signum);
 void sigterm_handler(int signum);
 void daemonize();
 
-int main (int argc, char *const argv[])
+int main(int argc, char *const argv[])
 {
         if (argc < 2) {
                 help();
@@ -36,7 +36,7 @@ int main (int argc, char *const argv[])
         }
 
         int c;
-        while ((c = getopt (argc, argv, "c:dt:vzDOOT:Q:")) != -1) {
+        while ((c = getopt(argc, argv, "c:dt:vzDOOT:Q:")) != -1) {
                 switch (c) {
                 case 'c':
                         rtgconf_file = optarg;
@@ -108,7 +108,6 @@ int main (int argc, char *const argv[])
                         cllog(0, "Missing or incorrect configuration file, so nothing to do.");
                         exit(-1);
                 }
-
                 // Read targets.cfg
                 struct rtgtargets *targets = rtgtargets_parse(targets_file, config);
 
@@ -176,12 +175,13 @@ void run_threads(struct rtgtargets *targets, struct rtgconf *config)
         queries = 0;
 }
 
-struct mt_threads *create_poller_threads(unsigned nthreads, struct rtgtargets *targets) {
+struct mt_threads *create_poller_threads(unsigned nthreads, struct rtgtargets *targets)
+{
         cllog(1, "Starting %d poller threads.", nthreads);
         struct mt_threads *poller_threads = mt_threads_create(nthreads);
         unsigned i;
         for (i = 0; i < nthreads; i++) {
-                struct poller_ctx *ctx = (struct poller_ctx *)malloc(sizeof(struct poller_ctx));
+                struct poller_ctx *ctx = (struct poller_ctx *) malloc(sizeof(struct poller_ctx));
                 ctx->targets = targets;
                 poller_threads->contexts[i].param = ctx;
         }
@@ -189,12 +189,13 @@ struct mt_threads *create_poller_threads(unsigned nthreads, struct rtgtargets *t
         return poller_threads;
 }
 
-struct mt_threads *create_database_threads(unsigned nthreads, struct rtgconf *config) {
+struct mt_threads *create_database_threads(unsigned nthreads, struct rtgconf *config)
+{
         unsigned i;
         cllog(1, "Starting %d database threads.", nthreads);
         struct mt_threads *database_threads = mt_threads_create(nthreads);
         for (i = 0; i < nthreads; i++) {
-                struct database_ctx *ctx = (struct database_ctx *)malloc(sizeof(struct database_ctx));
+                struct database_ctx *ctx = (struct database_ctx *) malloc(sizeof(struct database_ctx));
                 ctx->config = config;
                 database_threads->contexts[i].param = ctx;
         }
@@ -202,10 +203,11 @@ struct mt_threads *create_database_threads(unsigned nthreads, struct rtgconf *co
         return database_threads;
 }
 
-struct mt_threads *create_monitor_thread(struct rtgtargets *targets, unsigned interval) {
+struct mt_threads *create_monitor_thread(struct rtgtargets *targets, unsigned interval)
+{
         cllog(1, "Starting monitor thread.");
         struct mt_threads *monitor_threads = mt_threads_create(1);
-        struct monitor_ctx *ctx = (struct monitor_ctx *)malloc(sizeof(struct monitor_ctx));
+        struct monitor_ctx *ctx = (struct monitor_ctx *) malloc(sizeof(struct monitor_ctx));
         ctx->interval = interval;
         ctx->targets = targets;
         monitor_threads->contexts[0].param = ctx;
@@ -244,7 +246,8 @@ void daemonize()
 {
         pid_t pid, sid;
 
-        if ( getppid() == 1 ) return;
+        if (getppid() == 1)
+                return;
 
         pid = fork();
         if (pid < 0) {
@@ -267,7 +270,7 @@ void daemonize()
         }
 
         FILE *ignored;
-        ignored = freopen( "/dev/null", "r", stdin);
-        ignored = freopen( "/dev/null", "w", stdout);
-        ignored = freopen( "/dev/null", "w", stderr);
+        ignored = freopen("/dev/null", "r", stdin);
+        ignored = freopen("/dev/null", "w", stdout);
+        ignored = freopen("/dev/null", "w", stderr);
 }

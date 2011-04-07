@@ -33,7 +33,7 @@ void *poller_run(void *ptr)
                 pthread_mutex_lock(&global_lock);
                 if (iterations > 0)
                         active_threads--;
-                if (!active_threads) // We are the last one
+                if (!active_threads)    // We are the last one
                         gettimeofday(&query_threads_finished, NULL);
                 pthread_cond_wait(&global_cond, &global_lock);
                 pthread_mutex_unlock(&global_lock);
@@ -58,16 +58,16 @@ void *poller_run(void *ptr)
                         // Process the host and get back a list of SQL updates to execute.
                         struct db_insert **host_queries = get_db_inserts(host);
                         unsigned n_queries;
-                        for (n_queries = 0; host_queries[n_queries]; n_queries++);
+                        for (n_queries = 0; host_queries[n_queries]; n_queries++) ;
 
                         if (n_queries > 0) {
                                 cllog(2, "Thread %u queueing %u queries.", id, n_queries);
 
-                                unsigned  i;
+                                unsigned i;
                                 for (i = 0; i < n_queries && clbuf_count_free(queries) > 0; i++) {
                                         void *result = clbuf_push(queries, host_queries[i]);
                                         if (result) {
-                                                queued_queries ++;
+                                                queued_queries++;
                                                 queued_values += host_queries[i]->nvalues;
                                         } else {
                                                 break;
@@ -98,4 +98,3 @@ void *poller_run(void *ptr)
         }
         return NULL;
 }
-

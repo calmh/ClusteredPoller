@@ -6,7 +6,8 @@
 #include "rtgconf.h"
 #include "cllog.h"
 
-struct rtgconf *rtgconf_create(const char *filename) {
+struct rtgconf *rtgconf_create(const char *filename)
+{
         FILE *fileptr = fopen(filename, "rb");
         if (!fileptr) {
                 cllog(0, "Couldn't open %s for reading.", filename);
@@ -84,4 +85,3 @@ void rtgconf_free(struct rtgconf *config)
         free(config->database);
         free(config);
 }
-

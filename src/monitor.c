@@ -19,26 +19,25 @@ void *monitor_run(void *ptr)
 
         time_t interval = 0;
         int in_iteration = 0;
-        struct timeval iteration_started = {0};
-        struct timeval now = {0};
+        struct timeval iteration_started = { 0 };
+        struct timeval now = { 0 };
 
-        struct timespec loopdelay = { 0, 250*1000*1000 };
+        struct timespec loopdelay = { 0, 250 * 1000 * 1000 };
         nanosleep(&loopdelay, NULL);
 
         while (!thread_stop_requested) {
                 gettimeofday(&now, NULL);
                 if (active_threads == 0 && in_iteration) {
                         if (verbosity > 0) {
-                                double elapsed = query_threads_finished.tv_sec - iteration_started.tv_sec +
-                                                 (query_threads_finished.tv_usec - iteration_started.tv_usec) / 1e6;
+                                double elapsed = query_threads_finished.tv_sec - iteration_started.tv_sec + (query_threads_finished.tv_usec - iteration_started.tv_usec) / 1e6;
                                 double to_sleep = interval - now.tv_sec - now.tv_usec / 1e6;
                                 cllog(1, "Iteration #%d complete.", stat_iterations);
                                 cllog(1, " %6.02f seconds elapsed", elapsed);
-                                cllog(1, " %6d SNMP queries made (%.01f queries/s)", stat_snmp_success+stat_snmp_fail, (stat_snmp_success+stat_snmp_fail)/elapsed);
+                                cllog(1, " %6d SNMP queries made (%.01f queries/s)", stat_snmp_success + stat_snmp_fail, (stat_snmp_success + stat_snmp_fail) / elapsed);
                                 cllog(1, " %6d of those queries failed", stat_snmp_fail);
-                                cllog(1, " %6d database inserts queued (%.01f queries/s)", stat_queries-stat_dropped_queries, (stat_queries-stat_dropped_queries)/elapsed);
+                                cllog(1, " %6d database inserts queued (%.01f queries/s)", stat_queries - stat_dropped_queries, (stat_queries - stat_dropped_queries) / elapsed);
                                 cllog(1, " %6d inserts were dropped due to lack of buffer space", stat_dropped_queries);
-                                cllog(1, " %6d entries maximum queue size (%.01f %% full)", query_queue_depth, 100.0*query_queue_depth/max_queue_length);
+                                cllog(1, " %6d entries maximum queue size (%.01f %% full)", query_queue_depth, 100.0 * query_queue_depth / max_queue_length);
                                 cllog(1, " %6.02f seconds until next iteration", to_sleep);
                         }
 
@@ -76,4 +75,3 @@ void *monitor_run(void *ptr)
         }
         return NULL;
 }
-

@@ -37,4 +37,4 @@ unsigned stat_iterations = 0;
 unsigned stat_snmp_fail = 0;
 unsigned stat_snmp_success = 0;
 unsigned stat_dropped_queries = 0;
-struct timeval query_threads_finished = {0};
+struct timeval query_threads_finished = { 0 };

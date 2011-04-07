@@ -26,4 +26,4 @@ void *clbuf_pop(struct clbuf *cb);
 unsigned clbuf_count_used(struct clbuf *cb);
 unsigned clbuf_count_free(struct clbuf *cb);
 
-#endif /* CBUFFER_H */
+#endif                          /* CBUFFER_H */

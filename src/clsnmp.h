@@ -15,4 +15,3 @@ void clsnmp_session_free(struct clsnmp_session *session);
 int clsnmp_get(struct clsnmp_session *session, const char *oid_str, unsigned long long *counter, time_t *response_time);
 
 #endif
-

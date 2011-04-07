@@ -9,4 +9,4 @@ struct database_ctx {
 
 void *database_run(void *ptr);
 
-#endif /* DATABASE_H_ */
+#endif                          /* DATABASE_H_ */

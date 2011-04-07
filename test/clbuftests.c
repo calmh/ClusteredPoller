@@ -14,7 +14,7 @@ void CuAssertPtrNotNull(CuTest* tc, void* pointer);
 void TestEmptyBufferSize(CuTest *tc)
 {
         struct clbuf *cb = clbuf_create(16);
-        CuAssertIntEquals(tc,  0, clbuf_count_used(cb));
+        CuAssertIntEquals(tc, 0, clbuf_count_used(cb));
         CuAssertIntEquals(tc, 16, clbuf_count_free(cb));
 }
 
@@ -70,4 +70,3 @@ CuSuite *CuGetCBufferSuite(void)
 
         return suite;
 }
-

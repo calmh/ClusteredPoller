@@ -16,7 +16,8 @@ void clsnmp_global_init()
         pthread_mutex_unlock(&clsnmp_lock);
 }
 
-struct clsnmp_session *clsnmp_session_create(const char *host, const char *community, int snmpver) {
+struct clsnmp_session *clsnmp_session_create(const char *host, const char *community, int snmpver)
+{
         if (snmpver != 1 && snmpver != 2)
                 return NULL;
 
@@ -88,7 +89,7 @@ int clsnmp_get(struct clsnmp_session *session, const char *oid_str, unsigned lon
 
                 case ASN_COUNTER64:
                         /* Get high and low 32 bits and shift them together */
-                        *counter = (((unsigned long long)(*vars->val.counter64).high) << 32) + (*vars->val.counter64).low;
+                        *counter = (((unsigned long long) (*vars->val.counter64).high) << 32) + (*vars->val.counter64).low;
                         success = 1;
                         break;
                 }
@@ -99,4 +100,3 @@ int clsnmp_get(struct clsnmp_session *session, const char *oid_str, unsigned lon
 
         return success;
 }
-

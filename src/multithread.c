@@ -5,7 +5,8 @@
 
 #define THREAD_STACK_SIZE (256*1024)
 
-struct mt_threads *mt_threads_create(unsigned nthreads) {
+struct mt_threads *mt_threads_create(unsigned nthreads)
+{
         struct mt_threads *threads = (struct mt_threads *) malloc(sizeof(struct mt_threads));
         if (!threads)
                 return NULL;
@@ -23,7 +24,7 @@ void mt_threads_free(struct mt_threads *threads)
         free(threads);
 }
 
-void mt_threads_start(struct mt_threads *threads, void*(*runner)(void *))
+void mt_threads_start(struct mt_threads *threads, void *(*runner) (void *))
 {
         pthread_attr_t attr;
         pthread_attr_init(&attr);
@@ -41,4 +42,3 @@ void mt_threads_join(struct mt_threads *threads)
         for (i = 0; i < threads->nthreads; i++)
                 pthread_join(threads->contexts[i].pthread, NULL);
 }
-

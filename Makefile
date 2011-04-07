@@ -75,7 +75,7 @@ clean:
 
 .PHONY: reformat
 reformat:
-	astyle -A8 -n --convert-tabs --align-pointer=name -z2 src/*.c src/*.h test/*.c
+	indent src/*.c src/*.h test/*.c
 
 .PHONY: version
 version:

@@ -7,7 +7,7 @@
 #include "rtgtargets.h"
 #include "globals.h"
 
-void mock_set_speed(unsigned int newspeed); // From snmp-mock.c
+void mock_set_speed(unsigned int newspeed);     // From snmp-mock.c
 
 void TestMeasureOneHostsAt10MbpsForTenSeconds(CuTest *tc)
 {
@@ -19,14 +19,14 @@ void TestMeasureOneHostsAt10MbpsForTenSeconds(CuTest *tc)
 
         struct db_insert **queries = get_db_inserts(hosts->hosts[0]);
         unsigned queries_size;
-        for (queries_size = 0; queries[queries_size]; queries_size++);
+        for (queries_size = 0; queries[queries_size]; queries_size++) ;
 
         CuAssertIntEquals(tc, 0, queries_size); // No inserts first iteration
 
         sleep(10);
 
         queries = get_db_inserts(hosts->hosts[0]);
-        for (queries_size = 0; queries[queries_size]; queries_size++);
+        for (queries_size = 0; queries[queries_size]; queries_size++) ;
 
         CuAssertIntEquals(tc, 1, queries_size); // One insert next iteration
         CuAssertIntEquals(tc, 1250000, queries[0]->values[0].counter);
@@ -41,14 +41,14 @@ void TestMeasureOneHostAt100MbpsForOneInterval(CuTest *tc)
 
         struct db_insert **queries = get_db_inserts(hosts->hosts[0]);
         unsigned queries_size;
-        for (queries_size = 0; queries[queries_size]; queries_size++);
+        for (queries_size = 0; queries[queries_size]; queries_size++) ;
 
         CuAssertIntEquals(tc, 0, queries_size); // No inserts first iteration
 
         sleep(conf->interval);
 
         queries = get_db_inserts(hosts->hosts[0]);
-        for (queries_size = 0; queries[queries_size]; queries_size++);
+        for (queries_size = 0; queries[queries_size]; queries_size++) ;
         CuAssertIntEquals(tc, 0, queries_size); // No inserts next iteration due to too high speed
 }
 
@@ -61,4 +61,3 @@ CuSuite *CuGetLongSuite(void)
 
         return suite;
 }
-
