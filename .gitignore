@@ -5,3 +5,5 @@ targets.cfg
 *.d
 clpoll
 testrunner
+clpoll-dbg
+*~

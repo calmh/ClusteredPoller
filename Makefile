@@ -41,27 +41,27 @@ CFLAGS ?= -Wall
 
 OS = $(shell uname -s | awk '{print tolower($$0)}')
 ifeq ($(OS),linux)
-	CFLAGS += -pthread -I/usr/include/mysql
-	LIBS = -lnetsnmp -lmysqlclient
+	CFLAGS += -pthread $(shell mysql_config --include)
+	LDFLAGS += -pthread -lnetsnmp $(shell mysql_config --libs)
 else ifeq ($(OS),darwin)
 	CFLAGS += -I/usr/local/mysql/include
-	LIBS = -L/usr/local/mysql/lib -lnetsnmp -lmysqlclient
+	LDFLAGS += -L/usr/local/mysql/lib -lnetsnmp -lmysqlclient
 endif
 
 all: $(TARGET) quicktest
 
 $(TARGET): CFLAGS += -O2
 $(TARGET): $(OBJS)
-	gcc $^ $(LIBS) -o $@
+	gcc $^ $(LDFLAGS) -o $@
 	strip $@
 
 $(TARGET)-dbg: CFLAGS += -g
 $(TARGET)-dbg: $(OBJS)
-	gcc $^ $(LIBS) -o $@
+	gcc $^ $(LDFLAGS) -o $@
 
 $(TESTTARGET): CFLAGS += -Isrc
 $(TESTTARGET): $(TESTOBJS)
-	gcc $^ $(LIBS) -o $@
+	gcc $^ $(LDFLAGS) -o $@
 
 .PHONY: test
 test: $(TESTTARGET)
@@ -75,7 +75,7 @@ clean:
 
 .PHONY: reformat
 reformat:
-	astyle -A8 -n --convert-tabs --align-pointer=name -z2 src/*.c src/*.h test/*.c
+	indent src/*.c src/*.h test/*.c
 
 .PHONY: version
 version:

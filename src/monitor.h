@@ -10,4 +10,4 @@ struct monitor_ctx {
 
 void *monitor_run(void *ptr);
 
-#endif /* MONITOR_H_ */
+#endif                          /* MONITOR_H_ */

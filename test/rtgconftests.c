@@ -22,4 +22,3 @@ CuSuite *CuGetRtgConfSuite(void)
 
         return suite;
 }
-

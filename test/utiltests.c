@@ -21,4 +21,3 @@ CuSuite *CuGetUtilSuite(void)
 
         return suite;
 }
-

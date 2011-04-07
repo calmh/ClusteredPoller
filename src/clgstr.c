@@ -11,7 +11,8 @@
 
 #include "clgstr.h"
 
-struct clgstr *clgstr_create(size_t preallocate) {
+struct clgstr *clgstr_create(size_t preallocate)
+{
         struct clgstr *gs = (struct clgstr *) malloc(sizeof(struct clgstr));
         gs->string = (char *) malloc(sizeof(char) * preallocate);
         gs->allocated = preallocate;
@@ -38,4 +39,3 @@ void clgstr_append(struct clgstr *gs, const char *str)
         gs->length += add_len;
         gs->string[gs->length] = '\0';
 }
-

@@ -13,7 +13,8 @@
 #include <pthread.h>
 #include "clbuf.h"
 
-struct clbuf *clbuf_create(unsigned size) {
+struct clbuf *clbuf_create(unsigned size)
+{
         struct clbuf *cb = (struct clbuf *) malloc(sizeof(struct clbuf));
 
         pthread_mutexattr_t mta;
@@ -42,7 +43,7 @@ void *clbuf_push(struct clbuf *cb, void *ptr)
         pthread_mutex_lock(&cb->lock);
         if (cb->write_index == cb->read_index && cb->buffer[cb->write_index] != 0) {
                 pthread_mutex_unlock(&cb->lock);
-                return NULL; /* Buffer is full */
+                return NULL;    /* Buffer is full */
         }
         cb->buffer[cb->write_index] = ptr;
         cb->write_index++;
@@ -56,7 +57,7 @@ void *clbuf_pop(struct clbuf *cb)
         pthread_mutex_lock(&cb->lock);
         if (cb->write_index == cb->read_index && cb->buffer[cb->read_index] == 0) {
                 pthread_mutex_unlock(&cb->lock);
-                return NULL; /* Buffer is empty */
+                return NULL;    /* Buffer is empty */
         }
         void *ptr = cb->buffer[cb->read_index];
         cb->buffer[cb->read_index] = NULL;

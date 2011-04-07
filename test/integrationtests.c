@@ -6,6 +6,8 @@
 #include "rtgtargets.h"
 #include "cutest.h"
 
+void calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cur_time, unsigned long long cur_counter, int bits, unsigned long long *counter_diff, unsigned *rate);
+
 void TestZeroRateWith32BitsCounter(CuTest *tc)
 {
         time_t cur_time = time(NULL);
@@ -32,8 +34,8 @@ void TestOneKbpsRateWith32BitsCounter(CuTest *tc)
         unsigned rate;
         calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 32, &counter_diff, &rate);
 
-        CuAssertIntEquals(tc, 60u * 1000/8, counter_diff);
-        CuAssertIntEquals(tc, 1000u/8, rate);
+        CuAssertIntEquals(tc, 60u * 1000 / 8, counter_diff);
+        CuAssertIntEquals(tc, 1000u / 8, rate);
 }
 
 void TestOneKbpsRateWith32BitsCounterThatWraps(CuTest *tc)
@@ -47,8 +49,8 @@ void TestOneKbpsRateWith32BitsCounterThatWraps(CuTest *tc)
         unsigned rate;
         calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 32, &counter_diff, &rate);
 
-        CuAssertIntEquals(tc, 60u * 1000/8, counter_diff);
-        CuAssertIntEquals(tc, 1000u/8, rate);
+        CuAssertIntEquals(tc, 60u * 1000 / 8, counter_diff);
+        CuAssertIntEquals(tc, 1000u / 8, rate);
 }
 
 void TestOneKbpsRateWith64BitsCounterThatWraps(CuTest *tc)
@@ -62,8 +64,8 @@ void TestOneKbpsRateWith64BitsCounterThatWraps(CuTest *tc)
         unsigned rate;
         calculate_rate(prev_time, prev_counter, cur_time, cur_counter, 64, &counter_diff, &rate);
 
-        CuAssertIntEquals(tc, 60u * 1000/8, counter_diff);
-        CuAssertIntEquals(tc, 1000u/8, rate);
+        CuAssertIntEquals(tc, 60u * 1000 / 8, counter_diff);
+        CuAssertIntEquals(tc, 1000u / 8, rate);
 }
 
 void TestGaugeValueUnchanged(CuTest *tc)
@@ -105,9 +107,9 @@ void TestResultSetForOneHost(CuTest *tc)
         sleep(1);
         inserts = get_db_inserts(hosts->hosts[0]);
 
-        CuAssertTrue(tc, NULL != inserts[0]); // One table
-        CuAssertTrue(tc, NULL == inserts[1]); // Not two tables
-        CuAssertStrEquals(tc, "ifOutOctets_362", inserts[0]->table); // Two rows
+        CuAssertTrue(tc, NULL != inserts[0]);   // One table
+        CuAssertTrue(tc, NULL == inserts[1]);   // Not two tables
+        CuAssertStrEquals(tc, "ifOutOctets_362", inserts[0]->table);    // Two rows
         CuAssertIntEquals(tc, 2u, inserts[0]->nvalues); // Two rows
         CuAssertIntEquals(tc, 4309u, inserts[0]->values[0].id);
         CuAssertIntEquals(tc, 4310u, inserts[0]->values[1].id);
@@ -127,4 +129,3 @@ CuSuite *CuGetIntegrationSuite(void)
 
         return suite;
 }
-

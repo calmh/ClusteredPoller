@@ -16,7 +16,7 @@ struct mt_threads {
 
 struct mt_threads *mt_threads_create(unsigned nthreads);
 void mt_threads_free(struct mt_threads *threads);
-void mt_threads_start(struct mt_threads *threads, void*(*runner)(void *));
+void mt_threads_start(struct mt_threads *threads, void *(*runner) (void *));
 void mt_threads_join(struct mt_threads *threads);
 
-#endif /* MULTITHREAD_H_ */
+#endif                          /* MULTITHREAD_H_ */

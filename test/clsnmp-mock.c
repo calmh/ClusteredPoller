@@ -11,7 +11,8 @@ void clsnmp_global_init()
 {
 }
 
-struct clsnmp_session *clsnmp_session_create(const char *host, const char *community, int snmpver) {
+struct clsnmp_session *clsnmp_session_create(const char *host, const char *community, int snmpver)
+{
         struct clsnmp_session *session = (struct clsnmp_session *) malloc(sizeof(struct clsnmp_session));
         return session;
 }
@@ -27,4 +28,3 @@ int clsnmp_get(struct clsnmp_session *session, const char *oid_str, unsigned lon
         *counter = *response_time * speed;
         return 1;
 }
-

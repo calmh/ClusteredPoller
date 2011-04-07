@@ -20,8 +20,7 @@ struct db_insert {
         unsigned allocated_space;
 };
 
-char **get_inserts(struct queryhost *host);
-void calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cur_time, unsigned long long cur_counter, int bits, unsigned long long *counter_diff, unsigned *rate);
 struct db_insert **get_db_inserts(struct queryhost *host);
+void db_insert_free(struct db_insert *insert);
 
 #endif

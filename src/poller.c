@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 
 #include <string.h>
+#include <time.h>
 
 #include "clbuf.h"
 #include "multithread.h"
@@ -32,6 +33,8 @@ void *poller_run(void *ptr)
                 pthread_mutex_lock(&global_lock);
                 if (iterations > 0)
                         active_threads--;
+                if (!active_threads)    // We are the last one
+                        gettimeofday(&query_threads_finished, NULL);
                 pthread_cond_wait(&global_cond, &global_lock);
                 pthread_mutex_unlock(&global_lock);
 
@@ -48,31 +51,44 @@ void *poller_run(void *ptr)
                 start = time(NULL);
                 // Loop over our share of the hosts.
                 struct queryhost *host;
+                unsigned dropped_queries = 0;
+                unsigned queued_queries = 0, queued_values = 0;
                 while (!thread_stop_requested && (host = rtgtargets_next(targets))) {
                         cllog(2, "Thread %d picked host '%s'.", id, host->host);
                         // Process the host and get back a list of SQL updates to execute.
-                        char **host_queries = get_inserts(host);
+                        struct db_insert **host_queries = get_db_inserts(host);
                         unsigned n_queries;
-                        for (n_queries = 0; host_queries[n_queries]; n_queries++);
+                        for (n_queries = 0; host_queries[n_queries]; n_queries++) ;
 
                         if (n_queries > 0) {
                                 cllog(2, "Thread %u queueing %u queries.", id, n_queries);
 
-                                unsigned  i;
+                                unsigned i;
                                 for (i = 0; i < n_queries && clbuf_count_free(queries) > 0; i++) {
-                                        void *result = clbuf_push(queries, strdup(host_queries[i]));
-                                        if (!result)
+                                        void *result = clbuf_push(queries, host_queries[i]);
+                                        if (result) {
+                                                queued_queries++;
+                                                queued_values += host_queries[i]->nvalues;
+                                        } else {
                                                 break;
+                                        }
                                 }
                                 unsigned qd = clbuf_count_used(queries);
                                 query_queue_depth = query_queue_depth > qd ? query_queue_depth : qd;
-                                if (i != n_queries)
-                                        cllog(0, "Thread %d dropped queries due to database queue full.", id);
+                                if (i != n_queries) {
+                                        if (!dropped_queries)
+                                                cllog(0, "Thread %d dropped queries due to database queue full.", id);
+                                        dropped_queries += n_queries - i;
+                                }
                         }
-                        for (n_queries = 0; host_queries[n_queries]; n_queries++)
-                                free(host_queries[n_queries]);
                         free(host_queries);
                 }
+
+                pthread_mutex_lock(&global_lock);
+                stat_inserts += queued_values;
+                stat_queries += queued_queries;
+                stat_dropped_queries += dropped_queries;
+                pthread_mutex_unlock(&global_lock);
 
                 // Note how long it took.
                 end = time(NULL);
@@ -82,4 +98,3 @@ void *poller_run(void *ptr)
         }
         return NULL;
 }
-
