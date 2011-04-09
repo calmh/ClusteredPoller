@@ -52,7 +52,9 @@ void *monitor_run(void *ptr)
                         in_iteration = 0;
 
                         struct timespec sleep_spec = { interval - now.tv_sec - 1, 1000000000l - now.tv_usec * 1000 };
-                        nanosleep(&sleep_spec, NULL);
+                        pthread_mutex_lock(&global_lock);
+                        pthread_cond_timedwait(&global_cond, &global_lock, &sleep_spec);
+                        pthread_mutex_unlock(&global_lock);
                 }
 
                 gettimeofday(&now, NULL);
