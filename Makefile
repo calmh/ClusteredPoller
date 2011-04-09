@@ -39,10 +39,14 @@ TESTTARGET := testrunner
 
 CFLAGS ?= -Wall
 
-OS = $(shell uname -s | awk '{print tolower($$0)}')
-ifeq ($(OS),darwin)
+OS = $(shell uname -s)
+ifeq ($(OS),Darwin)
 	CFLAGS += -I/usr/local/mysql/include
 	LDFLAGS += -L/usr/local/mysql/lib -lnetsnmp -lmysqlclient
+else ifeq ($(OS),SunOS)
+	CC = gcc
+	CFLAGS += -pthreads $(shell /usr/mysql/bin/mysql_config --include)
+	LDFLAGS += -pthreads -lnetsnmp $(shell /usr/mysql/bin/mysql_config --libs | sed 's/-lCrun//' )
 else
 	CFLAGS += -pthread -I/usr/local/include $(shell mysql_config --include)
 	LDFLAGS += -pthread -L/usr/local/lib -lnetsnmp $(shell mysql_config --libs)

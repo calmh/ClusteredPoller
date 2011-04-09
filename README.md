@@ -81,11 +81,9 @@ a working GCC and make.
 
    `apt-get install libmysqlclient-dev libsnmp-dev`
 
-2. Run make.
+3. Run make.
 
-   `make`
-
-3. Use the created `clpoll` binary.
+4. Use the created `clpoll` binary.
 
 ### Centos 5.5
 
@@ -100,6 +98,10 @@ a working GCC and make.
 
    `yum install net-snmp-devel mysql-devel`
 
+3. Run make.
+
+4. Use the created `clpoll` binary.
+
 ### FreeBSD 8.1
 
 1. Install GNU make, Net-SNMP and the MySQL libraries.
@@ -111,5 +113,33 @@ a working GCC and make.
    `/usr/local/bin/gmake`
 
 3. Use the created `clpoll` binary.
+
+### Mac OS X Snow Leopard (10.6.7)
+
+1. Install the development environment (Xcode).
+
+2. Install MySQL (from MySQLs website).
+
+3. Run make.
+
+4. Use the created `clpoll` binary.
+
+### Solaris 11 Express (snv_151a)
+
+1. Install the development environment.
+
+   `pkg install gcc-3 gnu-make`
+
+2. Install the match MySQL libraries (actually a lot more MySQL than that).
+   The SNMP libraries seem present by default.
+
+   `pkg install mysql-51 header-math`
+
+3. Run gmake.
+
+   `gmake`
+
+4. Use the created `clpoll` binary.
+
 
 Jakob Borg <jakob@nym.se>
