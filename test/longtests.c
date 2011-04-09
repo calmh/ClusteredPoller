@@ -11,8 +11,6 @@ void mock_set_speed(unsigned int newspeed);     // From snmp-mock.c
 
 void TestMeasureOneHostsAt10MbpsForTenSeconds(CuTest *tc)
 {
-        use_rate_column = 1;
-
         mock_set_speed(1000000 / 8);
         struct rtgconf *conf = rtgconf_create("test/example-rtg.conf");
         struct rtgtargets *hosts = rtgtargets_parse("test/example-targets.cfg", conf);

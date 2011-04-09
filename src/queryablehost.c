@@ -128,8 +128,8 @@ struct db_insert **get_db_inserts(struct queryhost *host)
         clsnmp_session_free(session);
 
         pthread_mutex_lock(&global_lock);
-        stat_snmp_fail += snmp_fail;
-        stat_snmp_success += snmp_success;
+        statistics.snmp_fail += snmp_fail;
+        statistics.snmp_success += snmp_success;
         pthread_mutex_unlock(&global_lock);
 
         return inserts;
@@ -141,26 +141,3 @@ unsigned num_inserts(struct db_insert **inserts)
         for (count = 0; inserts[count] && count < MAX_TABLES; count++) ;
         return count;
 }
-
-/*
-char **get_inserts(struct queryhost *host)
-{
-        struct db_insert **inserts = get_db_inserts(host);
-        unsigned n_inserts = num_inserts(inserts);
-
-        // Space for (at most) one insert query per table, plus an end marker.
-        char **queries = (char **) malloc(sizeof(char *) * n_inserts + 1);
-
-        int i, j = 0;
-        for (i = 0; i < n_inserts; i++) {
-                char *query = build_insert_query(inserts[i]);
-                if (query)
-                        queries[j++] = query;
-                db_insert_free(inserts[i]);
-        }
-        queries[j] = 0; // End marker
-
-        free(inserts);
-        return queries;
-}
-*/

@@ -34,7 +34,7 @@ void *poller_run(void *ptr)
                 if (iterations > 0)
                         active_threads--;
                 if (!active_threads)    // We are the last one
-                        gettimeofday(&query_threads_finished, NULL);
+                        gettimeofday(&statistics.query_threads_finished, NULL);
                 pthread_cond_wait(&global_cond, &global_lock);
                 pthread_mutex_unlock(&global_lock);
 
@@ -74,7 +74,7 @@ void *poller_run(void *ptr)
                                         }
                                 }
                                 unsigned qd = clbuf_count_used(queries);
-                                query_queue_depth = query_queue_depth > qd ? query_queue_depth : qd;
+                                statistics.max_queue_depth = statistics.max_queue_depth > qd ? statistics.max_queue_depth : qd;
                                 if (i != n_queries) {
                                         if (!dropped_queries)
                                                 cllog(0, "Thread %d dropped queries due to database queue full.", id);
@@ -85,9 +85,9 @@ void *poller_run(void *ptr)
                 }
 
                 pthread_mutex_lock(&global_lock);
-                stat_inserts += queued_values;
-                stat_queries += queued_queries;
-                stat_dropped_queries += dropped_queries;
+                statistics.insert_rows += queued_values;
+                statistics.insert_queries += queued_queries;
+                statistics.dropped_queries += dropped_queries;
                 pthread_mutex_unlock(&global_lock);
 
                 // Note how long it took.
