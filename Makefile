@@ -40,12 +40,12 @@ TESTTARGET := testrunner
 CFLAGS ?= -Wall
 
 OS = $(shell uname -s | awk '{print tolower($$0)}')
-ifeq ($(OS),linux)
-	CFLAGS += -pthread $(shell mysql_config --include)
-	LDFLAGS += -pthread -lnetsnmp $(shell mysql_config --libs)
-else ifeq ($(OS),darwin)
+ifeq ($(OS),darwin)
 	CFLAGS += -I/usr/local/mysql/include
 	LDFLAGS += -L/usr/local/mysql/lib -lnetsnmp -lmysqlclient
+else
+	CFLAGS += -pthread -I/usr/local/include $(shell mysql_config --include)
+	LDFLAGS += -pthread -L/usr/local/lib -lnetsnmp $(shell mysql_config --libs)
 endif
 
 all: $(TARGET) quicktest
