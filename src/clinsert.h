@@ -9,15 +9,18 @@
 #ifndef CLINSERT_H
 #define CLINSERT_H
 
+/// @file clinsert.h
+/// A database insert representation used internally in clpoll.
+
 #include <time.h>
 
-// The maximum amount of different tables we expect for a single host,
-// i.e. ifInOctets, ifOutOctets, ifInUcastPkts, etc.
+/// The maximum amount of different tables we expect for a single host,
+/// i.e. ifInOctets, ifOutOctets, ifInUcastPkts, etc.
 #define MAX_TABLES 32
 
 struct queryhost;
 
-// An "insert value", i.e. what will become a table row after inserting into the database.
+/// An "insert value", i.e. what will become a table row after inserting into the database.
 struct clinsert_value {
         unsigned id;
         unsigned long long counter;
@@ -25,7 +28,7 @@ struct clinsert_value {
         time_t dtime;
 };
 
-// An "insert", i.e. what will become a SQL INSERT query.
+/// An "insert", i.e. what will become a SQL INSERT query.
 struct clinsert {
         char *table;
         struct clinsert_value *values;
@@ -33,9 +36,10 @@ struct clinsert {
         unsigned allocated_space;
 };
 
-// Get a clinsert object for use with the specified table.
-// Will return an existing one if there is one in **inserts, or a new one will be
-// created an added to the list **inserts.
+/// Get a clinsert object for use with the specified table.
+/// Will create at most MAX_TABLES objects in the list **inserts, and assumes that the list can actually hold this meny objects.
+/// @param inserts A list of inserts to either find an existing object in, or insert a new one into.
+/// @return An existing object if there is one in **inserts, or a new one will be created an added to the list **inserts.
 struct clinsert *clinsert_for_table(struct clinsert **inserts, char *table);
 
 // Get all inserts for the specified host for this polling interval.
@@ -52,4 +56,4 @@ void clinsert_push_value(struct clinsert *insert, unsigned id, unsigned long lon
 // Count the number of clinserts in the list **inserts.
 unsigned clinsert_count(struct clinsert **inserts);
 
-#endif /* CLINSERT_H */
+#endif                          /* CLINSERT_H */

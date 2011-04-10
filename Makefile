@@ -73,11 +73,17 @@ $(TESTTARGET): $(TESTOBJS)
 test: $(TESTTARGET)
 	./$(TESTTARGET) long 2>/dev/null
 
+.PHONY: quicktest
 quicktest: $(TESTTARGET)
 	./$(TESTTARGET) 2>/dev/null
 
+.PHONY: clean
 clean:
-	rm -f $(OBJS) $(TESTOBJS) $(TARGET) $(TESTTARGET) $(TARGET)-dbg
+	rm -rf $(OBJS) $(TESTOBJS) $(TARGET) $(TESTTARGET) $(TARGET)-dbg doc
+
+.PHONY: doc
+doc:
+	doxygen doxygen.conf
 
 .PHONY: reformat
 reformat:

@@ -6,7 +6,7 @@ struct rtgconf;
 
 // Thread context (parameters) for the monitor thread.
 struct monitor_ctx {
-        unsigned interval; //
+        unsigned interval;      //
         struct rtgtargets *targets;
         struct rtgconf *config;
 };
