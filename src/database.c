@@ -12,13 +12,14 @@
 #include "globals.h"
 #include "queryablehost.h"
 #include "clgstr.h"
+#include "clinsert.h"
 
 #define COMMIT_INTERVAL 100
 
 void process_database_queue(MYSQL *conn, struct rtgconf *config);
 void print_database_queue(struct rtgconf *config);
 MYSQL *connection(struct rtgconf *config);
-char *build_insert_query(struct db_insert *insert, struct rtgconf *config);
+char *build_insert_query(struct clinsert *insert, struct rtgconf *config);
 
 void *database_run(void *ptr)
 {
@@ -66,7 +67,7 @@ void process_database_queue(MYSQL *conn, struct rtgconf *config)
         unsigned query_counter = 0;
 
         while (clbuf_count_used(queries) > 0) {
-                struct db_insert *insert = (struct db_insert *) clbuf_pop(queries);
+                struct clinsert *insert = (struct clinsert *) clbuf_pop(queries);
                 if (insert) {
                         char *query = build_insert_query(insert, config);
                         if (query) {
@@ -79,7 +80,7 @@ void process_database_queue(MYSQL *conn, struct rtgconf *config)
                         } else {
                                 cllog(4, "DB thread dequeued NULL query.");
                         }
-                        db_insert_free(insert);
+                        clinsert_free(insert);
                 }
 
                 if (query_counter > 0 && query_counter % COMMIT_INTERVAL == 0) {
@@ -97,14 +98,14 @@ void process_database_queue(MYSQL *conn, struct rtgconf *config)
 void print_database_queue(struct rtgconf *config)
 {
         while (clbuf_count_used(queries) > 0) {
-                struct db_insert *insert = (struct db_insert *) clbuf_pop(queries);
+                struct clinsert *insert = (struct clinsert *) clbuf_pop(queries);
                 if (insert) {
                         char *query = build_insert_query(insert, config);
                         if (query) {
                                 cllog(3, "%s", query);
                                 free(query);
                         }
-                        db_insert_free(insert);
+                        clinsert_free(insert);
                 }
         }
 }
@@ -136,7 +137,7 @@ MYSQL *connection(struct rtgconf *config)
         return conn;
 }
 
-char *build_insert_query(struct db_insert *insert, struct rtgconf *config)
+char *build_insert_query(struct clinsert *insert, struct rtgconf *config)
 {
         struct clgstr *gs = clgstr_create(64);
         clgstr_append(gs, "INSERT INTO ");

@@ -1,47 +1,14 @@
 #include <stdio.h>
 
-#include "rtgtargets.h"
-#include "queryablehost.h"
-#include "globals.h"
-#include "cllog.h"
-#include "clsnmp.h"
 #include "clgstr.h"
+#include "cllog.h"
+#include "clinsert.h"
+#include "clsnmp.h"
+#include "globals.h"
+#include "queryablehost.h"
+#include "rtgtargets.h"
 
 #define MAXERRORSPERHOST 3
-#define MAX_TABLES 32
-
-struct db_insert *db_insert_create(char *table)
-{
-        struct db_insert *insert = (struct db_insert *) malloc(sizeof(struct db_insert));
-        if (!insert)
-                return NULL;
-        insert->table = table;
-        insert->values = (struct db_insert_value *) malloc(sizeof(struct db_insert_value) * 8);
-        insert->allocated_space = 8;
-        insert->nvalues = 0;
-        return insert;
-}
-
-void db_insert_free(struct db_insert *insert)
-{
-        free(insert->values);
-        free(insert);
-}
-
-void db_insert_push_value(struct db_insert *insert, unsigned id, unsigned long long counter, unsigned rate, time_t dtime)
-{
-        if (insert->nvalues == insert->allocated_space) {
-                unsigned new_size = insert->allocated_space * 1.5;
-                insert->values = (struct db_insert_value *) realloc(insert->values, sizeof(struct db_insert_value) * new_size);
-                insert->allocated_space = new_size;
-        }
-
-        insert->values[insert->nvalues].id = id;
-        insert->values[insert->nvalues].counter = counter;
-        insert->values[insert->nvalues].rate = rate;
-        insert->values[insert->nvalues].dtime = dtime;
-        insert->nvalues++;
-}
 
 void calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cur_time, unsigned long long cur_counter, int bits, unsigned long long *counter_diff, unsigned *rate)
 {
@@ -69,22 +36,10 @@ void calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cu
         }
 }
 
-struct db_insert *db_insert_for_table(struct db_insert **inserts, char *table)
+struct clinsert **get_clinserts(struct queryhost *host)
 {
-        int i;
-        for (i = 0; i < MAX_TABLES && inserts[i]; i++) {
-                if (!strcmp(inserts[i]->table, table)) {
-                        return inserts[i];
-                }
-        }
-        inserts[i] = db_insert_create(table);
-        return inserts[i];
-}
-
-struct db_insert **get_db_inserts(struct queryhost *host)
-{
-        struct db_insert **inserts = (struct db_insert **) malloc(sizeof(struct db_insert *) * MAX_TABLES);
-        memset(inserts, 0, sizeof(struct db_insert *) * MAX_TABLES);
+        struct clinsert **inserts = (struct clinsert **) malloc(sizeof(struct clinsert *) * MAX_TABLES);
+        memset(inserts, 0, sizeof(struct clinsert *) * MAX_TABLES);
 
         // Start a new SNMP session.
         unsigned snmp_fail = 0, snmp_success = 0;
@@ -105,8 +60,8 @@ struct db_insert **get_db_inserts(struct queryhost *host)
                                         unsigned rate;
                                         calculate_rate(row->cached_time, row->cached_counter, dtime, counter, row->bits, &counter_diff, &rate);
                                         if (rate < row->speed) {
-                                                struct db_insert *insert = db_insert_for_table(inserts, row->table);
-                                                db_insert_push_value(insert, row->id, counter_diff, rate, dtime);
+                                                struct clinsert *insert = clinsert_for_table(inserts, row->table);
+                                                clinsert_push_value(insert, row->id, counter_diff, rate, dtime);
                                         }
                                 }
                                 row->cached_time = dtime;
@@ -133,11 +88,4 @@ struct db_insert **get_db_inserts(struct queryhost *host)
         pthread_mutex_unlock(&global_lock);
 
         return inserts;
-}
-
-unsigned num_inserts(struct db_insert **inserts)
-{
-        int count;
-        for (count = 0; inserts[count] && count < MAX_TABLES; count++) ;
-        return count;
 }

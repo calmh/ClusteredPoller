@@ -4,12 +4,13 @@
 #include <time.h>
 
 #include "clbuf.h"
-#include "multithread.h"
-#include "globals.h"
-#include "poller.h"
-#include "clsnmp.h"
-#include "queryablehost.h"
+#include "clinsert.h"
 #include "cllog.h"
+#include "clsnmp.h"
+#include "globals.h"
+#include "multithread.h"
+#include "poller.h"
+#include "queryablehost.h"
 #include "rtgtargets.h"
 
 void *poller_run(void *ptr)
@@ -56,9 +57,8 @@ void *poller_run(void *ptr)
                 while (!thread_stop_requested && (host = rtgtargets_next(targets))) {
                         cllog(2, "Thread %d picked host '%s'.", id, host->host);
                         // Process the host and get back a list of SQL updates to execute.
-                        struct db_insert **host_queries = get_db_inserts(host);
-                        unsigned n_queries;
-                        for (n_queries = 0; host_queries[n_queries]; n_queries++) ;
+                        struct clinsert **host_queries = get_clinserts(host);
+                        unsigned n_queries = clinsert_count(host_queries);
 
                         if (n_queries > 0) {
                                 cllog(2, "Thread %u queueing %u queries.", id, n_queries);

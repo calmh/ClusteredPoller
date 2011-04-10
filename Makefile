@@ -1,5 +1,6 @@
 OBJS = src/clbuf.o \
 	src/clgstr.o \
+	src/clinsert.o \
 	src/cllog.o \
 	src/clsnmp.o \
 	src/database.o \
@@ -14,6 +15,7 @@ OBJS = src/clbuf.o \
 
 TESTOBJS = src/clbuf.o \
 	src/clgstr.o \
+	src/clinsert.o \
 	src/cllog.o \
 	src/globals.o \
 	src/monitor.o \

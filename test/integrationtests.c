@@ -1,10 +1,11 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "clinsert.h"
+#include "cutest.h"
 #include "queryablehost.h"
 #include "rtgconf.h"
 #include "rtgtargets.h"
-#include "cutest.h"
 
 void calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cur_time, unsigned long long cur_counter, int bits, unsigned long long *counter_diff, unsigned *rate);
 
@@ -103,9 +104,9 @@ void TestResultSetForOneHost(CuTest *tc)
         struct rtgconf *conf = rtgconf_create("test/example-rtg.conf");
         struct rtgtargets *hosts = rtgtargets_parse("test/example-targets.cfg", conf);
 
-        struct db_insert **inserts = get_db_inserts(hosts->hosts[0]);
+        struct clinsert **inserts = get_clinserts(hosts->hosts[0]);
         sleep(1);
-        inserts = get_db_inserts(hosts->hosts[0]);
+        inserts = get_clinserts(hosts->hosts[0]);
 
         CuAssertTrue(tc, NULL != inserts[0]);   // One table
         CuAssertTrue(tc, NULL == inserts[1]);   // Not two tables
