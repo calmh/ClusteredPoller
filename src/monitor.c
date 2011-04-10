@@ -37,7 +37,7 @@ void *monitor_run(void *ptr)
                                 cllog(1, " %6.02f seconds elapsed", elapsed);
                                 cllog(1, " %6d SNMP queries made (%.01f queries/s)", statistics.snmp_success + statistics.snmp_fail, (statistics.snmp_success + statistics.snmp_fail) / elapsed);
                                 cllog(1, " %6d of those queries failed", statistics.snmp_fail);
-                                cllog(1, " %6d database inserts queued (%.01f queries/s)", statistics.insert_queries - statistics.dropped_queries, (statistics.insert_queries - statistics.insert_queries) / elapsed);
+                                cllog(1, " %6d database inserts queued (%.01f queries/s)", statistics.insert_queries - statistics.dropped_queries, (statistics.insert_queries - statistics.dropped_queries) / elapsed);
                                 cllog(1, " %6d inserts were dropped due to lack of buffer space", statistics.dropped_queries);
                                 cllog(1, " %6d entries maximum queue size (%.01f %% full)", statistics.max_queue_depth, 100.0 * statistics.max_queue_depth / config->max_db_queue);
                                 cllog(1, " %6.02f seconds until next iteration", to_sleep);
@@ -52,7 +52,9 @@ void *monitor_run(void *ptr)
                         in_iteration = 0;
 
                         struct timespec sleep_spec = { interval - now.tv_sec - 1, 1000000000l - now.tv_usec * 1000 };
-                        nanosleep(&sleep_spec, NULL);
+                        pthread_mutex_lock(&global_lock);
+                        pthread_cond_timedwait(&global_cond, &global_lock, &sleep_spec);
+                        pthread_mutex_unlock(&global_lock);
                 }
 
                 gettimeofday(&now, NULL);
