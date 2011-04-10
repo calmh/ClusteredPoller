@@ -9,9 +9,9 @@
 void cllog(int level, const char *format, ...)
 {
         va_list ap;
-        char buffer[128];
+        char buffer[MAX_LINE_LENGTH];
         va_start(ap, format);
-        vsnprintf(buffer, 128, format, ap);
+        vsnprintf(buffer, MAX_LINE_LENGTH, format, ap);
         va_end(ap);
         if (verbosity >= level) {
                 pthread_mutex_lock(&cerr_lock);

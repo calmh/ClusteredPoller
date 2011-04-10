@@ -3,6 +3,7 @@
 
 struct rtgconf;
 
+// Thread context (parameters) for the database threads.
 struct database_ctx {
         struct rtgconf *config;
 };

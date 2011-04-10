@@ -3,6 +3,7 @@
 
 struct rtgtargets;
 
+// Thread context (parameters) for the poller threads.
 struct poller_ctx {
         struct rtgtargets *targets;
 };
