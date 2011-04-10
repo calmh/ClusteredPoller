@@ -123,6 +123,12 @@ MYSQL *connection(struct rtgconf *config)
                 return NULL;
         }
 
+        int result = mysql_query(conn, "SET time_zone = '+00:00'");
+        if (result != 0) {
+                cllog(0, "MySQL error %u: %s", mysql_errno(conn), mysql_error(conn));
+                return NULL;
+        }
+
         my_bool reconnect = 1;
         mysql_options(conn, MYSQL_OPT_RECONNECT, &reconnect);
         mysql_autocommit(conn, 0);
@@ -141,26 +147,37 @@ char *build_insert_query(struct db_insert *insert, struct rtgconf *config)
                 clgstr_append(gs, " (id, dtime, counter) VALUES ");
 
         int rows = 0;
-        char buffer[16];
+        const int buffer_length = 32;
+        char buffer[buffer_length + 1];
         unsigned i;
         for (i = 0; i < insert->nvalues; i++) {
                 if (config->allow_db_zero || insert->values[i].rate) {
                         if (rows > 0)
                                 clgstr_append(gs, ", ");
+
+                        // ID
                         clgstr_append(gs, "(");
-                        snprintf(buffer, 15, "%u", insert->values[i].id);
+                        snprintf(buffer, buffer_length, "%u", insert->values[i].id);
                         clgstr_append(gs, buffer);
-                        clgstr_append(gs, ", FROM_UNIXTIME(");
-                        snprintf(buffer, 15, "%lu", insert->values[i].dtime);
+
+                        // Time stamp, in UTC
+                        clgstr_append(gs, ", '");
+                        struct tm *utc_timestamp = gmtime(&insert->values[i].dtime);
+                        strftime(buffer, buffer_length, "%Y-%m-%d %H:%M:%S", utc_timestamp);
                         clgstr_append(gs, buffer);
-                        clgstr_append(gs, "), ");
-                        snprintf(buffer, 15, "%llu", insert->values[i].counter);
+
+                        // Counter
+                        clgstr_append(gs, "', ");
+                        snprintf(buffer, buffer_length, "%llu", insert->values[i].counter);
                         clgstr_append(gs, buffer);
+
                         if (config->use_rate_column) {
+                                // Rate
                                 clgstr_append(gs, ", ");
-                                snprintf(buffer, 15, "%u", insert->values[i].rate);
+                                snprintf(buffer, buffer_length, "%u", insert->values[i].rate);
                                 clgstr_append(gs, buffer);
                         }
+
                         clgstr_append(gs, ")");
                         rows++;
                 }
