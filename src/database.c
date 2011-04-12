@@ -15,8 +15,8 @@
 
 #define COMMIT_INTERVAL 100
 
-void process_database_queue(MYSQL *conn, struct rtgconf *config);
-void print_database_queue(struct rtgconf *config);
+unsigned process_database_queue(MYSQL *conn, struct rtgconf *config);
+unsigned print_database_queue(struct rtgconf *config);
 MYSQL *connection(struct rtgconf *config);
 char *build_insert_query(struct clinsert *insert, struct rtgconf *config);
 
@@ -30,8 +30,12 @@ void *database_run(void *ptr)
         MYSQL *conn = 0;
 
         while (!thread_stop_requested) {
+                struct timeval start_ts;
+                gettimeofday(&start_ts, NULL);
+                unsigned query_counter = 0;
+
                 if (!config->use_db) {
-                        print_database_queue(config);
+                        query_counter = print_database_queue(config);
                 } else {
                         if (!conn) {
                                 cllog(1, "DB thread %d connecting to MySQL.", my_id);
@@ -47,7 +51,15 @@ void *database_run(void *ptr)
                                 continue;
                         }
 
-                        process_database_queue(conn, config);
+                        query_counter = process_database_queue(conn, config);
+                }
+
+                if (query_counter > 0) {
+                        struct timeval end_ts;
+                        gettimeofday(&end_ts, NULL);
+                        unsigned runtime_ms = (end_ts.tv_sec - start_ts.tv_sec) * 1000 + (end_ts.tv_usec - start_ts.tv_usec) / 1000;
+                        double tps = 1000.0 * query_counter / (double) runtime_ms;
+                        cllog(2, " %6u queries in %6u ms (%.f queries/s) executed on DB by thread %d", query_counter, runtime_ms, tps, my_id);
                 }
                 sleep(1);
         }
@@ -61,7 +73,7 @@ void *database_run(void *ptr)
         return 0;
 }
 
-void process_database_queue(MYSQL *conn, struct rtgconf *config)
+unsigned process_database_queue(MYSQL *conn, struct rtgconf *config)
 {
         unsigned query_counter = 0;
 
@@ -92,10 +104,13 @@ void process_database_queue(MYSQL *conn, struct rtgconf *config)
                 mysql_commit(conn);
                 cllog(2, "DB thread committed transaction at end of run (query_counter = %u).", query_counter);
         }
+
+        return query_counter;
 }
 
-void print_database_queue(struct rtgconf *config)
+unsigned print_database_queue(struct rtgconf *config)
 {
+        unsigned counter = 0;
         while (clbuf_count_used(queries) > 0) {
                 struct clinsert *insert = (struct clinsert *) clbuf_pop(queries);
                 if (insert) {
@@ -103,10 +118,13 @@ void print_database_queue(struct rtgconf *config)
                         if (query) {
                                 cllog(3, "%s", query);
                                 free(query);
+                                counter++;
                         }
                         clinsert_free(insert);
                 }
         }
+
+        return counter;
 }
 
 MYSQL *connection(struct rtgconf *config)
