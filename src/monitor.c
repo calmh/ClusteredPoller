@@ -4,7 +4,6 @@
 #include "clbuf.h"
 #include "cllog.h"
 #include "monitor.h"
-#include "queryablehost.h"
 #include "globals.h"
 #include "rtgtargets.h"
 #include "multithread.h"

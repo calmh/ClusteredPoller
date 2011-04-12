@@ -9,7 +9,6 @@ OBJS = src/clbuf.o \
 	src/monitor.o \
 	src/multithread.o \
 	src/poller.o \
-	src/queryablehost.o \
 	src/rtgconf.o \
 	src/rtgtargets.o
 
@@ -21,7 +20,6 @@ TESTOBJS = src/clbuf.o \
 	src/monitor.o \
 	src/multithread.o \
 	src/poller.o \
-	src/queryablehost.o \
 	src/rtgconf.o \
 	src/rtgtargets.o \
 	test/clbuftests.o \

@@ -23,14 +23,14 @@ struct clbuf;
 
 /// Object to hold statistics per polling interval.
 struct statistics {
-        unsigned insert_rows; ///< Number of rows inserted.
-        unsigned insert_queries; ///< Number of queries queued.
-        unsigned dropped_queries; ///< Number of queries that couldn't be queued due to lack of buffer space.
-        unsigned iterations; ///< Number of polling iterations completed. Increases by one every polling interval.
-        unsigned snmp_fail; ///< Number of SNMP queries that failed.
-        unsigned snmp_success; ///< Number of SNMP queries that were successfull.
-        unsigned max_queue_depth;  ///< Maximum database queue depth seen during last polling interval.
-        struct timeval query_threads_finished; ///< Timestamp when all poller threads were complete.
+        unsigned insert_rows;   ///< Number of rows inserted.
+        unsigned insert_queries;        ///< Number of queries queued.
+        unsigned dropped_queries;       ///< Number of queries that couldn't be queued due to lack of buffer space.
+        unsigned iterations;    ///< Number of polling iterations completed. Increases by one every polling interval.
+        unsigned snmp_fail;     ///< Number of SNMP queries that failed.
+        unsigned snmp_success;  ///< Number of SNMP queries that were successfull.
+        unsigned max_queue_depth;       ///< Maximum database queue depth seen during last polling interval.
+        struct timeval query_threads_finished;  ///< Timestamp when all poller threads were complete.
 };
 
 /// Queue of outstanding database queries.

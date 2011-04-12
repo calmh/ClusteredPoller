@@ -10,7 +10,6 @@
 #include "cllog.h"
 #include "database.h"
 #include "globals.h"
-#include "queryablehost.h"
 #include "clgstr.h"
 #include "clinsert.h"
 

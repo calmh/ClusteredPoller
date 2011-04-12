@@ -3,9 +3,9 @@
 
 #include "clinsert.h"
 #include "cutest.h"
-#include "queryablehost.h"
 #include "rtgconf.h"
 #include "rtgtargets.h"
+#include "poller.h"
 
 void calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cur_time, unsigned long long cur_counter, int bits, unsigned long long *counter_diff, unsigned *rate);
 

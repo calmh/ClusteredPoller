@@ -42,10 +42,6 @@ struct clinsert {
 /// @return An existing object if there is one in **inserts, or a new one will be created an added to the list **inserts.
 struct clinsert *clinsert_for_table(struct clinsert **inserts, char *table);
 
-// Get all inserts for the specified host for this polling interval.
-// Will cause a lot of SNMP queries etc to happen.
-struct clinsert **get_clinserts(struct queryhost *host);
-
 // Free a clinsert object.
 void clinsert_free(struct clinsert *insert);
 

@@ -4,9 +4,9 @@
 #include "clinsert.h"
 #include "cutest.h"
 #include "globals.h"
-#include "queryablehost.h"
 #include "rtgconf.h"
 #include "rtgtargets.h"
+#include "poller.h"
 
 void mock_set_speed(unsigned int newspeed);     // From snmp-mock.c
 
