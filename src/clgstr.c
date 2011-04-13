@@ -39,3 +39,8 @@ void clgstr_append(struct clgstr *gs, const char *str)
         gs->length += add_len;
         gs->string[gs->length] = '\0';
 }
+
+char *clgstr_string(struct clgstr *gs)
+{
+        return gs->string;
+}

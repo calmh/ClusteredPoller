@@ -1,5 +1,6 @@
 OBJS = src/clbuf.o \
 	src/clgstr.o \
+	src/clinsert.o \
 	src/cllog.o \
 	src/clsnmp.o \
 	src/database.o \
@@ -8,18 +9,17 @@ OBJS = src/clbuf.o \
 	src/monitor.o \
 	src/multithread.o \
 	src/poller.o \
-	src/queryablehost.o \
 	src/rtgconf.o \
 	src/rtgtargets.o
 
 TESTOBJS = src/clbuf.o \
 	src/clgstr.o \
+	src/clinsert.o \
 	src/cllog.o \
 	src/globals.o \
 	src/monitor.o \
 	src/multithread.o \
 	src/poller.o \
-	src/queryablehost.o \
 	src/rtgconf.o \
 	src/rtgtargets.o \
 	test/clbuftests.o \
@@ -71,11 +71,17 @@ $(TESTTARGET): $(TESTOBJS)
 test: $(TESTTARGET)
 	./$(TESTTARGET) long 2>/dev/null
 
+.PHONY: quicktest
 quicktest: $(TESTTARGET)
 	./$(TESTTARGET) 2>/dev/null
 
+.PHONY: clean
 clean:
-	rm -f $(OBJS) $(TESTOBJS) $(TARGET) $(TESTTARGET) $(TARGET)-dbg
+	rm -rf $(OBJS) $(TESTOBJS) $(TARGET) $(TESTTARGET) $(TARGET)-dbg doc
+
+.PHONY: doc
+doc:
+	doxygen doxygen.conf
 
 .PHONY: reformat
 reformat:
