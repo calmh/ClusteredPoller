@@ -52,11 +52,11 @@ int main(int argc, char *const argv[])
         int use_db = 1;
         int use_rate_column = 1;
         int allow_db_zero = 0;
-        int dbthreads_divisor = DEFAULT_DBTHREADS_DIVISOR;
         unsigned max_db_queue = DEFAULT_QUEUE_LENGTH;
+        int num_dbthreads = DEFAULT_NUM_DBTHREADS;
 
         int c;
-        while ((c = getopt(argc, argv, "c:dt:vzDOOT:Q:")) != -1) {
+        while ((c = getopt(argc, argv, "c:dt:vzDOOQ:W:")) != -1) {
                 switch (c) {
                 case 'c':
                         rtgconf_file = optarg;
@@ -87,10 +87,10 @@ int main(int argc, char *const argv[])
                                 exit(-1);
                         }
                         break;
-                case 'T':
-                        dbthreads_divisor = atoi(optarg);
-                        if (dbthreads_divisor < 1) {
-                                fprintf(stderr, "Error: minimum 1 poller thread per database thread (more recommended).\n");
+                case 'W':
+                        num_dbthreads = atoi(optarg);
+                        if (num_dbthreads < 1) {
+                                fprintf(stderr, "Error: you need at least one database thread.\n");
                                 help();
                                 exit(-1);
                         }
@@ -132,8 +132,8 @@ int main(int argc, char *const argv[])
                 config->use_db = use_db;
                 config->use_rate_column = use_rate_column;
                 config->allow_db_zero = allow_db_zero;
-                config->dbthreads_divisor = dbthreads_divisor;
                 config->max_db_queue = max_db_queue;
+                config->num_dbthreads = num_dbthreads;
 
                 // Read targets.cfg
                 struct rtgtargets *targets = rtgtargets_parse(targets_file, config);
@@ -169,7 +169,7 @@ void help()
         fprintf(stderr, " -D          Don't detach, run in foreground\n");
         fprintf(stderr, " -O          Use old database schema, no `rate` column\n");
         fprintf(stderr, " -Q <num>    Maximum database queue length [%d]\n", DEFAULT_QUEUE_LENGTH);
-        fprintf(stderr, " -T <num>    Number of poller threads per database thread [%d]\n", DEFAULT_DBTHREADS_DIVISOR);
+        fprintf(stderr, " -W <num>    Number of database threads [%d]\n", DEFAULT_NUM_DBTHREADS);
         fprintf(stderr, "\n");
 }
 
@@ -181,13 +181,10 @@ void run_threads(struct rtgtargets *targets, struct rtgconf *config)
         statistics.insert_queries = 0;
         statistics.iterations = 0;
 
-        unsigned num_dbthreads = config->threads / config->dbthreads_divisor;
-        num_dbthreads = num_dbthreads ? num_dbthreads : 1;
-
         queries = clbuf_create(config->max_db_queue);
 
         struct mt_threads *poller_threads = create_poller_threads(config->threads, targets);
-        struct mt_threads *database_threads = create_database_threads(num_dbthreads, config);
+        struct mt_threads *database_threads = create_database_threads(config->num_dbthreads, config);
         struct mt_threads *monitor_thread = create_monitor_thread(targets, config);
 
         mt_threads_join(database_threads);

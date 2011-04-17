@@ -18,13 +18,16 @@
 #define MIN_QUEUE_LENGTH 100
 /// Default database queue length.
 #define DEFAULT_QUEUE_LENGTH 10000
-/// Default divisor to use to calculate number of database threads:
-/// num_db_threads = num_poller_threads / dbthreads_divisor
-#define DEFAULT_DBTHREADS_DIVISOR 8
+/// Default number of database threads.
+#define DEFAULT_NUM_DBTHREADS 1
 /// Default path to RTG configuration file.
 #define DEFAULT_RTGCONF_FILE "/usr/local/rtg/etc/rtg.conf"
 /// Default path to RTG targets file.
 #define DEFAULT_TARGETS_FILE "/usr/local/rtg/etc/targets.cfg"
+/// Default polling interval.
+#define DEFAULT_INTERVAL 300    // seconds
+/// Default number of poller threads.
+#define DEFAULT_THREADS 8
 
 struct clbuf;
 

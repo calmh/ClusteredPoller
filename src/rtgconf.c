@@ -10,8 +10,9 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "rtgconf.h"
 #include "cllog.h"
+#include "globals.h"
+#include "rtgconf.h"
 #include "xmalloc.h"
 
 struct rtgconf *rtgconf_create(const char *filename)
@@ -26,12 +27,13 @@ struct rtgconf *rtgconf_create(const char *filename)
         char *line;
 
         struct rtgconf *conf = (struct rtgconf *) xmalloc(sizeof(struct rtgconf));
-        conf->interval = 300;
-        conf->threads = 4;
+        conf->interval = DEFAULT_INTERVAL;
+        conf->threads = DEFAULT_THREADS;
         conf->dbhost = NULL;
         conf->database = NULL;
         conf->dbuser = NULL;
         conf->dbpass = NULL;
+        conf->num_dbthreads = DEFAULT_NUM_DBTHREADS;
 
         while ((line = fgets(buffer, 512, fileptr))) {
                 /* Terminate line at first comment character. */
