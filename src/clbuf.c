@@ -10,11 +10,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+
 #include "clbuf.h"
+#include "xmalloc.h"
 
 struct clbuf *clbuf_create(unsigned size)
 {
-        struct clbuf *cb = (struct clbuf *) malloc(sizeof(struct clbuf));
+        struct clbuf *cb = (struct clbuf *) xmalloc(sizeof(struct clbuf));
 
         // Initialize the lock as a recursive lock.
         pthread_mutexattr_t mta;
@@ -26,7 +28,7 @@ struct clbuf *clbuf_create(unsigned size)
         cb->allocated_size = size;
         cb->read_index = 0;
         cb->write_index = 0;
-        cb->buffer = (void **) malloc(sizeof(void *) * size);
+        cb->buffer = (void **) xmalloc(sizeof(void *) * size);
         memset(cb->buffer, 0, sizeof(void *) * size);
         return cb;
 }

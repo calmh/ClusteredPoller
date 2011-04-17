@@ -23,9 +23,9 @@ struct clgstr {
 };
 
 /// Create a new clgstr object.
-/// @param preallocate The size to reserve space for from the beginning.
+/// @param pxreallocate The size to reserve space for from the beginning.
 /// @return A new clgstr object.
-struct clgstr *clgstr_create(size_t preallocate);
+struct clgstr *clgstr_create(size_t pxreallocate);
 
 /// Free a clgstr object.
 /// @param gs The clgstr object.

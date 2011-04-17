@@ -20,6 +20,7 @@
 #include "multithread.h"
 #include "poller.h"
 #include "rtgtargets.h"
+#include "xmalloc.h"
 
 #define MAXERRORSPERHOST 3
 
@@ -137,7 +138,7 @@ void calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cu
 
 struct clinsert **get_clinserts(struct queryhost *host)
 {
-        struct clinsert **inserts = (struct clinsert **) malloc(sizeof(struct clinsert *) * MAX_TABLES);
+        struct clinsert **inserts = (struct clinsert **) xmalloc(sizeof(struct clinsert *) * MAX_TABLES);
         memset(inserts, 0, sizeof(struct clinsert *) * MAX_TABLES);
 
         // Start a new SNMP session.

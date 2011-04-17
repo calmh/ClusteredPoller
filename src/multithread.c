@@ -9,15 +9,14 @@
 #include <pthread.h>
 
 #include "multithread.h"
+#include "xmalloc.h"
 
 #define THREAD_STACK_SIZE (256*1024)
 
 struct mt_threads *mt_threads_create(unsigned nthreads)
 {
-        struct mt_threads *threads = (struct mt_threads *) malloc(sizeof(struct mt_threads));
-        if (!threads)
-                return NULL;
-        threads->contexts = (struct mt_context *) malloc(sizeof(struct mt_context) * nthreads);
+        struct mt_threads *threads = (struct mt_threads *) xmalloc(sizeof(struct mt_threads));
+        threads->contexts = (struct mt_context *) xmalloc(sizeof(struct mt_context) * nthreads);
         threads->nthreads = nthreads;
         unsigned i;
         for (i = 0; i < nthreads; i++)

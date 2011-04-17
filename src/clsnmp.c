@@ -12,6 +12,7 @@
 #include <pthread.h>
 
 #include "clsnmp.h"
+#include "xmalloc.h"
 
 static pthread_mutex_t clsnmp_lock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -29,7 +30,7 @@ struct clsnmp_session *clsnmp_session_create(const char *host, const char *commu
                 return NULL;
 
         pthread_mutex_lock(&clsnmp_lock);
-        struct clsnmp_session *session = (struct clsnmp_session *) malloc(sizeof(struct clsnmp_session));
+        struct clsnmp_session *session = (struct clsnmp_session *) xmalloc(sizeof(struct clsnmp_session));
         snmp_sess_init(&session->session);
         session->session.peername = (char *) host;
         session->session.community = (u_char *) community;

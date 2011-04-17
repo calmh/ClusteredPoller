@@ -24,6 +24,7 @@
 #include "multithread.h"
 #include "rtgtargets.h"
 #include "rtgconf.h"
+#include "xmalloc.h"
 
 /// @file main.c Main startup
 /// @mainpage Clustered Poller
@@ -207,7 +208,7 @@ struct mt_threads *create_poller_threads(unsigned nthreads, struct rtgtargets *t
         struct mt_threads *poller_threads = mt_threads_create(nthreads);
         unsigned i;
         for (i = 0; i < nthreads; i++) {
-                struct poller_ctx *ctx = (struct poller_ctx *) malloc(sizeof(struct poller_ctx));
+                struct poller_ctx *ctx = (struct poller_ctx *) xmalloc(sizeof(struct poller_ctx));
                 ctx->targets = targets;
                 poller_threads->contexts[i].param = ctx;
         }
@@ -221,7 +222,7 @@ struct mt_threads *create_database_threads(unsigned nthreads, struct rtgconf *co
         cllog(1, "Starting %d database threads.", nthreads);
         struct mt_threads *database_threads = mt_threads_create(nthreads);
         for (i = 0; i < nthreads; i++) {
-                struct database_ctx *ctx = (struct database_ctx *) malloc(sizeof(struct database_ctx));
+                struct database_ctx *ctx = (struct database_ctx *) xmalloc(sizeof(struct database_ctx));
                 ctx->config = config;
                 database_threads->contexts[i].param = ctx;
         }
@@ -233,7 +234,7 @@ struct mt_threads *create_monitor_thread(struct rtgtargets *targets, struct rtgc
 {
         cllog(1, "Starting monitor thread.");
         struct mt_threads *monitor_threads = mt_threads_create(1);
-        struct monitor_ctx *ctx = (struct monitor_ctx *) malloc(sizeof(struct monitor_ctx));
+        struct monitor_ctx *ctx = (struct monitor_ctx *) xmalloc(sizeof(struct monitor_ctx));
         ctx->targets = targets;
         ctx->config = config;
         monitor_threads->contexts[0].param = ctx;

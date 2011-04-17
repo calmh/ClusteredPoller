@@ -17,6 +17,7 @@
 #include "rtgtargets.h"
 #include "rtgconf.h"
 #include "cllog.h"
+#include "xmalloc.h"
 
 struct queryhost *read_host(FILE *fileptr, char *host_name, const struct rtgconf *conf);
 struct queryrow *read_row(FILE *fileptr, char *oid, const struct rtgconf *conf);
@@ -30,9 +31,9 @@ void queryhost_push_row(struct queryhost *host, struct queryrow *row);
 
 struct rtgtargets *rtgtargets_create()
 {
-        struct rtgtargets *targets = (struct rtgtargets *) malloc(sizeof(struct rtgtargets));
+        struct rtgtargets *targets = (struct rtgtargets *) xmalloc(sizeof(struct rtgtargets));
         targets->nhosts = 0;
-        targets->hosts = (struct queryhost **) malloc(sizeof(struct queryhost *) * 8);
+        targets->hosts = (struct queryhost **) xmalloc(sizeof(struct queryhost *) * 8);
         targets->allocated_space = 8;
         targets->ntargets = 0;
         targets->next_host = 0;
@@ -67,7 +68,7 @@ void rtgtargets_push_host(struct rtgtargets *targets, struct queryhost *host)
 {
         if (targets->nhosts == targets->allocated_space) {
                 unsigned new_size = targets->allocated_space * 1.5;
-                targets->hosts = (struct queryhost **) realloc(targets->hosts, sizeof(struct queryhost *) * new_size);
+                targets->hosts = (struct queryhost **) xrealloc(targets->hosts, sizeof(struct queryhost *) * new_size);
                 targets->allocated_space = new_size;
         }
         targets->hosts[targets->nhosts++] = host;
@@ -145,12 +146,12 @@ struct queryhost *read_host(FILE *fileptr, char *host_name, const struct rtgconf
 
 struct queryhost *queryhost_create()
 {
-        struct queryhost *host = (struct queryhost *) malloc(sizeof(struct queryhost));
+        struct queryhost *host = (struct queryhost *) xmalloc(sizeof(struct queryhost));
         host->host = "<uninitialized>";
         host->community = "<uninitialized>";
         host->snmpver = 0;
         host->nrows = 0;
-        host->rows = (struct queryrow **) malloc(sizeof(struct queryrow *) * 8);
+        host->rows = (struct queryrow **) xmalloc(sizeof(struct queryrow *) * 8);
         host->allocated_rowspace = 8;
         return host;
 }
@@ -168,7 +169,7 @@ void queryhost_free(struct queryhost *host)
 
 struct queryrow *queryrow_create()
 {
-        struct queryrow *row = (struct queryrow *) malloc(sizeof(struct queryrow));
+        struct queryrow *row = (struct queryrow *) xmalloc(sizeof(struct queryrow));
         row->oid = "<uninitialized>";
         row->table = "<uninitialized>";
         row->id = 0;
@@ -190,7 +191,7 @@ void queryhost_push_row(struct queryhost *host, struct queryrow *row)
 {
         if (host->nrows == host->allocated_rowspace) {
                 unsigned new_size = host->allocated_rowspace * 1.5;
-                host->rows = (struct queryrow **) realloc(host->rows, sizeof(struct queryrow *) * new_size);
+                host->rows = (struct queryrow **) xrealloc(host->rows, sizeof(struct queryrow *) * new_size);
                 host->allocated_rowspace = new_size;
         }
         host->rows[host->nrows++] = row;
