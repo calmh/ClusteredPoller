@@ -1,3 +1,10 @@
+//
+//  ClusteredPoller
+//
+//  Created by Jakob Borg.
+//  Copyright 2011 Nym Networks. See LICENSE for terms.
+//
+
 #define _GNU_SOURCE
 
 #include <net-snmp/net-snmp-config.h>
@@ -5,15 +12,13 @@
 #include <pthread.h>
 
 #include "clsnmp.h"
+#include "xmalloc.h"
 
 static pthread_mutex_t clsnmp_lock = PTHREAD_MUTEX_INITIALIZER;
 
 void clsnmp_global_init()
 {
-        /* Shouldn't need to lock here since this should only happen once, but hey... */
-        pthread_mutex_lock(&clsnmp_lock);
         init_snmp("clpoll");
-        pthread_mutex_unlock(&clsnmp_lock);
 }
 
 struct clsnmp_session *clsnmp_session_create(const char *host, const char *community, int snmpver)
@@ -22,7 +27,7 @@ struct clsnmp_session *clsnmp_session_create(const char *host, const char *commu
                 return NULL;
 
         pthread_mutex_lock(&clsnmp_lock);
-        struct clsnmp_session *session = (struct clsnmp_session *) malloc(sizeof(struct clsnmp_session));
+        struct clsnmp_session *session = (struct clsnmp_session *) xmalloc(sizeof(struct clsnmp_session));
         snmp_sess_init(&session->session);
         session->session.peername = (char *) host;
         session->session.community = (u_char *) community;

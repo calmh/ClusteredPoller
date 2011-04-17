@@ -1,3 +1,10 @@
+//
+//  ClusteredPoller
+//
+//  Created by Jakob Borg.
+//  Copyright 2011 Nym Networks. See LICENSE for terms.
+//
+
 #ifndef CLSNMP_H
 #define CLSNMP_H
 
@@ -13,8 +20,8 @@
 /// @see clsnmp_session_free
 /// @see clsnmp_get
 struct clsnmp_session {
-        struct snmp_session session;
-        void *sessp;
+        struct snmp_session session;    ///< SNMP library session struct.
+        void *sessp;            ///< SNMP library session pointer.
 };
 
 /// Global initialization, needs to be called exactly once during program execution,
@@ -41,4 +48,4 @@ void clsnmp_session_free(struct clsnmp_session *session);
 /// @return Zero if successfull.
 int clsnmp_get(struct clsnmp_session *session, const char *oid_str, unsigned long long *counter, time_t *response_time);
 
-#endif                          /* CLSNMP_H */
+#endif /* CLSNMP_H */

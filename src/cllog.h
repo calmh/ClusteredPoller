@@ -1,3 +1,10 @@
+//
+//  ClusteredPoller
+//
+//  Created by Jakob Borg.
+//  Copyright 2011 Nym Networks. See LICENSE for terms.
+//
+
 #ifndef _UTIL_H
 #define _UTIL_H
 
@@ -12,6 +19,7 @@
 /// Accepts format string and arguments á la printf.
 /// Will log to syslog and console, depending on verbosity level.
 /// @param level Log level; 0 being critical, 1 information, 2 and higher are increasing levels of debug.
+/// @param format A printf-style format string.
 void cllog(int level, const char *format, ...);
 
 #endif

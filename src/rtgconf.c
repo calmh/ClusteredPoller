@@ -1,3 +1,10 @@
+//
+//  ClusteredPoller
+//
+//  Created by Jakob Borg.
+//  Copyright 2011 Nym Networks. See LICENSE for terms.
+//
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -5,6 +12,7 @@
 
 #include "rtgconf.h"
 #include "cllog.h"
+#include "xmalloc.h"
 
 struct rtgconf *rtgconf_create(const char *filename)
 {
@@ -17,7 +25,7 @@ struct rtgconf *rtgconf_create(const char *filename)
         char buffer[513];
         char *line;
 
-        struct rtgconf *conf = (struct rtgconf *) malloc(sizeof(struct rtgconf));
+        struct rtgconf *conf = (struct rtgconf *) xmalloc(sizeof(struct rtgconf));
         conf->interval = 300;
         conf->threads = 4;
         conf->dbhost = NULL;

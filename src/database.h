@@ -1,3 +1,10 @@
+//
+//  ClusteredPoller
+//
+//  Created by Jakob Borg.
+//  Copyright 2011 Nym Networks. See LICENSE for terms.
+//
+
 #ifndef DATABASE_H
 #define DATABASE_H
 
@@ -8,7 +15,7 @@ struct rtgconf;
 
 /// Thread context (parameters) for the database threads.
 struct database_ctx {
-        struct rtgconf *config;
+        struct rtgconf *config; ///< RTG.conf object.
 };
 
 /// Main loop for database thread.
@@ -16,4 +23,4 @@ struct database_ctx {
 /// @return NULL
 void *database_run(void *ptr);
 
-#endif                          /* DATABASE_H */
+#endif /* DATABASE_H */

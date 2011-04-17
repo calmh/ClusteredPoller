@@ -3,6 +3,7 @@
 -cli0 -d0 -di1 -nfc1 -i8 -ip0 -l80 -lp -npcs -nprs -npsl -sai
 -saf -saw -ncs -nsc -sob -nfca -cp33 -ss -ts8
 // And modifications to it
+-cp0
 --indent-level8
 --no-tabs
 --line-length256

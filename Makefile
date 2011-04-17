@@ -10,7 +10,8 @@ OBJS = src/clbuf.o \
 	src/multithread.o \
 	src/poller.o \
 	src/rtgconf.o \
-	src/rtgtargets.o
+	src/rtgtargets.o \
+	src/xmalloc.o
 
 TESTOBJS = src/clbuf.o \
 	src/clgstr.o \
@@ -22,6 +23,7 @@ TESTOBJS = src/clbuf.o \
 	src/poller.o \
 	src/rtgconf.o \
 	src/rtgtargets.o \
+	src/xmalloc.o \
 	test/clbuftests.o \
 	test/clsnmp-mock.o \
 	test/cutest.o \

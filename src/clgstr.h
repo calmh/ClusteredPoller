@@ -1,9 +1,8 @@
 //
-//  clgstr.h
 //  ClusteredPoller
 //
-//  Created by Jakob Borg on 2011-03-31.
-//  Copyright 2011 Nym Networks. All rights reserved.
+//  Created by Jakob Borg.
+//  Copyright 2011 Nym Networks. See LICENSE for terms.
 //
 
 #ifndef GSTRING_H
@@ -18,15 +17,15 @@
 /// @see clgstr_append
 /// @see clgstr_string
 struct clgstr {
-        size_t length;
-        size_t allocated;
-        char *string;
+        size_t length;          ///< Length of string.
+        size_t allocated;       ///< Allocated space in string buffer.
+        char *string;           ///< String buffer.
 };
 
 /// Create a new clgstr object.
-/// @param preallocate The size to reserve space for from the beginning.
+/// @param pxreallocate The size to reserve space for from the beginning.
 /// @return A new clgstr object.
-struct clgstr *clgstr_create(size_t preallocate);
+struct clgstr *clgstr_create(size_t pxreallocate);
 
 /// Free a clgstr object.
 /// @param gs The clgstr object.

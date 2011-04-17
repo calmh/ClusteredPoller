@@ -1,9 +1,8 @@
 //
-//  clbuf.h
-//  clpoll
+//  ClusteredPoller
 //
-//  Created by Jakob Borg on 2011-04-01.
-//  Copyright 2011 Nym Networks. All rights reserved.
+//  Created by Jakob Borg.
+//  Copyright 2011 Nym Networks. See LICENSE for terms.
 //
 
 #ifndef CLBUF_H
@@ -23,11 +22,11 @@
 /// @see clbuf_count_used
 /// @see clbuf_count_free
 struct clbuf {
-        pthread_mutex_t lock;
-        unsigned allocated_size;
-        unsigned read_index;
-        unsigned write_index;
-        void **buffer;
+        pthread_mutex_t lock;   ///< Lock for pushing and popping.
+        unsigned allocated_size;        ///< Allocated size of buffer.
+        unsigned read_index;    ///< Index pointer for reading.
+        unsigned write_index;   ///< Index pointer for writing.
+        void **buffer;          ///< Lis of buffered objects.
 };
 
 /// Create a new clbuf object.
@@ -57,4 +56,4 @@ unsigned clbuf_count_used(struct clbuf *cb);
 /// @param cb The clbuf object.
 unsigned clbuf_count_free(struct clbuf *cb);
 
-#endif                          /* CLBUF_H */
+#endif /* CLBUF_H */

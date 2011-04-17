@@ -1,23 +1,21 @@
 //
-//  clinsert.c
 //  ClusteredPoller
 //
-//  Created by Jakob Borg on 2011-04-10.
-//  Copyright 2011 Nym Networks. All rights reserved.
+//  Created by Jakob Borg.
+//  Copyright 2011 Nym Networks. See LICENSE for terms.
 //
 
 #include <stdlib.h>
 #include <string.h>
 
 #include "clinsert.h"
+#include "xmalloc.h"
 
 struct clinsert *clinsert_create(char *table)
 {
-        struct clinsert *insert = (struct clinsert *) malloc(sizeof(struct clinsert));
-        if (!insert)
-                return NULL;
+        struct clinsert *insert = (struct clinsert *) xmalloc(sizeof(struct clinsert));
         insert->table = table;
-        insert->values = (struct clinsert_value *) malloc(sizeof(struct clinsert_value) * 8);
+        insert->values = (struct clinsert_value *) xmalloc(sizeof(struct clinsert_value) * 8);
         insert->allocated_space = 8;
         insert->nvalues = 0;
         return insert;
@@ -33,7 +31,7 @@ void clinsert_push_value(struct clinsert *insert, unsigned id, unsigned long lon
 {
         if (insert->nvalues == insert->allocated_space) {
                 unsigned new_size = insert->allocated_space * 1.5;
-                insert->values = (struct clinsert_value *) realloc(insert->values, sizeof(struct clinsert_value) * new_size);
+                insert->values = (struct clinsert_value *) xrealloc(insert->values, sizeof(struct clinsert_value) * new_size);
                 insert->allocated_space = new_size;
         }
 
