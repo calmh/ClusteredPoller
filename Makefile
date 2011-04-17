@@ -39,7 +39,13 @@ TARGET := clpoll
 TESTTARGET := testrunner
 .SUFFIXES: .o .c
 
-CFLAGS ?= -Wall
+include version.mk
+GITVERSION:=$(shell git describe --always 2>/dev/null | sed 's/^v//')
+ifdef GITVERSION
+	VERSION = "$(GITVERSION)"
+endif
+
+CFLAGS ?= -Wall -DVERSION='$(VERSION)'
 
 OS = $(shell uname -s)
 ifeq ($(OS),Darwin)
@@ -92,7 +98,7 @@ reformat:
 
 .PHONY: version
 version:
-	echo "#define CLPOLL_VERSION \"${VERSION}\"" > src/version.h
+	echo "VERSION=\"${VERSION}\"" > version.mk
 
 %.o : %.c
 	$(CC) $(CFLAGS) -c $< -o $(patsubst %.c, %.o, $<)
