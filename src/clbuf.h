@@ -56,4 +56,4 @@ unsigned clbuf_count_used(struct clbuf *cb);
 /// @param cb The clbuf object.
 unsigned clbuf_count_free(struct clbuf *cb);
 
-#endif                          /* CLBUF_H */
+#endif /* CLBUF_H */

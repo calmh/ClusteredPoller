@@ -48,4 +48,4 @@ void clsnmp_session_free(struct clsnmp_session *session);
 /// @return Zero if successfull.
 int clsnmp_get(struct clsnmp_session *session, const char *oid_str, unsigned long long *counter, time_t *response_time);
 
-#endif                          /* CLSNMP_H */
+#endif /* CLSNMP_H */

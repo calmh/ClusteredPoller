@@ -19,7 +19,9 @@
 
 struct queryhost;
 
-/// An "insert value", i.e. what will become a table row after inserting into the database.
+/// An "insert value", what will become a table row after inserting into the database.
+/// @see clinsert_for_table
+/// @see clinsert_push_value
 struct clinsert_value {
         unsigned id;
         unsigned long long counter;
@@ -27,7 +29,11 @@ struct clinsert_value {
         time_t dtime;
 };
 
-/// An "insert", i.e. what will become a SQL INSERT query.
+/// An "insert", what will become a SQL INSERT query.
+/// @see clinsert_for_table
+/// @see clinsert_push_value
+/// @see clinsert_count
+/// @see clinsert_free
 struct clinsert {
         char *table;
         struct clinsert_value *values;
@@ -51,4 +57,4 @@ void clinsert_push_value(struct clinsert *insert, unsigned id, unsigned long lon
 // Count the number of clinserts in the list **inserts.
 unsigned clinsert_count(struct clinsert **inserts);
 
-#endif                          /* CLINSERT_H */
+#endif /* CLINSERT_H */

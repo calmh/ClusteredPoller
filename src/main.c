@@ -25,6 +25,9 @@
 #include "rtgtargets.h"
 #include "rtgconf.h"
 
+/// @file main.c Main startup
+/// @mainpage Clustered Poller
+
 void help();
 void run_threads(struct rtgtargets *targets, struct rtgconf *config);
 struct mt_threads *create_poller_threads(unsigned nthreads, struct rtgtargets *targets);

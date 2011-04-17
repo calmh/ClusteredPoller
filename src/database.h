@@ -23,4 +23,4 @@ struct database_ctx {
 /// @return NULL
 void *database_run(void *ptr);
 
-#endif                          /* DATABASE_H */
+#endif /* DATABASE_H */

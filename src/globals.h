@@ -62,4 +62,4 @@ extern pthread_mutex_t cerr_lock;
 /// Conditional used to broadcast "go!" to poller threads.
 extern pthread_cond_t global_cond;
 
-#endif                          /* GLOBALS_H */
+#endif /* GLOBALS_H */
