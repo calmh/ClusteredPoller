@@ -1,3 +1,10 @@
+//
+//  ClusteredPoller
+//
+//  Created by Jakob Borg.
+//  Copyright 2011 Nym Networks. See LICENSE for terms.
+//
+
 #ifndef MULTITHREAD_H_
 #define MULTITHREAD_H_
 

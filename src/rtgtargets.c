@@ -1,3 +1,10 @@
+//
+//  ClusteredPoller
+//
+//  Created by Jakob Borg.
+//  Copyright 2011 Nym Networks. See LICENSE for terms.
+//
+
 #define _XOPEN_SOURCE 500
 
 #include <stdlib.h>

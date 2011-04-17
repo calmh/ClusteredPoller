@@ -1,9 +1,8 @@
 //
-//  clgstr.c
 //  ClusteredPoller
 //
-//  Created by Jakob Borg on 2011-03-31.
-//  Copyright 2011 Nym Networks. All rights reserved.
+//  Created by Jakob Borg.
+//  Copyright 2011 Nym Networks. See LICENSE for terms.
 //
 
 #include <stdlib.h>

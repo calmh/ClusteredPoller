@@ -1,9 +1,8 @@
 //
-//  clinsert.h
 //  ClusteredPoller
 //
-//  Created by Jakob Borg on 2011-04-10.
-//  Copyright 2011 Nym Networks. All rights reserved.
+//  Created by Jakob Borg.
+//  Copyright 2011 Nym Networks. See LICENSE for terms.
 //
 
 #ifndef CLINSERT_H

@@ -1,3 +1,10 @@
+//
+//  ClusteredPoller
+//
+//  Created by Jakob Borg.
+//  Copyright 2011 Nym Networks. See LICENSE for terms.
+//
+
 #define _GNU_SOURCE
 
 #include <net-snmp/net-snmp-config.h>
