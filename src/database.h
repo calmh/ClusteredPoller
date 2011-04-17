@@ -15,7 +15,7 @@ struct rtgconf;
 
 /// Thread context (parameters) for the database threads.
 struct database_ctx {
-        struct rtgconf *config;
+        struct rtgconf *config; ///< RTG.conf object.
 };
 
 /// Main loop for database thread.

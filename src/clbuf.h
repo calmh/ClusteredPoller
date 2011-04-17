@@ -22,11 +22,11 @@
 /// @see clbuf_count_used
 /// @see clbuf_count_free
 struct clbuf {
-        pthread_mutex_t lock;
-        unsigned allocated_size;
-        unsigned read_index;
-        unsigned write_index;
-        void **buffer;
+        pthread_mutex_t lock;   ///< Lock for pushing and popping.
+        unsigned allocated_size;        ///< Allocated size of buffer.
+        unsigned read_index;    ///< Index pointer for reading.
+        unsigned write_index;   ///< Index pointer for writing.
+        void **buffer;          ///< Lis of buffered objects.
 };
 
 /// Create a new clbuf object.

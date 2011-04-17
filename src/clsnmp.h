@@ -20,8 +20,8 @@
 /// @see clsnmp_session_free
 /// @see clsnmp_get
 struct clsnmp_session {
-        struct snmp_session session;
-        void *sessp;
+        struct snmp_session session;    ///< SNMP library session struct.
+        void *sessp;            ///< SNMP library session pointer.
 };
 
 /// Global initialization, needs to be called exactly once during program execution,

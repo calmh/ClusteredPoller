@@ -17,9 +17,9 @@
 /// @see clgstr_append
 /// @see clgstr_string
 struct clgstr {
-        size_t length;
-        size_t allocated;
-        char *string;
+        size_t length;          ///< Length of string.
+        size_t allocated;       ///< Allocated space in string buffer.
+        char *string;           ///< String buffer.
 };
 
 /// Create a new clgstr object.
