@@ -231,7 +231,6 @@ struct mt_threads *create_monitor_thread(struct rtgtargets *targets, struct rtgc
         cllog(1, "Starting monitor thread.");
         struct mt_threads *monitor_threads = mt_threads_create(1);
         struct monitor_ctx *ctx = (struct monitor_ctx *) malloc(sizeof(struct monitor_ctx));
-        ctx->interval = config->interval;
         ctx->targets = targets;
         ctx->config = config;
         monitor_threads->contexts[0].param = ctx;

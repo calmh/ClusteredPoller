@@ -21,9 +21,9 @@ void *monitor_run(void *ptr)
         struct mt_context *thread_context = (struct mt_context *) ptr;
         struct monitor_ctx *monitor_context = (struct monitor_ctx *) thread_context->param;
 
-        unsigned poll_interval = monitor_context->interval;
         struct rtgtargets *targets = monitor_context->targets;
         struct rtgconf *config = monitor_context->config;
+        unsigned poll_interval = config->interval;
 
         time_t interval = 0;
         int in_iteration = 0;
