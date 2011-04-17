@@ -28,12 +28,15 @@ void clgstr_free(struct clgstr *gs)
 void clgstr_append(struct clgstr *gs, const char *str)
 {
         size_t add_len = strlen(str);
+
+        // Check to see if the appended string will fit in the current buffer,
+        // otherwise reallocate a larger buffer with enough space and some room to grow.
         if (gs->allocated < gs->length + add_len + 1) {
                 size_t new_size = (gs->allocated + add_len + 1) * 1.5;
                 gs->string = (char *) realloc(gs->string, new_size);
                 gs->allocated = new_size;
         }
-
+        // Copy the string to append into the buffer and add a terminating zero.
         memcpy(gs->string + gs->length, str, add_len);
         gs->length += add_len;
         gs->string[gs->length] = '\0';
