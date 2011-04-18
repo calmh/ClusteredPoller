@@ -26,7 +26,7 @@ struct clsnmp_session {
 
 /// Global initialization, needs to be called exactly once during program execution,
 /// prior to any other clsnmp usage.
-void clsnmp_global_init();
+void clsnmp_global_init(void);
 
 /// Create a new clsnmp_session towards the specified host with the specified community and version.
 /// @param host The host name or IP.

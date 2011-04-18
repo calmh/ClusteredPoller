@@ -28,7 +28,7 @@
 /// @file main.c Main startup
 /// @mainpage Clustered Poller
 
-void help();
+void help(void);
 void run_threads(struct rtgtargets *targets, struct rtgconf *config);
 struct mt_threads *create_poller_threads(unsigned nthreads, struct rtgtargets *targets);
 struct mt_threads *create_database_threads(unsigned nthreads, struct rtgconf *config);
@@ -36,7 +36,7 @@ struct mt_threads *create_monitor_thread(struct rtgtargets *targets, struct rtgc
 void free_threads_params(struct mt_threads *threads);
 void sighup_handler(int signum);
 void sigterm_handler(int signum);
-void daemonize();
+void daemonize(void);
 
 int main(int argc, char *const argv[])
 {
@@ -152,7 +152,7 @@ int main(int argc, char *const argv[])
         return 0;
 }
 
-void help()
+void help(void)
 {
         fprintf(stderr, "\n");
         fprintf(stderr, "clpoll v%s Copyright (c) 2009-2011 Jakob Borg\n", VERSION);
@@ -248,6 +248,7 @@ void free_threads_params(struct mt_threads *threads)
 
 void sighup_handler(int signum)
 {
+        (void) signum;
         cllog(0, "Received SIGHUP. Shutting down threads and reinitializing...");
         thread_stop_requested = 1;
         pthread_mutex_lock(&global_lock);
@@ -257,6 +258,7 @@ void sighup_handler(int signum)
 
 void sigterm_handler(int signum)
 {
+        (void) signum;
         cllog(0, "Received SIGTERM. Shutting down...");
         thread_stop_requested = 1;
         full_stop_requested = 1;
@@ -265,7 +267,7 @@ void sigterm_handler(int signum)
         pthread_mutex_unlock(&global_lock);
 }
 
-void daemonize()
+void daemonize(void)
 {
         pid_t pid, sid;
 

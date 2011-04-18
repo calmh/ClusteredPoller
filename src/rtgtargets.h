@@ -31,7 +31,7 @@ struct queryrow {
 
 /// Create a new queryrow object.
 /// @return A new queryrow object.
-struct queryrow *queryrow_create();
+struct queryrow *queryrow_create(void);
 
 /// Free a queryrow object.
 /// @param row The queryrow to free.
@@ -53,7 +53,7 @@ struct queryhost {
 
 /// Create a new queryhost object.
 /// @return A new queryhost object.
-struct queryhost *queryhost_create();
+struct queryhost *queryhost_create(void);
 
 /// Free a queryhost object.
 /// @param host The object to free.
@@ -76,7 +76,7 @@ struct rtgtargets {
 
 /// Create a new rtgtargets object.
 /// @return A new rtgtargets object.
-struct rtgtargets *rtgtargets_create();
+struct rtgtargets *rtgtargets_create(void);
 
 /// Parse a targets file, with extra parameters from the config object.
 /// @param filename The name of the targets file.

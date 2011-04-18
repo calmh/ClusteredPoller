@@ -45,7 +45,7 @@ ifdef GITVERSION
 	VERSION = "$(GITVERSION)"
 endif
 
-CFLAGS ?= -Wall -DVERSION='$(VERSION)'
+CFLAGS ?= -DVERSION='$(VERSION)'
 
 OS = $(shell uname -s)
 ifeq ($(OS),Darwin)
@@ -62,7 +62,8 @@ endif
 
 all: $(TARGET) quicktest
 
-$(TARGET): CFLAGS += -O2
+$(TARGET): CFLAGS += -O2 -std=c99 -pedantic -Wall -Wextra -Werror \
+   -fgnu89-inline # Needed because of Net-SNMP header problems
 $(TARGET): $(OBJS)
 	gcc $^ $(LDFLAGS) -o $@
 	strip $@

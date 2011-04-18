@@ -16,7 +16,7 @@
 
 static pthread_mutex_t clsnmp_lock = PTHREAD_MUTEX_INITIALIZER;
 
-void clsnmp_global_init()
+void clsnmp_global_init(void)
 {
         init_snmp("clpoll");
 }
