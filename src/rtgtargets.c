@@ -30,7 +30,7 @@ char *strclean(char *str);
 char *strunc(char *str);
 void queryhost_push_row(struct queryhost *host, struct queryrow *row);
 
-struct rtgtargets *rtgtargets_create()
+struct rtgtargets *rtgtargets_create(void)
 {
         struct rtgtargets *targets = (struct rtgtargets *) xmalloc(sizeof(struct rtgtargets));
         targets->nhosts = 0;
@@ -145,11 +145,11 @@ struct queryhost *read_host(FILE *fileptr, char *host_name, const struct rtgconf
         return host;
 }
 
-struct queryhost *queryhost_create()
+struct queryhost *queryhost_create(void)
 {
         struct queryhost *host = (struct queryhost *) xmalloc(sizeof(struct queryhost));
-        host->host = "<uninitialized>";
-        host->community = "<uninitialized>";
+        host->host = NULL;
+        host->community = NULL;
         host->snmpver = 0;
         host->nrows = 0;
         host->rows = (struct queryrow **) xmalloc(sizeof(struct queryrow *) * 8);
@@ -168,11 +168,11 @@ void queryhost_free(struct queryhost *host)
         free(host);
 }
 
-struct queryrow *queryrow_create()
+struct queryrow *queryrow_create(void)
 {
         struct queryrow *row = (struct queryrow *) xmalloc(sizeof(struct queryrow));
-        row->oid = "<uninitialized>";
-        row->table = "<uninitialized>";
+        row->oid = NULL;
+        row->table = NULL;
         row->id = 0;
         row->bits = 0;
         row->speed = 0;

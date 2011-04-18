@@ -41,7 +41,7 @@ void *poller_run(void *ptr)
 
                 // Mark ourself sleeping
                 if (iterations > 0)
-                        cllog(2, "Thread %d sleeping after %d s processing time.", id, end - start);
+                        cllog(2, "Thread %d sleeping after %u s processing time.", id, (unsigned) (end - start));
 
                 // Wait for green light.
                 pthread_mutex_lock(&global_lock);

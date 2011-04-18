@@ -13,6 +13,7 @@
 #include "globals.h"
 #include "cllog.h"
 
+__attribute__ ((format(printf, 2, 3)))
 void cllog(int level, const char *format, ...)
 {
         va_list ap;

@@ -143,7 +143,7 @@ MYSQL *connection(struct rtgconf *config)
                 return NULL;
         }
 
-        if (mysql_real_connect(conn, config->dbhost, config->dbuser, config->dbpass, config->database, 0, NULL, 0) == NULL) {
+        if (mysql_real_connect(conn, config->dbhost, config->dbuser, config->dbpass, config->database, 0, NULL, 0l) == NULL) {
                 cllog(0, "MySQL error %u: %s", mysql_errno(conn), mysql_error(conn));
                 return NULL;
         }
@@ -156,7 +156,7 @@ MYSQL *connection(struct rtgconf *config)
 
         my_bool reconnect = 1;
         mysql_options(conn, MYSQL_OPT_RECONNECT, &reconnect);
-        mysql_autocommit(conn, 0);
+        mysql_autocommit(conn, (my_bool) 0);
 
         return conn;
 }

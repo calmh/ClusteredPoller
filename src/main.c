@@ -46,8 +46,8 @@ int main(int argc, char *const argv[])
         }
 
         int detach = 1;
-        char *rtgconf_file = DEFAULT_RTGCONF_FILE;
-        char *targets_file = DEFAULT_TARGETS_FILE;
+        const char *rtgconf_file = DEFAULT_RTGCONF_FILE;
+        const char *targets_file = DEFAULT_TARGETS_FILE;
         int use_db = 1;
         int use_rate_column = 1;
         int allow_db_zero = 0;

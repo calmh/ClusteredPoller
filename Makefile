@@ -45,7 +45,8 @@ ifdef GITVERSION
 	VERSION = "$(GITVERSION)"
 endif
 
-CFLAGS ?= -DVERSION='$(VERSION)'
+# Net-SNMP uses C89 meaning of "extern inline", so we need -fgnu89-inline
+CFLAGS ?= -std=c99 -fgnu89-inline -DVERSION='$(VERSION)'
 
 OS = $(shell uname -s)
 ifeq ($(OS),Darwin)
@@ -62,13 +63,13 @@ endif
 
 all: $(TARGET) quicktest
 
-$(TARGET): CFLAGS += -O2 -std=c99 -pedantic -Wall -Wextra -Werror \
-   -fgnu89-inline # Needed because of Net-SNMP header problems
+$(TARGET): CFLAGS += -O2
 $(TARGET): $(OBJS)
 	gcc $^ $(LDFLAGS) -o $@
 	strip $@
 
-$(TARGET)-dbg: CFLAGS += -g
+debug: $(TARGET)-dbg quicktest
+$(TARGET)-dbg: CFLAGS += -g -pedantic -O1 -Wall -Wextra -Werror -Wwrite-strings -Winit-self -Wcast-align -Wpointer-arith -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -Wfloat-equal -Wswitch-default -Wswitch-enum -Wunused -Wshadow -Wcast-align -Wunreachable-code
 $(TARGET)-dbg: $(OBJS)
 	gcc $^ $(LDFLAGS) -o $@
 
