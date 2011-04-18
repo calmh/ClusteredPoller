@@ -56,8 +56,8 @@ else ifeq ($(OS),SunOS)
 	CC = gcc
 	CFLAGS += -pthreads $(shell /usr/mysql/bin/mysql_config --include)
 	LDFLAGS += -pthreads -lnetsnmp $(shell /usr/mysql/bin/mysql_config --libs | sed 's/-lCrun//' )
-else
-	CFLAGS += -pthread -I/usr/local/include $(shell mysql_config --include)
+else ifeq ($(OS),Linux)
+	CFLAGS += -pthread -D_XOPEN_SOURCE=500 -I/usr/local/include $(shell mysql_config --include)
 	LDFLAGS += -pthread -L/usr/local/lib -lnetsnmp $(shell mysql_config --libs)
 endif
 
@@ -69,7 +69,7 @@ $(TARGET): $(OBJS)
 	strip $@
 
 debug: $(TARGET)-dbg quicktest
-$(TARGET)-dbg: CFLAGS += -g -pedantic -O1 -Wall -Wextra -Werror -Wwrite-strings -Winit-self -Wcast-align -Wpointer-arith -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -Wfloat-equal -Wswitch-default -Wswitch-enum -Wunused -Wshadow -Wcast-align -Wunreachable-code
+$(TARGET)-dbg: CFLAGS += -g -pedantic -O1 -Wall -Wextra -Werror -Wwrite-strings -Winit-self -Wcast-align -Wpointer-arith -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -Wfloat-equal -Wswitch-default -Wswitch-enum -Wunused -Wshadow -Wcast-align
 $(TARGET)-dbg: $(OBJS)
 	gcc $^ $(LDFLAGS) -o $@
 
