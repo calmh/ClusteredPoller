@@ -5,8 +5,6 @@
 //  Copyright 2011 Nym Networks. See LICENSE for terms.
 //
 
-#define _GNU_SOURCE
-
 #include <string.h>
 #include <time.h>
 #include <stdio.h>

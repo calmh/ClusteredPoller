@@ -5,8 +5,6 @@
 //  Copyright 2011 Nym Networks. See LICENSE for terms.
 //
 
-#define _GNU_SOURCE
-
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/net-snmp-includes.h>
 #include <pthread.h>
