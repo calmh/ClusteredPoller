@@ -148,12 +148,6 @@ MYSQL *connection(struct rtgconf *config)
                 return NULL;
         }
 
-        int result = mysql_query(conn, "SET time_zone = '+00:00'");
-        if (result != 0) {
-                cllog(0, "MySQL error %u: %s", mysql_errno(conn), mysql_error(conn));
-                return NULL;
-        }
-
         my_bool reconnect = 1;
         mysql_options(conn, MYSQL_OPT_RECONNECT, &reconnect);
         mysql_autocommit(conn, (my_bool) 0);
@@ -173,7 +167,7 @@ char *build_insert_query(struct clinsert *insert, struct rtgconf *config)
 
         int rows = 0;
         const int buffer_length = 32;
-        char buffer[buffer_length + 1];
+        char buffer[buffer_length];
         unsigned i;
         for (i = 0; i < insert->nvalues; i++) {
                 if (config->allow_db_zero || insert->values[i].rate) {
@@ -186,10 +180,10 @@ char *build_insert_query(struct clinsert *insert, struct rtgconf *config)
                         clgstr_append(gs, buffer);
 
                         // Time stamp, in UTC
-                        clgstr_append(gs, ", '");
-                        struct tm *utc_timestamp = gmtime(&insert->values[i].dtime);
-                        strftime(buffer, buffer_length, "%Y-%m-%d %H:%M:%S", utc_timestamp);
+                        clgstr_append(gs, ", FROM_UNIXTIME(");
+                        snprintf(buffer, buffer_length, "%lu", insert->values[i].dtime);
                         clgstr_append(gs, buffer);
+                        clgstr_append(gs, "), ");
 
                         // Counter
                         clgstr_append(gs, "', ");
