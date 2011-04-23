@@ -202,7 +202,7 @@ char *build_insert_query(struct clinsert *insert, struct rtgconf *config)
                 }
         }
         if (rows > 0) {
-                char *return_str = strdup(gs->string);
+                char *return_str = strdup(clgstr_string(gs));
                 clgstr_free(gs);
                 return return_str;
         } else {

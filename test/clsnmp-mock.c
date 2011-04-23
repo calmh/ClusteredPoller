@@ -1,5 +1,10 @@
 #include "clsnmp.h"
 
+struct clsnmp_session {
+        struct snmp_session session;
+        void *sessp;
+};
+
 unsigned int speed = 1000000 / 8;
 
 void mock_set_speed(unsigned int newspeed)

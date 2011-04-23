@@ -9,25 +9,12 @@
 #define CLBUF_H
 
 /// @file clbuf.h
-/// A circular buffer object.
-
-#include <pthread.h>
-
 /// A circular buffer, storing pointers (void*) to some opaque object.
 /// The actual object at the end of the stored pointer is never touched or freed.
-/// @see clbuf_create
-/// @see clbuf_free
-/// @see clbuf_push
-/// @see clbuf_pop
-/// @see clbuf_count_used
-/// @see clbuf_count_free
-struct clbuf {
-        pthread_mutex_t lock;   ///< Lock for pushing and popping.
-        unsigned allocated_size;        ///< Allocated size of buffer.
-        unsigned read_index;    ///< Index pointer for reading.
-        unsigned write_index;   ///< Index pointer for writing.
-        void **buffer;          ///< Lis of buffered objects.
-};
+
+struct clbuf;
+
+#include <pthread.h>
 
 /// Create a new clbuf object.
 /// @param size The maximum number of entries the buffer can hold.

@@ -5,12 +5,18 @@
 //  Copyright 2011 Nym Networks. See LICENSE for terms.
 //
 
+#include "clsnmp.h"
+
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/net-snmp-includes.h>
 #include <pthread.h>
 
-#include "clsnmp.h"
 #include "xmalloc.h"
+
+struct clsnmp_session {
+        struct snmp_session session;    // SNMP library session struct.
+        void *sessp;            // SNMP library session pointer.
+};
 
 static pthread_mutex_t clsnmp_lock = PTHREAD_MUTEX_INITIALIZER;
 
