@@ -174,8 +174,10 @@ char *build_insert_query(struct clinsert *insert, struct rtgconf *config)
                         if (rows > 0)
                                 clgstr_append(gs, ", ");
 
-                        // ID
+                        // Begin series
                         clgstr_append(gs, "(");
+
+                        // ID
                         snprintf(buffer, buffer_length, "%u", insert->values[i].id);
                         clgstr_append(gs, buffer);
 
@@ -183,10 +185,10 @@ char *build_insert_query(struct clinsert *insert, struct rtgconf *config)
                         clgstr_append(gs, ", FROM_UNIXTIME(");
                         snprintf(buffer, buffer_length, "%lu", insert->values[i].dtime);
                         clgstr_append(gs, buffer);
-                        clgstr_append(gs, "), ");
+                        clgstr_append(gs, ")");
 
                         // Counter
-                        clgstr_append(gs, "', ");
+                        clgstr_append(gs, ", ");
                         snprintf(buffer, buffer_length, "%llu", insert->values[i].counter);
                         clgstr_append(gs, buffer);
 
@@ -196,7 +198,7 @@ char *build_insert_query(struct clinsert *insert, struct rtgconf *config)
                                 snprintf(buffer, buffer_length, "%u", insert->values[i].rate);
                                 clgstr_append(gs, buffer);
                         }
-
+                        // End series
                         clgstr_append(gs, ")");
                         rows++;
                 }
