@@ -14,19 +14,11 @@
 /// @file clsnmp.h
 /// Clpoll SNMP wrapper.
 
-/// An object representing a session to a certain host.
-/// @see clsnmp_global_init
-/// @see clsnmp_session_create
-/// @see clsnmp_session_free
-/// @see clsnmp_get
-struct clsnmp_session {
-        struct snmp_session session;    ///< SNMP library session struct.
-        void *sessp;            ///< SNMP library session pointer.
-};
+struct clsnmp_session;
 
 /// Global initialization, needs to be called exactly once during program execution,
 /// prior to any other clsnmp usage.
-void clsnmp_global_init();
+void clsnmp_global_init(void);
 
 /// Create a new clsnmp_session towards the specified host with the specified community and version.
 /// @param host The host name or IP.

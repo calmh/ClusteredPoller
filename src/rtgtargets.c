@@ -5,8 +5,6 @@
 //  Copyright 2011 Nym Networks. See LICENSE for terms.
 //
 
-#define _XOPEN_SOURCE 500
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -22,6 +20,7 @@
 struct queryhost *read_host(FILE *fileptr, char *host_name, const struct rtgconf *conf);
 struct queryrow *read_row(FILE *fileptr, char *oid, const struct rtgconf *conf);
 int check_for_duplicate(struct queryhost *host, struct queryrow *row);
+void rtgtargets_push_host(struct rtgtargets *targets, struct queryhost *host);
 struct rtgtargets *read_new_style_targets(const char *filename, const struct rtgconf *conf);
 struct rtgtargets *read_old_style_targets(const char *filename, const struct rtgconf *conf);
 char *strtolower(char *str);
@@ -29,7 +28,7 @@ char *strclean(char *str);
 char *strunc(char *str);
 void queryhost_push_row(struct queryhost *host, struct queryrow *row);
 
-struct rtgtargets *rtgtargets_create()
+struct rtgtargets *rtgtargets_create(void)
 {
         struct rtgtargets *targets = (struct rtgtargets *) xmalloc(sizeof(struct rtgtargets));
         targets->nhosts = 0;
@@ -46,7 +45,7 @@ struct rtgtargets *rtgtargets_create()
 
 void rtgtargets_free(struct rtgtargets *targets)
 {
-        int i;
+        unsigned i;
         for (i = 0; i < targets->nhosts; i++)
                 queryhost_free(targets->hosts[i]);
         free(targets->hosts);
@@ -144,11 +143,11 @@ struct queryhost *read_host(FILE *fileptr, char *host_name, const struct rtgconf
         return host;
 }
 
-struct queryhost *queryhost_create()
+struct queryhost *queryhost_create(void)
 {
         struct queryhost *host = (struct queryhost *) xmalloc(sizeof(struct queryhost));
-        host->host = "<uninitialized>";
-        host->community = "<uninitialized>";
+        host->host = NULL;
+        host->community = NULL;
         host->snmpver = 0;
         host->nrows = 0;
         host->rows = (struct queryrow **) xmalloc(sizeof(struct queryrow *) * 8);
@@ -158,7 +157,7 @@ struct queryhost *queryhost_create()
 
 void queryhost_free(struct queryhost *host)
 {
-        int i;
+        unsigned i;
         for (i = 0; i < host->nrows; i++)
                 queryrow_free(host->rows[i]);
         free(host->host);
@@ -167,11 +166,11 @@ void queryhost_free(struct queryhost *host)
         free(host);
 }
 
-struct queryrow *queryrow_create()
+struct queryrow *queryrow_create(void)
 {
         struct queryrow *row = (struct queryrow *) xmalloc(sizeof(struct queryrow));
-        row->oid = "<uninitialized>";
-        row->table = "<uninitialized>";
+        row->oid = NULL;
+        row->table = NULL;
         row->id = 0;
         row->bits = 0;
         row->speed = 0;
@@ -324,7 +323,7 @@ struct rtgtargets *read_old_style_targets(const char *filename, const struct rtg
 
                 if (current_host == NULL) {
                         /* Look for an existing host. */
-                        int i;
+                        unsigned i;
                         for (i = 0; i < targets->nhosts; i++) {
                                 if (!strcmp(targets->hosts[i]->host, host)) {
                                         current_host = targets->hosts[i];

@@ -8,24 +8,17 @@
 #ifndef GSTRING_H
 #define GSTRING_H
 
+#include <stddef.h>
+
 /// @file clgstr.h
 /// An automatically growing string object.
 
-/// An automatically growing string object.
-/// @see clgstr_create
-/// @see clgstr_free
-/// @see clgstr_append
-/// @see clgstr_string
-struct clgstr {
-        size_t length;          ///< Length of string.
-        size_t allocated;       ///< Allocated space in string buffer.
-        char *string;           ///< String buffer.
-};
+struct clgstr;
 
 /// Create a new clgstr object.
 /// @param pxreallocate The size to reserve space for from the beginning.
 /// @return A new clgstr object.
-struct clgstr *clgstr_create(size_t pxreallocate);
+struct clgstr *clgstr_create(size_t preallocate);
 
 /// Free a clgstr object.
 /// @param gs The clgstr object.
@@ -40,5 +33,10 @@ void clgstr_append(struct clgstr *gs, const char *str);
 /// @param gs The clgstr object.
 /// @return The current string. This is a pointer to private memory, and should be strdup:ed if it is to be modified or stored for a long time.
 char *clgstr_string(struct clgstr *gs);
+
+/// Get the length of the current string.
+/// @param gs The clgstr object.
+/// @return The length of the current string.
+size_t clgstr_length(struct clgstr *gs);
 
 #endif

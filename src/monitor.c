@@ -27,8 +27,8 @@ void *monitor_run(void *ptr)
 
         time_t interval = 0;
         int in_iteration = 0;
-        struct timeval iteration_started = { 0 };
-        struct timeval now = { 0 };
+        struct timeval iteration_started = { 0, 0 };
+        struct timeval now = { 0, 0 };
 
         struct timespec loopdelay = { 0, 250 * 1000 * 1000 };
         nanosleep(&loopdelay, NULL);

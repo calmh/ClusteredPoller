@@ -5,8 +5,6 @@
 //  Copyright 2011 Nym Networks. See LICENSE for terms.
 //
 
-#define _GNU_SOURCE
-
 #include <string.h>
 #include <time.h>
 #include <stdio.h>
@@ -24,6 +22,8 @@
 
 #define MAXERRORSPERHOST 3
 
+void calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cur_time, unsigned long long cur_counter, int bits, unsigned long long *counter_diff, unsigned *rate);
+
 void *poller_run(void *ptr)
 {
         struct mt_context *thread_context = (struct mt_context *) ptr;
@@ -39,7 +39,7 @@ void *poller_run(void *ptr)
 
                 // Mark ourself sleeping
                 if (iterations > 0)
-                        cllog(2, "Thread %d sleeping after %d s processing time.", id, end - start);
+                        cllog(2, "Thread %d sleeping after %u s processing time.", id, (unsigned) (end - start));
 
                 // Wait for green light.
                 pthread_mutex_lock(&global_lock);

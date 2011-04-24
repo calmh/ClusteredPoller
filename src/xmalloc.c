@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <syslog.h>
 #include <stdio.h>
+#include "xmalloc.h"
 
 void *xmalloc(size_t size)
 {

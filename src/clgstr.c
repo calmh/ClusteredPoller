@@ -5,11 +5,18 @@
 //  Copyright 2011 Nym Networks. See LICENSE for terms.
 //
 
+#include "clgstr.h"
+
 #include <stdlib.h>
 #include <string.h>
 
-#include "clgstr.h"
 #include "xmalloc.h"
+
+struct clgstr {
+        size_t length;          // Length of string.
+        size_t allocated;       // Allocated space in string buffer.
+        char *string;           // String buffer.
+};
 
 struct clgstr *clgstr_create(size_t pxreallocate)
 {
@@ -46,4 +53,9 @@ void clgstr_append(struct clgstr *gs, const char *str)
 char *clgstr_string(struct clgstr *gs)
 {
         return gs->string;
+}
+
+size_t clgstr_length(struct clgstr * gs)
+{
+        return gs->length;
 }

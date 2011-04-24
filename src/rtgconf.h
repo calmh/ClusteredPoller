@@ -5,8 +5,8 @@
 //  Copyright 2011 Nym Networks. See LICENSE for terms.
 //
 
-#ifndef _RTGCONF_H
-#define _RTGCONF_H
+#ifndef RTGCONF_H
+#define RTGCONF_H
 
 /// @file rtgconf.h RTG.conf file parser
 
@@ -23,7 +23,7 @@ struct rtgconf {
         int use_db;             ///< False if we should not connect to the database.
         int use_rate_column;    ///< True if we should use the new schema with rate column.
         int allow_db_zero;      ///< True if we should insert zero rates in the database.
-        unsigned dbthreads_divisor;     ///< The number of poller threads per each database thread. Used to figure out the appropriate amount of database threads.
+        unsigned num_dbthreads; ///< The number of database threads.
         unsigned max_db_queue;  ///< The maximum database queue depth.
 };
 
@@ -41,4 +41,4 @@ int rtgconf_verify(struct rtgconf *config);
 /// @param config The object to free.
 void rtgconf_free(struct rtgconf *config);
 
-#endif
+#endif // RTGCONF.H

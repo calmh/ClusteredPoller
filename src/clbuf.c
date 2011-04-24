@@ -5,14 +5,21 @@
 //  Copyright 2011 Nym Networks. See LICENSE for terms.
 //
 
-#define _XOPEN_SOURCE 500
+#include "clbuf.h"
 
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
 
-#include "clbuf.h"
 #include "xmalloc.h"
+
+struct clbuf {
+        pthread_mutex_t lock;   // Lock for pushing and popping.
+        unsigned allocated_size;        // Allocated size of buffer.
+        unsigned read_index;    // Index pointer for reading.
+        unsigned write_index;   // Index pointer for writing.
+        void **buffer;          // Lis of buffered objects.
+};
 
 struct clbuf *clbuf_create(unsigned size)
 {

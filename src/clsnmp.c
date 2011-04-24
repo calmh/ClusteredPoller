@@ -5,18 +5,22 @@
 //  Copyright 2011 Nym Networks. See LICENSE for terms.
 //
 
-#define _GNU_SOURCE
+#include "clsnmp.h"
 
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/net-snmp-includes.h>
 #include <pthread.h>
 
-#include "clsnmp.h"
 #include "xmalloc.h"
+
+struct clsnmp_session {
+        struct snmp_session session;    // SNMP library session struct.
+        void *sessp;            // SNMP library session pointer.
+};
 
 static pthread_mutex_t clsnmp_lock = PTHREAD_MUTEX_INITIALIZER;
 
-void clsnmp_global_init()
+void clsnmp_global_init(void)
 {
         init_snmp("clpoll");
 }
@@ -78,24 +82,23 @@ int clsnmp_get(struct clsnmp_session *session, const char *oid_str, unsigned lon
         if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR) {
                 struct variable_list *vars = response->variables;
                 switch (vars->type) {
-                case SNMP_NOSUCHOBJECT:
-                case SNMP_NOSUCHINSTANCE:
-                        /* Do nothing */
-                        break;
-
                 case ASN_INTEGER:
                 case ASN_COUNTER:
                 case ASN_GAUGE:
                 case ASN_OPAQUE:
-                        /* Regular integer */
+                        // Regular integer
                         *counter = *vars->val.integer;
                         success = 1;
                         break;
 
                 case ASN_COUNTER64:
-                        /* Get high and low 32 bits and shift them together */
+                        // Get high and low 32 bits and shift them together
                         *counter = (((unsigned long long) (*vars->val.counter64).high) << 32) + (*vars->val.counter64).low;
                         success = 1;
+                        break;
+
+                default:
+                        // Ignore anything we don't recognize.
                         break;
                 }
         }

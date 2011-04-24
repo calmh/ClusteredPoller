@@ -143,20 +143,14 @@ MYSQL *connection(struct rtgconf *config)
                 return NULL;
         }
 
-        if (mysql_real_connect(conn, config->dbhost, config->dbuser, config->dbpass, config->database, 0, NULL, 0) == NULL) {
-                cllog(0, "MySQL error %u: %s", mysql_errno(conn), mysql_error(conn));
-                return NULL;
-        }
-
-        int result = mysql_query(conn, "SET time_zone = '+00:00'");
-        if (result != 0) {
+        if (mysql_real_connect(conn, config->dbhost, config->dbuser, config->dbpass, config->database, 0, NULL, 0l) == NULL) {
                 cllog(0, "MySQL error %u: %s", mysql_errno(conn), mysql_error(conn));
                 return NULL;
         }
 
         my_bool reconnect = 1;
         mysql_options(conn, MYSQL_OPT_RECONNECT, &reconnect);
-        mysql_autocommit(conn, 0);
+        mysql_autocommit(conn, (my_bool) 0);
 
         return conn;
 }
@@ -173,26 +167,28 @@ char *build_insert_query(struct clinsert *insert, struct rtgconf *config)
 
         int rows = 0;
         const int buffer_length = 32;
-        char buffer[buffer_length + 1];
+        char buffer[buffer_length];
         unsigned i;
         for (i = 0; i < insert->nvalues; i++) {
                 if (config->allow_db_zero || insert->values[i].rate) {
                         if (rows > 0)
                                 clgstr_append(gs, ", ");
 
-                        // ID
+                        // Begin series
                         clgstr_append(gs, "(");
+
+                        // ID
                         snprintf(buffer, buffer_length, "%u", insert->values[i].id);
                         clgstr_append(gs, buffer);
 
                         // Time stamp, in UTC
-                        clgstr_append(gs, ", '");
-                        struct tm *utc_timestamp = gmtime(&insert->values[i].dtime);
-                        strftime(buffer, buffer_length, "%Y-%m-%d %H:%M:%S", utc_timestamp);
+                        clgstr_append(gs, ", FROM_UNIXTIME(");
+                        snprintf(buffer, buffer_length, "%lu", insert->values[i].dtime);
                         clgstr_append(gs, buffer);
+                        clgstr_append(gs, ")");
 
                         // Counter
-                        clgstr_append(gs, "', ");
+                        clgstr_append(gs, ", ");
                         snprintf(buffer, buffer_length, "%llu", insert->values[i].counter);
                         clgstr_append(gs, buffer);
 
@@ -202,13 +198,13 @@ char *build_insert_query(struct clinsert *insert, struct rtgconf *config)
                                 snprintf(buffer, buffer_length, "%u", insert->values[i].rate);
                                 clgstr_append(gs, buffer);
                         }
-
+                        // End series
                         clgstr_append(gs, ")");
                         rows++;
                 }
         }
         if (rows > 0) {
-                char *return_str = strdup(gs->string);
+                char *return_str = strdup(clgstr_string(gs));
                 clgstr_free(gs);
                 return return_str;
         } else {

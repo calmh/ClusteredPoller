@@ -11,6 +11,8 @@
 #include "clinsert.h"
 #include "xmalloc.h"
 
+struct clinsert *clinsert_create(char *table);
+
 struct clinsert *clinsert_create(char *table)
 {
         struct clinsert *insert = (struct clinsert *) xmalloc(sizeof(struct clinsert));
