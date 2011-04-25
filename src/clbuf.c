@@ -74,6 +74,8 @@ void *clbuf_push(struct clbuf *cb, void *ptr)
 
 void *clbuf_pop(struct clbuf *cb)
 {
+        void *popped_ptr = NULL;
+
         /* Lock the buffer for modification. */
         pthread_mutex_lock(&cb->lock);
 
@@ -85,7 +87,7 @@ void *clbuf_pop(struct clbuf *cb)
                 return NULL;
         }
         /* Get the pointer to pop, and zeroize that position in the buffer. */
-        void *ptr = cb->buffer[cb->read_index];
+        popped_ptr = cb->buffer[cb->read_index];
         cb->buffer[cb->read_index] = NULL;
 
         /* Increment the read index pointer. */
@@ -94,7 +96,7 @@ void *clbuf_pop(struct clbuf *cb)
 
         /* Unlock and return the popped item. */
         pthread_mutex_unlock(&cb->lock);
-        return ptr;
+        return popped_ptr;
 }
 
 unsigned clbuf_count_used(struct clbuf *cb)
@@ -124,9 +126,11 @@ unsigned clbuf_count_used(struct clbuf *cb)
 
 unsigned clbuf_count_free(struct clbuf *cb)
 {
+        unsigned count_free;
+
         pthread_mutex_lock(&cb->lock);
         /* The number of free items is the buffer size minus the number of items stored. */
-        unsigned count_free = cb->allocated_size - clbuf_count_used(cb);
+        count_free = cb->allocated_size - clbuf_count_used(cb);
         pthread_mutex_unlock(&cb->lock);
         return count_free;
 }

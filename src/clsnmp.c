@@ -27,11 +27,13 @@ void clsnmp_global_init(void)
 
 struct clsnmp_session *clsnmp_session_create(const char *host, const char *community, int snmpver)
 {
+        struct clsnmp_session *session;
+
         if (snmpver != 1 && snmpver != 2)
                 return NULL;
 
         pthread_mutex_lock(&clsnmp_lock);
-        struct clsnmp_session *session = (struct clsnmp_session *) xmalloc(sizeof(struct clsnmp_session));
+        session = (struct clsnmp_session *) xmalloc(sizeof(struct clsnmp_session));
         snmp_sess_init(&session->session);
         session->session.peername = (char *) host;
         session->session.community = (u_char *) community;
@@ -70,6 +72,7 @@ int clsnmp_get(struct clsnmp_session *session, const char *oid_str, unsigned lon
         oid anOID[MAX_OID_LEN];
         size_t anOID_len = MAX_OID_LEN;
         int status;
+        int success = 0;
 
         pdu = snmp_pdu_create(SNMP_MSG_GET);
         read_objid(oid_str, anOID, &anOID_len);
@@ -78,7 +81,6 @@ int clsnmp_get(struct clsnmp_session *session, const char *oid_str, unsigned lon
         status = snmp_sess_synch_response(session->sessp, pdu, &response);
         time(response_time);
 
-        int success = 0;
         if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR) {
                 struct variable_list *vars = response->variables;
                 switch (vars->type) {

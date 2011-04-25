@@ -108,10 +108,10 @@ void TestResultSetForOneHost(CuTest *tc)
         sleep(1);
         inserts = get_clinserts(hosts->hosts[0]);
 
-        CuAssertTrue(tc, NULL != inserts[0]);   // One table
-        CuAssertTrue(tc, NULL == inserts[1]);   // Not two tables
-        CuAssertStrEquals(tc, "ifOutOctets_362", inserts[0]->table);    // Two rows
-        CuAssertIntEquals(tc, 2u, inserts[0]->nvalues); // Two rows
+        CuAssertTrue(tc, NULL != inserts[0]);   /* One table */
+        CuAssertTrue(tc, NULL == inserts[1]);   /* Not two tables */
+        CuAssertStrEquals(tc, "ifOutOctets_362", inserts[0]->table);    /* Two rows */
+        CuAssertIntEquals(tc, 2u, inserts[0]->nvalues); /* Two rows */
         CuAssertIntEquals(tc, 4309u, inserts[0]->values[0].id);
         CuAssertIntEquals(tc, 4310u, inserts[0]->values[1].id);
 }

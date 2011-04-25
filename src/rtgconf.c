@@ -17,16 +17,18 @@
 
 struct rtgconf *rtgconf_create(const char *filename)
 {
-        FILE *fileptr = fopen(filename, "rb");
+        char buffer[513];
+        char *line;
+        struct rtgconf *conf;
+        FILE *fileptr;
+
+        fileptr = fopen(filename, "rb");
         if (!fileptr) {
                 cllog(0, "Couldn't open %s for reading.", filename);
                 return NULL;
         }
 
-        char buffer[513];
-        char *line;
-
-        struct rtgconf *conf = (struct rtgconf *) xmalloc(sizeof(struct rtgconf));
+        conf = (struct rtgconf *) xmalloc(sizeof(struct rtgconf));
         conf->interval = DEFAULT_INTERVAL;
         conf->threads = DEFAULT_THREADS;
         conf->dbhost = NULL;
@@ -36,6 +38,9 @@ struct rtgconf *rtgconf_create(const char *filename)
         conf->num_dbthreads = DEFAULT_NUM_DBTHREADS;
 
         while ((line = fgets(buffer, 512, fileptr))) {
+                const char *sep = " \t\n";
+                char *token;
+
                 /* Terminate line at first comment character. */
                 char *comment_begin = strchr(line, '#');
                 if (comment_begin)
@@ -45,8 +50,7 @@ struct rtgconf *rtgconf_create(const char *filename)
                 if (strlen(line) == 0)
                         continue;
 
-                const char *sep = " \t\n";
-                char *token = strtok(line, sep);
+                token = strtok(line, sep);
                 /* Lowercase token. */
                 if (token) {
                         int i;

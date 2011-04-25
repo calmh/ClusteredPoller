@@ -31,11 +31,15 @@ void *poller_run(void *ptr)
 
         unsigned id = thread_context->thread_id;
         struct rtgtargets *targets = poller_context->targets;
+        unsigned iterations = 0;
 
         /* Start looping. */
-        unsigned iterations = 0;
         time_t start = 0, end = 0;
         while (!thread_stop_requested) {
+                unsigned dropped_queries = 0;
+                unsigned queued_queries = 0;
+                unsigned queued_values = 0;
+                struct queryhost *host;
 
                 /* Mark ourself sleeping */
                 if (iterations > 0)
@@ -62,19 +66,19 @@ void *poller_run(void *ptr)
                 /* Note our start time, so we know how long an iteration takes. */
                 start = time(NULL);
                 /* Loop over our share of the hosts. */
-                struct queryhost *host;
-                unsigned dropped_queries = 0;
-                unsigned queued_queries = 0, queued_values = 0;
                 while (!thread_stop_requested && (host = rtgtargets_next(targets))) {
-                        cllog(2, "Thread %d picked host '%s'.", id, host->host);
                         /* Process the host and get back a list of SQL updates to execute. */
                         struct clinsert **host_queries = get_clinserts(host);
                         unsigned n_queries = clinsert_count(host_queries);
 
+                        cllog(2, "Thread %d picked host '%s'.", id, host->host);
+
                         if (n_queries > 0) {
+                                unsigned i;
+                                unsigned qd;
+
                                 cllog(2, "Thread %u queueing %u queries.", id, n_queries);
 
-                                unsigned i;
                                 for (i = 0; i < n_queries && clbuf_count_free(queries) > 0; i++) {
                                         void *result = clbuf_push(queries, host_queries[i]);
                                         if (result) {
@@ -84,7 +88,8 @@ void *poller_run(void *ptr)
                                                 break;
                                         }
                                 }
-                                unsigned qd = clbuf_count_used(queries);
+
+                                qd = clbuf_count_used(queries);
                                 statistics.max_queue_depth = statistics.max_queue_depth > qd ? statistics.max_queue_depth : qd;
                                 if (i != n_queries) {
                                         if (!dropped_queries)
@@ -138,12 +143,16 @@ void calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cu
 
 struct clinsert **get_clinserts(struct queryhost *host)
 {
+        unsigned snmp_fail = 0;
+        unsigned snmp_success = 0;
+
+        /* Start a new SNMP session. */
+        struct clsnmp_session *session = clsnmp_session_create(host->host, host->community, host->snmpver);
+
+        /* Prepare a list of inserts. */
         struct clinsert **inserts = (struct clinsert **) xmalloc(sizeof(struct clinsert *) * MAX_TABLES);
         memset(inserts, 0, sizeof(struct clinsert *) * MAX_TABLES);
 
-        /* Start a new SNMP session. */
-        unsigned snmp_fail = 0, snmp_success = 0;
-        struct clsnmp_session *session = clsnmp_session_create(host->host, host->community, host->snmpver);
         if (session) {
                 int errors = 0;
                 /* Iterate over all targets in the host. */
