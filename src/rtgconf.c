@@ -1,9 +1,9 @@
-//
-//  ClusteredPoller
-//
-//  Created by Jakob Borg.
-//  Copyright 2011 Nym Networks. See LICENSE for terms.
-//
+/*
+ *  ClusteredPoller
+ *
+ *  Created by Jakob Borg.
+ *  Copyright 2011 Nym Networks. See LICENSE for terms.
+ */
 
 #include <stdio.h>
 #include <stdlib.h>

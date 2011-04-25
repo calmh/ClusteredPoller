@@ -1,9 +1,9 @@
-//
-//  ClusteredPoller
-//
-//  Created by Jakob Borg.
-//  Copyright 2011 Nym Networks. See LICENSE for terms.
-//
+/*
+ *  ClusteredPoller
+ *
+ *  Created by Jakob Borg.
+ *  Copyright 2011 Nym Networks. See LICENSE for terms.
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -174,31 +174,31 @@ char *build_insert_query(struct clinsert *insert, struct rtgconf *config)
                         if (rows > 0)
                                 clgstr_append(gs, ", ");
 
-                        // Begin series
+                        /* Begin series */
                         clgstr_append(gs, "(");
 
-                        // ID
+                        /* ID */
                         snprintf(buffer, buffer_length, "%u", insert->values[i].id);
                         clgstr_append(gs, buffer);
 
-                        // Time stamp, in UTC
+                        /* Time stamp, in UTC */
                         clgstr_append(gs, ", FROM_UNIXTIME(");
                         snprintf(buffer, buffer_length, "%lu", insert->values[i].dtime);
                         clgstr_append(gs, buffer);
                         clgstr_append(gs, ")");
 
-                        // Counter
+                        /* Counter */
                         clgstr_append(gs, ", ");
                         snprintf(buffer, buffer_length, "%llu", insert->values[i].counter);
                         clgstr_append(gs, buffer);
 
                         if (config->use_rate_column) {
-                                // Rate
+                                /* Rate */
                                 clgstr_append(gs, ", ");
                                 snprintf(buffer, buffer_length, "%u", insert->values[i].rate);
                                 clgstr_append(gs, buffer);
                         }
-                        // End series
+                        /* End series */
                         clgstr_append(gs, ")");
                         rows++;
                 }

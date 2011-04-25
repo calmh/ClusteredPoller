@@ -1,9 +1,9 @@
-//
-//  ClusteredPoller
-//
-//  Created by Jakob Borg.
-//  Copyright 2011 Nym Networks. See LICENSE for terms.
-//
+/*
+ *  ClusteredPoller
+ *
+ *  Created by Jakob Borg.
+ *  Copyright 2011 Nym Networks. See LICENSE for terms.
+ */
 
 #include <sys/stat.h>
 #include <stdio.h>
@@ -25,8 +25,7 @@
 #include "rtgconf.h"
 #include "xmalloc.h"
 
-/// @file main.c Main startup
-/// @mainpage Clustered Poller
+/** @file main.c Main startup @mainpage Clustered Poller */
 
 void help(void);
 void run_threads(struct rtgtargets *targets, struct rtgconf *config);
@@ -121,20 +120,20 @@ int main(int argc, char *const argv[])
         signal(SIGTERM, sigterm_handler);
 
         while (!full_stop_requested) {
-                // Read rtg.conf
+                /* Read rtg.conf */
                 struct rtgconf *config = rtgconf_create(rtgconf_file);
                 if (!config || !rtgconf_verify(config)) {
                         cllog(0, "Missing or incorrect configuration file, so nothing to do.");
                         exit(-1);
                 }
-                // "Patch" rtgconf with command line values
+                /* "Patch" rtgconf with command line values */
                 config->use_db = use_db;
                 config->use_rate_column = use_rate_column;
                 config->allow_db_zero = allow_db_zero;
                 config->max_db_queue = max_db_queue;
                 config->num_dbthreads = num_dbthreads;
 
-                // Read targets.cfg
+                /* Read targets.cfg */
                 struct rtgtargets *targets = rtgtargets_parse(targets_file, config);
 
                 if (targets->ntargets == 0) {

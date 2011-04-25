@@ -1,9 +1,9 @@
-//
-//  ClusteredPoller
-//
-//  Created by Jakob Borg.
-//  Copyright 2011 Nym Networks. See LICENSE for terms.
-//
+/*
+ *  ClusteredPoller
+ *
+ *  Created by Jakob Borg.
+ *  Copyright 2011 Nym Networks. See LICENSE for terms.
+ */
 
 #include "clgstr.h"
 
@@ -13,9 +13,9 @@
 #include "xmalloc.h"
 
 struct clgstr {
-        size_t length;          // Length of string.
-        size_t allocated;       // Allocated space in string buffer.
-        char *string;           // String buffer.
+        size_t length;          /* Length of string. */
+        size_t allocated;       /* Allocated space in string buffer. */
+        char *string;           /* String buffer. */
 };
 
 struct clgstr *clgstr_create(size_t pxreallocate)
@@ -37,14 +37,14 @@ void clgstr_append(struct clgstr *gs, const char *str)
 {
         size_t add_len = strlen(str);
 
-        // Check to see if the appended string will fit in the current buffer,
-        // otherwise xreallocate a larger buffer with enough space and some room to grow.
+        /* Check to see if the appended string will fit in the current buffer,
+           otherwise xreallocate a larger buffer with enough space and some room to grow. */
         if (gs->allocated < gs->length + add_len + 1) {
                 size_t new_size = (gs->allocated + add_len + 1) * 1.5;
                 gs->string = (char *) xrealloc(gs->string, new_size);
                 gs->allocated = new_size;
         }
-        // Copy the string to append into the buffer and add a terminating zero.
+        /* Copy the string to append into the buffer and add a terminating zero. */
         memcpy(gs->string + gs->length, str, add_len);
         gs->length += add_len;
         gs->string[gs->length] = '\0';
