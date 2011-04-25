@@ -1,9 +1,9 @@
-//
-//  ClusteredPoller
-//
-//  Created by Jakob Borg.
-//  Copyright 2011 Nym Networks. See LICENSE for terms.
-//
+/*
+ *  ClusteredPoller
+ *
+ *  Created by Jakob Borg.
+ *  Copyright 2011 Nym Networks. See LICENSE for terms.
+ */
 
 #include <sys/time.h>
 #include <unistd.h>
@@ -34,6 +34,8 @@ void *monitor_run(void *ptr)
         nanosleep(&loopdelay, NULL);
 
         while (!thread_stop_requested) {
+                struct timespec sleep_spec;
+
                 gettimeofday(&now, NULL);
                 if (active_threads == 0 && in_iteration) {
                         if (verbosity > 0) {
@@ -57,7 +59,8 @@ void *monitor_run(void *ptr)
                         statistics.max_queue_depth = 0;
                         in_iteration = 0;
 
-                        struct timespec sleep_spec = { interval - now.tv_sec - 1, 1000000000l - now.tv_usec * 1000 };
+                        sleep_spec.tv_sec = interval - now.tv_sec - 1;
+                        sleep_spec.tv_nsec = 1000000000L - now.tv_usec * 1000;
                         pthread_mutex_lock(&global_lock);
                         pthread_cond_timedwait(&global_cond, &global_lock, &sleep_spec);
                         pthread_mutex_unlock(&global_lock);
@@ -65,12 +68,14 @@ void *monitor_run(void *ptr)
 
                 gettimeofday(&now, NULL);
                 if (active_threads == 0 && now.tv_sec >= interval) {
+                        unsigned qd;
+
                         interval = (now.tv_sec / poll_interval + 1) * poll_interval;
                         in_iteration = 1;
                         statistics.iterations++;
 
                         cllog(1, "Starting iteration #%d.", statistics.iterations);
-                        unsigned qd = clbuf_count_used(queries);
+                        qd = clbuf_count_used(queries);
                         if (qd > 0)
                                 cllog(1, "  Queue at depth %d at poll start.", qd);
 

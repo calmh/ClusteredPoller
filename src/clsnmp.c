@@ -1,9 +1,9 @@
-//
-//  ClusteredPoller
-//
-//  Created by Jakob Borg.
-//  Copyright 2011 Nym Networks. See LICENSE for terms.
-//
+/*
+ *  ClusteredPoller
+ *
+ *  Created by Jakob Borg.
+ *  Copyright 2011 Nym Networks. See LICENSE for terms.
+ */
 
 #include "clsnmp.h"
 
@@ -14,8 +14,8 @@
 #include "xmalloc.h"
 
 struct clsnmp_session {
-        struct snmp_session session;    // SNMP library session struct.
-        void *sessp;            // SNMP library session pointer.
+        struct snmp_session session;    /* SNMP library session struct. */
+        void *sessp;            /* SNMP library session pointer. */
 };
 
 static pthread_mutex_t clsnmp_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -27,11 +27,13 @@ void clsnmp_global_init(void)
 
 struct clsnmp_session *clsnmp_session_create(const char *host, const char *community, int snmpver)
 {
+        struct clsnmp_session *session;
+
         if (snmpver != 1 && snmpver != 2)
                 return NULL;
 
         pthread_mutex_lock(&clsnmp_lock);
-        struct clsnmp_session *session = (struct clsnmp_session *) xmalloc(sizeof(struct clsnmp_session));
+        session = (struct clsnmp_session *) xmalloc(sizeof(struct clsnmp_session));
         snmp_sess_init(&session->session);
         session->session.peername = (char *) host;
         session->session.community = (u_char *) community;
@@ -70,6 +72,7 @@ int clsnmp_get(struct clsnmp_session *session, const char *oid_str, unsigned lon
         oid anOID[MAX_OID_LEN];
         size_t anOID_len = MAX_OID_LEN;
         int status;
+        int success = 0;
 
         pdu = snmp_pdu_create(SNMP_MSG_GET);
         read_objid(oid_str, anOID, &anOID_len);
@@ -78,7 +81,6 @@ int clsnmp_get(struct clsnmp_session *session, const char *oid_str, unsigned lon
         status = snmp_sess_synch_response(session->sessp, pdu, &response);
         time(response_time);
 
-        int success = 0;
         if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR) {
                 struct variable_list *vars = response->variables;
                 switch (vars->type) {
@@ -86,19 +88,19 @@ int clsnmp_get(struct clsnmp_session *session, const char *oid_str, unsigned lon
                 case ASN_COUNTER:
                 case ASN_GAUGE:
                 case ASN_OPAQUE:
-                        // Regular integer
+                        /* Regular integer */
                         *counter = *vars->val.integer;
                         success = 1;
                         break;
 
                 case ASN_COUNTER64:
-                        // Get high and low 32 bits and shift them together
+                        /* Get high and low 32 bits and shift them together */
                         *counter = (((unsigned long long) (*vars->val.counter64).high) << 32) + (*vars->val.counter64).low;
                         success = 1;
                         break;
 
                 default:
-                        // Ignore anything we don't recognize.
+                        /* Ignore anything we don't recognize. */
                         break;
                 }
         }

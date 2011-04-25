@@ -1,9 +1,9 @@
-//
-//  ClusteredPoller
-//
-//  Created by Jakob Borg.
-//  Copyright 2011 Nym Networks. See LICENSE for terms.
-//
+/*
+ *  ClusteredPoller
+ *
+ *  Created by Jakob Borg.
+ *  Copyright 2011 Nym Networks. See LICENSE for terms.
+ */
 
 #include <sys/stat.h>
 #include <stdio.h>
@@ -25,8 +25,7 @@
 #include "rtgconf.h"
 #include "xmalloc.h"
 
-/// @file main.c Main startup
-/// @mainpage Clustered Poller
+/** @file main.c Main startup @mainpage Clustered Poller */
 
 void help(void);
 void run_threads(struct rtgtargets *targets, struct rtgconf *config);
@@ -40,11 +39,6 @@ void daemonize(void);
 
 int main(int argc, char *const argv[])
 {
-        if (argc < 2) {
-                help();
-                exit(-1);
-        }
-
         int detach = 1;
         const char *rtgconf_file = DEFAULT_RTGCONF_FILE;
         const char *targets_file = DEFAULT_TARGETS_FILE;
@@ -53,8 +47,15 @@ int main(int argc, char *const argv[])
         int allow_db_zero = 0;
         unsigned max_db_queue = DEFAULT_QUEUE_LENGTH;
         int num_dbthreads = DEFAULT_NUM_DBTHREADS;
-
         int c;
+        char *last_component;
+        struct rtgtargets *targets;
+
+        if (argc < 2) {
+                help();
+                exit(-1);
+        }
+
         while ((c = getopt(argc, argv, "c:dt:vzDOOQ:W:")) != -1) {
                 switch (c) {
                 case 'c':
@@ -110,7 +111,7 @@ int main(int argc, char *const argv[])
         if (detach)
                 daemonize();
 
-        char *last_component = strrchr(argv[0], '/');
+        last_component = strrchr(argv[0], '/');
         if (last_component)
                 last_component++;
         else
@@ -121,21 +122,21 @@ int main(int argc, char *const argv[])
         signal(SIGTERM, sigterm_handler);
 
         while (!full_stop_requested) {
-                // Read rtg.conf
+                /* Read rtg.conf */
                 struct rtgconf *config = rtgconf_create(rtgconf_file);
                 if (!config || !rtgconf_verify(config)) {
                         cllog(0, "Missing or incorrect configuration file, so nothing to do.");
                         exit(-1);
                 }
-                // "Patch" rtgconf with command line values
+                /* "Patch" rtgconf with command line values */
                 config->use_db = use_db;
                 config->use_rate_column = use_rate_column;
                 config->allow_db_zero = allow_db_zero;
                 config->max_db_queue = max_db_queue;
                 config->num_dbthreads = num_dbthreads;
 
-                // Read targets.cfg
-                struct rtgtargets *targets = rtgtargets_parse(targets_file, config);
+                /* Read targets.cfg */
+                targets = rtgtargets_parse(targets_file, config);
 
                 if (targets->ntargets == 0) {
                         cllog(0, "No targets, so nothing to do.");
@@ -174,6 +175,10 @@ void help(void)
 
 void run_threads(struct rtgtargets *targets, struct rtgconf *config)
 {
+        struct mt_threads *poller_threads;
+        struct mt_threads *database_threads;
+        struct mt_threads *monitor_thread;
+
         thread_stop_requested = 0;
         active_threads = 0;
         statistics.insert_rows = 0;
@@ -182,9 +187,9 @@ void run_threads(struct rtgtargets *targets, struct rtgconf *config)
 
         queries = clbuf_create(config->max_db_queue);
 
-        struct mt_threads *poller_threads = create_poller_threads(config->threads, targets);
-        struct mt_threads *database_threads = create_database_threads(config->num_dbthreads, config);
-        struct mt_threads *monitor_thread = create_monitor_thread(targets, config);
+        poller_threads = create_poller_threads(config->threads, targets);
+        database_threads = create_database_threads(config->num_dbthreads, config);
+        monitor_thread = create_monitor_thread(targets, config);
 
         mt_threads_join(database_threads);
         mt_threads_join(poller_threads);
@@ -200,41 +205,47 @@ void run_threads(struct rtgtargets *targets, struct rtgconf *config)
 
 struct mt_threads *create_poller_threads(unsigned nthreads, struct rtgtargets *targets)
 {
-        cllog(1, "Starting %d poller threads.", nthreads);
         struct mt_threads *poller_threads = mt_threads_create(nthreads);
         unsigned i;
+
+        cllog(1, "Starting %d poller threads.", nthreads);
         for (i = 0; i < nthreads; i++) {
                 struct poller_ctx *ctx = (struct poller_ctx *) xmalloc(sizeof(struct poller_ctx));
                 ctx->targets = targets;
                 poller_threads->contexts[i].param = ctx;
         }
         mt_threads_start(poller_threads, poller_run);
+
         return poller_threads;
 }
 
 struct mt_threads *create_database_threads(unsigned nthreads, struct rtgconf *config)
 {
-        unsigned i;
-        cllog(1, "Starting %d database threads.", nthreads);
         struct mt_threads *database_threads = mt_threads_create(nthreads);
+        unsigned i;
+
+        cllog(1, "Starting %d database threads.", nthreads);
         for (i = 0; i < nthreads; i++) {
                 struct database_ctx *ctx = (struct database_ctx *) xmalloc(sizeof(struct database_ctx));
                 ctx->config = config;
                 database_threads->contexts[i].param = ctx;
         }
         mt_threads_start(database_threads, database_run);
+
         return database_threads;
 }
 
 struct mt_threads *create_monitor_thread(struct rtgtargets *targets, struct rtgconf *config)
 {
-        cllog(1, "Starting monitor thread.");
         struct mt_threads *monitor_threads = mt_threads_create(1);
         struct monitor_ctx *ctx = (struct monitor_ctx *) xmalloc(sizeof(struct monitor_ctx));
+
+        cllog(1, "Starting monitor thread.");
         ctx->targets = targets;
         ctx->config = config;
         monitor_threads->contexts[0].param = ctx;
         mt_threads_start(monitor_threads, monitor_run);
+
         return monitor_threads;
 }
 
@@ -270,6 +281,7 @@ void sigterm_handler(int signum)
 void daemonize(void)
 {
         pid_t pid, sid;
+        FILE *ignored;
 
         if (getppid() == 1)
                 return;
@@ -294,7 +306,6 @@ void daemonize(void)
                 exit(EXIT_FAILURE);
         }
 
-        FILE *ignored;
         ignored = freopen("/dev/null", "r", stdin);
         ignored = freopen("/dev/null", "w", stdout);
         ignored = freopen("/dev/null", "w", stderr);

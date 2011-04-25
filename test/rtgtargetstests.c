@@ -14,9 +14,9 @@ void TestParseNewStyleTargets(CuTest *tc)
 {
         struct rtgconf *conf = rtgconf_create("test/example-rtg.conf");
         struct rtgtargets *hosts = rtgtargets_parse("test/example-targets.cfg", conf);
-        CuAssertIntEquals(tc, 2, hosts->nhosts);        // Two hosts
-        CuAssertIntEquals(tc, 2, hosts->hosts[0]->nrows);       // Two rows for host one
-        CuAssertIntEquals(tc, 2, hosts->hosts[1]->nrows);       // Two rows for host two
+        CuAssertIntEquals(tc, 2, hosts->nhosts);        /* Two hosts */
+        CuAssertIntEquals(tc, 2, hosts->hosts[0]->nrows);       /* Two rows for host one */
+        CuAssertIntEquals(tc, 2, hosts->hosts[1]->nrows);       /* Two rows for host two */
         CuAssertIntEquals(tc, 2u, hosts->nhosts);
         CuAssertIntEquals(tc, 4u, hosts->ntargets);
 }
@@ -25,9 +25,9 @@ void TestParseOldStyleTargets(CuTest *tc)
 {
         struct rtgconf *conf = rtgconf_create("test/example-rtg.conf");
         struct rtgtargets *hosts = rtgtargets_parse("test/oldstyle-targets.cfg", conf);
-        CuAssertIntEquals(tc, 2, hosts->nhosts);        // Two hosts
-        CuAssertIntEquals(tc, 8, hosts->hosts[0]->nrows);       // Eight rows for host one
-        CuAssertIntEquals(tc, 7, hosts->hosts[1]->nrows);       // Seven rows for host two
+        CuAssertIntEquals(tc, 2, hosts->nhosts);        /* Two hosts */
+        CuAssertIntEquals(tc, 8, hosts->hosts[0]->nrows);       /* Eight rows for host one */
+        CuAssertIntEquals(tc, 7, hosts->hosts[1]->nrows);       /* Seven rows for host two */
         CuAssertIntEquals(tc, 2u, hosts->nhosts);
         CuAssertIntEquals(tc, 8u + 7u, hosts->ntargets);
 }

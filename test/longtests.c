@@ -8,7 +8,7 @@
 #include "rtgtargets.h"
 #include "poller.h"
 
-void mock_set_speed(unsigned int newspeed);     // From snmp-mock.c
+void mock_set_speed(unsigned int newspeed);     /* From snmp-mock.c */
 
 void TestMeasureOneHostsAt10MbpsForTenSeconds(CuTest *tc)
 {
@@ -20,14 +20,14 @@ void TestMeasureOneHostsAt10MbpsForTenSeconds(CuTest *tc)
         unsigned queries_size;
         for (queries_size = 0; queries[queries_size]; queries_size++) ;
 
-        CuAssertIntEquals(tc, 0, queries_size); // No inserts first iteration
+        CuAssertIntEquals(tc, 0, queries_size); /* No inserts first iteration */
 
         sleep(10);
 
         queries = get_clinserts(hosts->hosts[0]);
         for (queries_size = 0; queries[queries_size]; queries_size++) ;
 
-        CuAssertIntEquals(tc, 1, queries_size); // One insert next iteration
+        CuAssertIntEquals(tc, 1, queries_size); /* One insert next iteration */
         CuAssertIntEquals(tc, 1250000, queries[0]->values[0].counter);
         CuAssertIntEquals(tc, 125000, queries[0]->values[0].rate);
 }
@@ -42,13 +42,13 @@ void TestMeasureOneHostAt100MbpsForOneInterval(CuTest *tc)
         unsigned queries_size;
         for (queries_size = 0; queries[queries_size]; queries_size++) ;
 
-        CuAssertIntEquals(tc, 0, queries_size); // No inserts first iteration
+        CuAssertIntEquals(tc, 0, queries_size); /* No inserts first iteration */
 
         sleep(conf->interval);
 
         queries = get_clinserts(hosts->hosts[0]);
         for (queries_size = 0; queries[queries_size]; queries_size++) ;
-        CuAssertIntEquals(tc, 0, queries_size); // No inserts next iteration due to too high speed
+        CuAssertIntEquals(tc, 0, queries_size); /* No inserts next iteration due to too high speed */
 }
 
 CuSuite *CuGetLongSuite(void)

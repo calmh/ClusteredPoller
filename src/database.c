@@ -1,9 +1,9 @@
-//
-//  ClusteredPoller
-//
-//  Created by Jakob Borg.
-//  Copyright 2011 Nym Networks. See LICENSE for terms.
-//
+/*
+ *  ClusteredPoller
+ *
+ *  Created by Jakob Borg.
+ *  Copyright 2011 Nym Networks. See LICENSE for terms.
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,13 +33,14 @@ void *database_run(void *ptr)
         struct database_ctx *database_context = (struct database_ctx *) thread_context->param;
         unsigned my_id = thread_context->thread_id;
         struct rtgconf *config = database_context->config;
-
         MYSQL *conn = 0;
 
         while (!thread_stop_requested) {
                 struct timeval start_ts;
+                struct timeval end_ts;
+                unsigned query_counter;
+
                 gettimeofday(&start_ts, NULL);
-                unsigned query_counter = 0;
 
                 if (!config->use_db) {
                         query_counter = print_database_queue(config);
@@ -62,10 +63,12 @@ void *database_run(void *ptr)
                 }
 
                 if (query_counter > 0) {
-                        struct timeval end_ts;
+                        unsigned runtime_ms;
+                        double tps;
+
                         gettimeofday(&end_ts, NULL);
-                        unsigned runtime_ms = (end_ts.tv_sec - start_ts.tv_sec) * 1000 + (end_ts.tv_usec - start_ts.tv_usec) / 1000;
-                        double tps = 1000.0 * query_counter / (double) runtime_ms;
+                        runtime_ms = (end_ts.tv_sec - start_ts.tv_sec) * 1000 + (end_ts.tv_usec - start_ts.tv_usec) / 1000;
+                        tps = 1000.0 * query_counter / (double) runtime_ms;
                         cllog(2, " %6u queries in %6u ms (%.f queries/s) executed on DB by thread %d", query_counter, runtime_ms, tps, my_id);
                 }
                 sleep(1);
@@ -137,6 +140,7 @@ unsigned print_database_queue(struct rtgconf *config)
 MYSQL *connection(struct rtgconf *config)
 {
         MYSQL *conn = mysql_init(NULL);
+        my_bool reconnect = 1;
 
         if (conn == NULL) {
                 cllog(0, "MySQL error %u: %s", mysql_errno(conn), mysql_error(conn));
@@ -148,7 +152,6 @@ MYSQL *connection(struct rtgconf *config)
                 return NULL;
         }
 
-        my_bool reconnect = 1;
         mysql_options(conn, MYSQL_OPT_RECONNECT, &reconnect);
         mysql_autocommit(conn, (my_bool) 0);
 
@@ -158,6 +161,11 @@ MYSQL *connection(struct rtgconf *config)
 char *build_insert_query(struct clinsert *insert, struct rtgconf *config)
 {
         struct clgstr *gs = clgstr_create(64);
+        int rows = 0;
+        unsigned i;
+        const int buffer_length = 32;
+        char buffer[32];        /* Must be buffer_length */
+
         clgstr_append(gs, "INSERT INTO ");
         clgstr_append(gs, insert->table);
         if (config->use_rate_column)
@@ -165,40 +173,36 @@ char *build_insert_query(struct clinsert *insert, struct rtgconf *config)
         else
                 clgstr_append(gs, " (id, dtime, counter) VALUES ");
 
-        int rows = 0;
-        const int buffer_length = 32;
-        char buffer[buffer_length];
-        unsigned i;
         for (i = 0; i < insert->nvalues; i++) {
                 if (config->allow_db_zero || insert->values[i].rate) {
                         if (rows > 0)
                                 clgstr_append(gs, ", ");
 
-                        // Begin series
+                        /* Begin series */
                         clgstr_append(gs, "(");
 
-                        // ID
+                        /* ID */
                         snprintf(buffer, buffer_length, "%u", insert->values[i].id);
                         clgstr_append(gs, buffer);
 
-                        // Time stamp, in UTC
+                        /* Time stamp, in UTC */
                         clgstr_append(gs, ", FROM_UNIXTIME(");
                         snprintf(buffer, buffer_length, "%lu", insert->values[i].dtime);
                         clgstr_append(gs, buffer);
                         clgstr_append(gs, ")");
 
-                        // Counter
+                        /* Counter */
                         clgstr_append(gs, ", ");
                         snprintf(buffer, buffer_length, "%llu", insert->values[i].counter);
                         clgstr_append(gs, buffer);
 
                         if (config->use_rate_column) {
-                                // Rate
+                                /* Rate */
                                 clgstr_append(gs, ", ");
                                 snprintf(buffer, buffer_length, "%u", insert->values[i].rate);
                                 clgstr_append(gs, buffer);
                         }
-                        // End series
+                        /* End series */
                         clgstr_append(gs, ")");
                         rows++;
                 }

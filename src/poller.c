@@ -1,9 +1,9 @@
-//
-//  ClusteredPoller
-//
-//  Created by Jakob Borg.
-//  Copyright 2011 Nym Networks. See LICENSE for terms.
-//
+/*
+ *  ClusteredPoller
+ *
+ *  Created by Jakob Borg.
+ *  Copyright 2011 Nym Networks. See LICENSE for terms.
+ */
 
 #include <string.h>
 #include <time.h>
@@ -31,21 +31,25 @@ void *poller_run(void *ptr)
 
         unsigned id = thread_context->thread_id;
         struct rtgtargets *targets = poller_context->targets;
-
-        // Start looping.
         unsigned iterations = 0;
+
+        /* Start looping. */
         time_t start = 0, end = 0;
         while (!thread_stop_requested) {
+                unsigned dropped_queries = 0;
+                unsigned queued_queries = 0;
+                unsigned queued_values = 0;
+                struct queryhost *host;
 
-                // Mark ourself sleeping
+                /* Mark ourself sleeping */
                 if (iterations > 0)
                         cllog(2, "Thread %d sleeping after %u s processing time.", id, (unsigned) (end - start));
 
-                // Wait for green light.
+                /* Wait for green light. */
                 pthread_mutex_lock(&global_lock);
                 if (iterations > 0)
                         active_threads--;
-                if (!active_threads)    // We are the last one
+                if (!active_threads)    /* We are the last one */
                         gettimeofday(&statistics.query_threads_finished, NULL);
                 pthread_cond_wait(&global_cond, &global_lock);
                 pthread_mutex_unlock(&global_lock);
@@ -54,27 +58,27 @@ void *poller_run(void *ptr)
                         break;
 
                 cllog(2, "Thread %d starting.", id);
-                // Mark ourself active.
+                /* Mark ourself active. */
                 pthread_mutex_lock(&global_lock);
                 active_threads++;
                 pthread_mutex_unlock(&global_lock);
 
-                // Note our start time, so we know how long an iteration takes.
+                /* Note our start time, so we know how long an iteration takes. */
                 start = time(NULL);
-                // Loop over our share of the hosts.
-                struct queryhost *host;
-                unsigned dropped_queries = 0;
-                unsigned queued_queries = 0, queued_values = 0;
+                /* Loop over our share of the hosts. */
                 while (!thread_stop_requested && (host = rtgtargets_next(targets))) {
-                        cllog(2, "Thread %d picked host '%s'.", id, host->host);
-                        // Process the host and get back a list of SQL updates to execute.
+                        /* Process the host and get back a list of SQL updates to execute. */
                         struct clinsert **host_queries = get_clinserts(host);
                         unsigned n_queries = clinsert_count(host_queries);
 
+                        cllog(2, "Thread %d picked host '%s'.", id, host->host);
+
                         if (n_queries > 0) {
+                                unsigned i;
+                                unsigned qd;
+
                                 cllog(2, "Thread %u queueing %u queries.", id, n_queries);
 
-                                unsigned i;
                                 for (i = 0; i < n_queries && clbuf_count_free(queries) > 0; i++) {
                                         void *result = clbuf_push(queries, host_queries[i]);
                                         if (result) {
@@ -84,7 +88,8 @@ void *poller_run(void *ptr)
                                                 break;
                                         }
                                 }
-                                unsigned qd = clbuf_count_used(queries);
+
+                                qd = clbuf_count_used(queries);
                                 statistics.max_queue_depth = statistics.max_queue_depth > qd ? statistics.max_queue_depth : qd;
                                 if (i != n_queries) {
                                         if (!dropped_queries)
@@ -101,10 +106,10 @@ void *poller_run(void *ptr)
                 statistics.dropped_queries += dropped_queries;
                 pthread_mutex_unlock(&global_lock);
 
-                // Note how long it took.
+                /* Note how long it took. */
                 end = time(NULL);
 
-                // Prepare for next iteration.
+                /* Prepare for next iteration. */
                 iterations++;
         }
         return NULL;
@@ -113,7 +118,7 @@ void *poller_run(void *ptr)
 void calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cur_time, unsigned long long cur_counter, int bits, unsigned long long *counter_diff, unsigned *rate)
 {
         if (bits == 0) {
-                // It's a gauge so just return the value as both counter diff and rate.
+                /* It's a gauge so just return the value as both counter diff and rate. */
                 *counter_diff = cur_counter;
                 *rate = (unsigned) cur_counter;
         } else {
@@ -124,29 +129,33 @@ void calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cu
                 }
                 *counter_diff = cur_counter - prev_counter;
                 if (prev_counter > cur_counter) {
-                        // We seem to have a wrap.
-                        // Wrap it back to find the correct rate.
+                        /* We seem to have a wrap.
+                           Wrap it back to find the correct rate. */
                         if (bits == 64)
-                                *counter_diff += 18446744073709551615ull + 1;   // 2^64-1 + 1
+                                *counter_diff += 18446744073709551615ull + 1;   /* 2^64-1 + 1 */
                         else
-                                *counter_diff += 4294967296ull; // 2^32
+                                *counter_diff += 4294967296ull; /* 2^32 */
                 }
-                // Return the calculated rate.
+                /* Return the calculated rate. */
                 *rate = (unsigned) (*counter_diff / time_diff);
         }
 }
 
 struct clinsert **get_clinserts(struct queryhost *host)
 {
+        unsigned snmp_fail = 0;
+        unsigned snmp_success = 0;
+
+        /* Start a new SNMP session. */
+        struct clsnmp_session *session = clsnmp_session_create(host->host, host->community, host->snmpver);
+
+        /* Prepare a list of inserts. */
         struct clinsert **inserts = (struct clinsert **) xmalloc(sizeof(struct clinsert *) * MAX_TABLES);
         memset(inserts, 0, sizeof(struct clinsert *) * MAX_TABLES);
 
-        // Start a new SNMP session.
-        unsigned snmp_fail = 0, snmp_success = 0;
-        struct clsnmp_session *session = clsnmp_session_create(host->host, host->community, host->snmpver);
         if (session) {
                 int errors = 0;
-                // Iterate over all targets in the host.
+                /* Iterate over all targets in the host. */
                 unsigned i;
                 for (i = 0; i < host->nrows; i++) {
                         struct queryrow *row = host->rows[i];

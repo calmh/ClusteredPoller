@@ -46,21 +46,21 @@ ifdef GITVERSION
 endif
 
 # Net-SNMP uses C89 meaning of "extern inline", so we need -fgnu89-inline
-CFLAGS ?= -DVERSION='$(VERSION)'
+CFLAGS ?= -DVERSION='$(VERSION)' -DNETSNMP_NO_INLINE
 
 OS = $(shell uname -s)
 ifeq ($(OS),Darwin)
-	CFLAGS += -std=c99 -fgnu89-inline -I/usr/local/mysql/include
+	CFLAGS += -ansi -I/usr/local/mysql/include
 	LDFLAGS += -L/usr/local/mysql/lib -lnetsnmp -lmysqlclient
 else ifeq ($(OS),SunOS)
 	CC = gcc
 	CFLAGS += -pthreads $(shell /usr/mysql/bin/mysql_config --include)
 	LDFLAGS += -pthreads -lnetsnmp $(shell /usr/mysql/bin/mysql_config --libs | sed 's/-lCrun//' )
 else ifeq ($(OS),Linux)
-	CFLAGS += -std=c99 -fgnu89-inline -pthread -D_GNU_SOURCE -I/usr/local/include $(shell mysql_config --include)
+	CFLAGS += -ansi -pthread -D_GNU_SOURCE -I/usr/local/include $(shell mysql_config --include)
 	LDFLAGS += -pthread -L/usr/local/lib -lnetsnmp $(shell mysql_config --libs)
 else ifeq ($(OS),FreeBSD)
-	CFLAGS += -std=c99 -fgnu89-inline -pthread -I/usr/local/include $(shell mysql_config --include)
+	CFLAGS += -ansi -pthread -I/usr/local/include $(shell mysql_config --include)
 	LDFLAGS += -pthread -L/usr/local/lib -lnetsnmp $(shell mysql_config --libs)
 endif
 
@@ -72,7 +72,7 @@ $(TARGET): $(OBJS)
 	strip $@
 
 debug: $(TARGET)-dbg quicktest
-$(TARGET)-dbg: CFLAGS += -g -pedantic -O1 -Wall -Wextra -Werror -Wwrite-strings -Winit-self -Wcast-align -Wpointer-arith -Wformat=2 -Wmissing-declarations -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -Wfloat-equal -Wswitch-default -Wswitch-enum -Wunused -Wshadow -Wcast-align
+$(TARGET)-dbg: CFLAGS += -g -pedantic -O1 -Wall -Wextra -Werror -Wwrite-strings -Winit-self -Wcast-align -Wpointer-arith -Wformat=2 -Wmissing-declarations -Wold-style-definition -Wstrict-prototypes -Wmissing-prototypes -Wfloat-equal -Wswitch-default -Wswitch-enum -Wunused -Wshadow -Wcast-align -Wno-long-long
 $(TARGET)-dbg: $(OBJS)
 	gcc $^ $(LDFLAGS) -o $@
 
