@@ -5,9 +5,7 @@
  *  Copyright 2011 Nym Networks. See LICENSE for terms.
  */
 
-#include <string.h>
-#include <time.h>
-#include <stdio.h>
+#include "poller.h"
 
 #include "clbuf.h"
 #include "clgstr.h"
@@ -16,9 +14,11 @@
 #include "clsnmp.h"
 #include "globals.h"
 #include "multithread.h"
-#include "poller.h"
 #include "rtgtargets.h"
 #include "xmalloc.h"
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
 
 #define MAXERRORSPERHOST 3
 

@@ -5,11 +5,11 @@
  *  Copyright 2011 Nym Networks. See LICENSE for terms.
  */
 
+#include "clinsert.h"
+
+#include "xmalloc.h"
 #include <stdlib.h>
 #include <string.h>
-
-#include "clinsert.h"
-#include "xmalloc.h"
 
 struct clinsert *clinsert_create(char *table);
 

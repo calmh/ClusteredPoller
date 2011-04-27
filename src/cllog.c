@@ -5,13 +5,13 @@
  *  Copyright 2011 Nym Networks. See LICENSE for terms.
  */
 
-#include <stdio.h>
-#include <syslog.h>
-#include <stdarg.h>
-#include <pthread.h>
+#include "cllog.h"
 
 #include "globals.h"
-#include "cllog.h"
+#include <pthread.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <syslog.h>
 
 __attribute__ ((format(printf, 2, 3)))
 void cllog(int level, const char *format, ...)

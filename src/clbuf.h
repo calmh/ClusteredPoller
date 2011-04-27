@@ -8,6 +8,8 @@
 #ifndef CLBUF_H
 #define CLBUF_H
 
+#include <pthread.h>
+
 /**
  * @file clbuf.h
  * A circular buffer, storing pointers (void*) to some opaque object.
@@ -15,8 +17,6 @@
  */
 
 struct clbuf;
-
-#include <pthread.h>
 
 /**
  * Create a new clbuf object.

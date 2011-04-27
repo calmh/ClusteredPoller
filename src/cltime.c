@@ -6,6 +6,7 @@
  */
 
 #include "cltime.h"
+
 #include <sys/time.h>
 
 curms_t curms(void)

@@ -8,10 +8,10 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-/** @file globals.h Global variables. */
-
 #include "cltime.h"
 #include <pthread.h>
+
+/** @file globals.h Global variables. */
 
 /** Minimum allowable database queue length. The user cannot select a smaller queue than this. */
 #define MIN_QUEUE_LENGTH 100

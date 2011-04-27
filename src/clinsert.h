@@ -8,9 +8,9 @@
 #ifndef CLINSERT_H
 #define CLINSERT_H
 
-/** @file clinsert.h A database insert representation used internally in clpoll. */
-
 #include <time.h>
+
+/** @file clinsert.h A database insert representation used internally in clpoll. */
 
 /**
  * The maximum amount of different tables we expect for a single host,

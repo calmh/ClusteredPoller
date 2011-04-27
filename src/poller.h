@@ -8,9 +8,9 @@
 #ifndef POLLER_H_
 #define POLLER_H_
 
-/** @file poller.h SNMP poller thread */
-
 #include <time.h>
+
+/** @file poller.h SNMP poller thread */
 
 struct rtgtargets;
 struct queryhost;

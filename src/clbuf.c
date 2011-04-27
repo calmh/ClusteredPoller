@@ -7,11 +7,10 @@
 
 #include "clbuf.h"
 
+#include "xmalloc.h"
+#include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
-
-#include "xmalloc.h"
 
 struct clbuf {
         pthread_mutex_t lock;   /* Lock for pushing and popping. */

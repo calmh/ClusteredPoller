@@ -8,10 +8,10 @@
 #ifndef RTGTARGETS_H
 #define RTGTARGETS_H
 
-/** @file rtgtargets.h RTG targets file parsing */
-
 #include <time.h>
 #include <pthread.h>
+
+/** @file rtgtargets.h RTG targets file parsing */
 
 struct rtgconf;
 

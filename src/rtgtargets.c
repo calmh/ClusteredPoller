@@ -5,17 +5,17 @@
  *  Copyright 2011 Nym Networks. See LICENSE for terms.
  */
 
+#include "rtgtargets.h"
+
+#include "cllog.h"
+#include "rtgconf.h"
+#include "xmalloc.h"
+#include <ctype.h>
+#include <pthread.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-#include <ctype.h>
 #include <time.h>
-#include <pthread.h>
-
-#include "rtgtargets.h"
-#include "rtgconf.h"
-#include "cllog.h"
-#include "xmalloc.h"
 
 struct queryhost *read_host(FILE *fileptr, char *host_name, const struct rtgconf *conf);
 struct queryrow *read_row(FILE *fileptr, char *oid, const struct rtgconf *conf);

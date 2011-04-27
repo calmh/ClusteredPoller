@@ -15,12 +15,11 @@
 #include "globals.h"
 #include "multithread.h"
 #include "rtgconf.h"
-
+#include <mysql.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <mysql.h>
 #include <string.h>
+#include <unistd.h>
 
 #define COMMIT_INTERVAL 100
 

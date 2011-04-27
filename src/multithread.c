@@ -5,11 +5,11 @@
  *  Copyright 2011 Nym Networks. See LICENSE for terms.
  */
 
-#include <stdlib.h>
-#include <pthread.h>
-
 #include "multithread.h"
+
 #include "xmalloc.h"
+#include <pthread.h>
+#include <stdlib.h>
 
 #define THREAD_STACK_SIZE (256*1024)
 
