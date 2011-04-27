@@ -3,6 +3,7 @@ OBJS = src/clbuf.o \
 	src/clinsert.o \
 	src/cllog.o \
 	src/clsnmp.o \
+	src/cltime.o \
 	src/database.o \
 	src/globals.o \
 	src/main.o \
@@ -17,6 +18,7 @@ TESTOBJS = src/clbuf.o \
 	src/clgstr.o \
 	src/clinsert.o \
 	src/cllog.o \
+	src/cltime.o \
 	src/globals.o \
 	src/monitor.o \
 	src/multithread.o \
@@ -25,6 +27,7 @@ TESTOBJS = src/clbuf.o \
 	src/rtgtargets.o \
 	src/xmalloc.o \
 	test/clbuftests.o \
+	test/cltime-tests.o \
 	test/clsnmp-mock.o \
 	test/cutest.o \
 	test/database-mock.o \

@@ -5,7 +5,6 @@
  *  Copyright 2011 Nym Networks. See LICENSE for terms.
  */
 
-#include <sys/time.h>
 #include <unistd.h>
 
 #include "clbuf.h"
