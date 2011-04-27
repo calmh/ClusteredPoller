@@ -10,8 +10,8 @@
 
 /** @file globals.h Global variables. */
 
+#include "cltime.h"
 #include <pthread.h>
-#include <sys/time.h>
 
 /** Minimum allowable database queue length. The user cannot select a smaller queue than this. */
 #define MIN_QUEUE_LENGTH 100
@@ -39,7 +39,7 @@ struct statistics {
         unsigned snmp_fail;     /**< Number of SNMP queries that failed. */
         unsigned snmp_success;  /**< Number of SNMP queries that were successfull. */
         unsigned max_queue_depth;       /**< Maximum database queue depth seen during last polling interval. */
-        struct timeval query_threads_finished;  /**< Timestamp when all poller threads were complete. */
+        curms_t query_threads_finished;  /**< Timestamp when all poller threads were complete. */
 };
 
 /** Queue of outstanding database queries. */

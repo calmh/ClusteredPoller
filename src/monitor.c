@@ -5,15 +5,16 @@
  *  Copyright 2011 Nym Networks. See LICENSE for terms.
  */
 
-#include <unistd.h>
+#include "monitor.h"
 
 #include "clbuf.h"
 #include "cllog.h"
-#include "monitor.h"
+#include "cltime.h"
 #include "globals.h"
-#include "rtgtargets.h"
 #include "multithread.h"
 #include "rtgconf.h"
+#include "rtgtargets.h"
+#include <unistd.h>
 
 void *monitor_run(void *ptr)
 {
@@ -24,10 +25,10 @@ void *monitor_run(void *ptr)
         struct rtgconf *config = monitor_context->config;
         unsigned poll_interval = config->interval;
 
-        time_t interval = 0;
         int in_iteration = 0;
-        struct timeval iteration_started = { 0, 0 };
-        struct timeval now = { 0, 0 };
+        curms_t interval = 0;
+        curms_t iteration_started = 0;
+        curms_t now = 0;
 
         struct timespec loopdelay = { 0, 250 * 1000 * 1000 };
         nanosleep(&loopdelay, NULL);
@@ -35,11 +36,11 @@ void *monitor_run(void *ptr)
         while (!thread_stop_requested) {
                 struct timespec sleep_spec;
 
-                gettimeofday(&now, NULL);
+                now = curms();
                 if (active_threads == 0 && in_iteration) {
                         if (verbosity > 0) {
-                                double elapsed = statistics.query_threads_finished.tv_sec - iteration_started.tv_sec + (statistics.query_threads_finished.tv_usec - iteration_started.tv_usec) / 1e6;
-                                double to_sleep = interval - now.tv_sec - now.tv_usec / 1e6;
+                                double elapsed = (statistics.query_threads_finished - iteration_started) / 1000.0;
+                                double to_sleep = (interval - now) / 1000.0;
                                 cllog(1, "Iteration #%d complete.", statistics.iterations);
                                 cllog(1, " %6.02f seconds elapsed", elapsed);
                                 cllog(1, " %6d SNMP queries made (%.01f queries/s)", statistics.snmp_success + statistics.snmp_fail, (statistics.snmp_success + statistics.snmp_fail) / elapsed);
@@ -58,18 +59,18 @@ void *monitor_run(void *ptr)
                         statistics.max_queue_depth = 0;
                         in_iteration = 0;
 
-                        sleep_spec.tv_sec = interval - now.tv_sec - 1;
-                        sleep_spec.tv_nsec = 1000000000L - now.tv_usec * 1000;
+                        sleep_spec.tv_sec = (interval - now) / 1000;
+                        sleep_spec.tv_nsec = ((interval - now) % 1000) * 1000000;
                         pthread_mutex_lock(&global_lock);
                         pthread_cond_timedwait(&global_cond, &global_lock, &sleep_spec);
                         pthread_mutex_unlock(&global_lock);
                 }
 
-                gettimeofday(&now, NULL);
-                if (active_threads == 0 && now.tv_sec >= interval) {
+                now = curms();
+                if (active_threads == 0 && now >= interval) {
                         unsigned qd;
 
-                        interval = (now.tv_sec / poll_interval + 1) * poll_interval;
+                        interval = 1000 * ((now / 1000) / poll_interval + 1) * poll_interval;
                         in_iteration = 1;
                         statistics.iterations++;
 
@@ -82,7 +83,7 @@ void *monitor_run(void *ptr)
                         rtgtargets_reset_next(targets);
                         pthread_cond_broadcast(&global_cond);
                         pthread_mutex_unlock(&global_lock);
-                        gettimeofday(&iteration_started, NULL);
+                        iteration_started = curms();
                 }
 
                 nanosleep(&loopdelay, NULL);

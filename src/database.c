@@ -5,20 +5,22 @@
  *  Copyright 2011 Nym Networks. See LICENSE for terms.
  */
 
+#include "database.h"
+
+#include "clbuf.h"
+#include "clgstr.h"
+#include "clinsert.h"
+#include "cllog.h"
+#include "cltime.h"
+#include "globals.h"
+#include "multithread.h"
+#include "rtgconf.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <mysql.h>
 #include <string.h>
-
-#include "clbuf.h"
-#include "rtgconf.h"
-#include "multithread.h"
-#include "cllog.h"
-#include "database.h"
-#include "globals.h"
-#include "clgstr.h"
-#include "clinsert.h"
 
 #define COMMIT_INTERVAL 100
 
@@ -36,11 +38,11 @@ void *database_run(void *ptr)
         MYSQL *conn = 0;
 
         while (!thread_stop_requested) {
-                struct timeval start_ts;
-                struct timeval end_ts;
+                curms_t start_ts;
+                curms_t end_ts;
                 unsigned query_counter;
 
-                gettimeofday(&start_ts, NULL);
+                start_ts = curms();
 
                 if (!config->use_db) {
                         query_counter = print_database_queue(config);
@@ -66,9 +68,10 @@ void *database_run(void *ptr)
                         unsigned runtime_ms;
                         double tps;
 
-                        gettimeofday(&end_ts, NULL);
-                        runtime_ms = (end_ts.tv_sec - start_ts.tv_sec) * 1000 + (end_ts.tv_usec - start_ts.tv_usec) / 1000;
+                        end_ts = curms();
+                        runtime_ms = end_ts - start_ts;
                         tps = 1000.0 * query_counter / (double) runtime_ms;
+
                         cllog(2, " %6u queries in %6u ms (%.f queries/s) executed on DB by thread %d", query_counter, runtime_ms, tps, my_id);
                 }
                 sleep(1);
