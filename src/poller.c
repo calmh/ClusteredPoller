@@ -34,12 +34,12 @@ void *poller_run(void *ptr)
         unsigned iterations = 0;
 
         /* Start looping. */
+        curms_t start = 0;
+        curms_t end = 0;
         while (!thread_stop_requested) {
                 unsigned dropped_queries = 0;
                 unsigned queued_queries = 0;
                 unsigned queued_values = 0;
-                curms_t start;
-                curms_t end;
                 struct queryhost *host;
 
                 /* Mark ourself sleeping */
