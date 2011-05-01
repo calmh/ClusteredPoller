@@ -5,15 +5,15 @@
  *  Copyright 2011 Nym Networks. See LICENSE for terms.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <string.h>
+#include "rtgconf.h"
 
 #include "cllog.h"
 #include "globals.h"
-#include "rtgconf.h"
 #include "xmalloc.h"
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 struct rtgconf *rtgconf_create(const char *filename)
 {

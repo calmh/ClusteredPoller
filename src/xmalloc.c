@@ -5,10 +5,11 @@
  *  Copyright 2011 Nym Networks. See LICENSE for terms.
  */
 
+#include "xmalloc.h"
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <syslog.h>
-#include <stdio.h>
-#include "xmalloc.h"
 
 void *xmalloc(size_t size)
 {

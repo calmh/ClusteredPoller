@@ -8,6 +8,8 @@
 #ifndef XMALLOC_H
 #define XMALLOC_H
 
+#include <stddef.h>
+
 /** @file xmalloc.h Checked malloc and xrealloc */
 
 /**

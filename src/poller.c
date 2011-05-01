@@ -5,9 +5,7 @@
  *  Copyright 2011 Nym Networks. See LICENSE for terms.
  */
 
-#include <string.h>
-#include <time.h>
-#include <stdio.h>
+#include "poller.h"
 
 #include "clbuf.h"
 #include "clgstr.h"
@@ -16,9 +14,11 @@
 #include "clsnmp.h"
 #include "globals.h"
 #include "multithread.h"
-#include "poller.h"
 #include "rtgtargets.h"
 #include "xmalloc.h"
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
 
 #define MAXERRORSPERHOST 3
 
@@ -34,7 +34,8 @@ void *poller_run(void *ptr)
         unsigned iterations = 0;
 
         /* Start looping. */
-        time_t start = 0, end = 0;
+        curms_t start = 0;
+        curms_t end = 0;
         while (!thread_stop_requested) {
                 unsigned dropped_queries = 0;
                 unsigned queued_queries = 0;
@@ -43,14 +44,14 @@ void *poller_run(void *ptr)
 
                 /* Mark ourself sleeping */
                 if (iterations > 0)
-                        cllog(2, "Thread %d sleeping after %u s processing time.", id, (unsigned) (end - start));
+                        cllog(2, "Thread %d sleeping after %.02f s processing time.", id, (end - start) / 1000.0);
 
                 /* Wait for green light. */
                 pthread_mutex_lock(&global_lock);
                 if (iterations > 0)
                         active_threads--;
                 if (!active_threads)    /* We are the last one */
-                        gettimeofday(&statistics.query_threads_finished, NULL);
+                        statistics.query_threads_finished = curms();
                 pthread_cond_wait(&global_cond, &global_lock);
                 pthread_mutex_unlock(&global_lock);
 
@@ -64,7 +65,7 @@ void *poller_run(void *ptr)
                 pthread_mutex_unlock(&global_lock);
 
                 /* Note our start time, so we know how long an iteration takes. */
-                start = time(NULL);
+                start = curms();
                 /* Loop over our share of the hosts. */
                 while (!thread_stop_requested && (host = rtgtargets_next(targets))) {
                         /* Process the host and get back a list of SQL updates to execute. */
@@ -107,7 +108,7 @@ void *poller_run(void *ptr)
                 pthread_mutex_unlock(&global_lock);
 
                 /* Note how long it took. */
-                end = time(NULL);
+                end = curms();
 
                 /* Prepare for next iteration. */
                 iterations++;

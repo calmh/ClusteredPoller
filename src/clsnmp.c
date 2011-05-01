@@ -7,11 +7,10 @@
 
 #include "clsnmp.h"
 
+#include "xmalloc.h"
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/net-snmp-includes.h>
 #include <pthread.h>
-
-#include "xmalloc.h"
 
 struct clsnmp_session {
         struct snmp_session session;    /* SNMP library session struct. */

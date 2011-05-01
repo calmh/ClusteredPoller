@@ -5,25 +5,24 @@
  *  Copyright 2011 Nym Networks. See LICENSE for terms.
  */
 
-#include <sys/stat.h>
-#include <stdio.h>
-#include <string.h>
-#include <signal.h>
-#include <syslog.h>
-#include <unistd.h>
-#include <ctype.h>
-#include <stdlib.h>
-
 #include "clbuf.h"
 #include "cllog.h"
+#include "database.h"
 #include "globals.h"
 #include "monitor.h"
-#include "poller.h"
-#include "database.h"
 #include "multithread.h"
-#include "rtgtargets.h"
+#include "poller.h"
 #include "rtgconf.h"
+#include "rtgtargets.h"
 #include "xmalloc.h"
+#include <ctype.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <syslog.h>
+#include <unistd.h>
 
 /** @file main.c Main startup @mainpage Clustered Poller */
 

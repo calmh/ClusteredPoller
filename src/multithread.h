@@ -8,9 +8,9 @@
 #ifndef MULTITHREAD_H
 #define MULTITHREAD_H
 
-/** @file multithread.h Clpoll multithreading implementation. */
-
 #include <pthread.h>
+
+/** @file multithread.h Clpoll multithreading implementation. */
 
 /** A thread context object. Each thread gets one. */
 struct mt_context {

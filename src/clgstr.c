@@ -7,10 +7,9 @@
 
 #include "clgstr.h"
 
+#include "xmalloc.h"
 #include <stdlib.h>
 #include <string.h>
-
-#include "xmalloc.h"
 
 struct clgstr {
         size_t length;          /* Length of string. */

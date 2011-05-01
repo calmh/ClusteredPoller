@@ -8,6 +8,7 @@ CuSuite *CuGetLongSuite();
 CuSuite *CuGetRtgConfSuite();
 CuSuite *CuGetRtgTargetsSuite();
 CuSuite *CuGetUtilSuite();
+CuSuite *CuGetCltimeSuite();
 
 void RunAllTests(int longtests)
 {
@@ -21,6 +22,7 @@ void RunAllTests(int longtests)
         CuSuiteAddSuite(suite, CuGetRtgConfSuite());
         CuSuiteAddSuite(suite, CuGetRtgTargetsSuite());
         CuSuiteAddSuite(suite, CuGetUtilSuite());
+        CuSuiteAddSuite(suite, CuGetCltimeSuite());
 
         CuSuiteRun(suite);
         CuSuiteSummary(suite, output);
