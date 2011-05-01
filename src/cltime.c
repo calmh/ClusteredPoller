@@ -6,6 +6,7 @@
  */
 
 #include "cltime.h"
+#include <stddef.h>
 
 #include <sys/time.h>
 
