@@ -7,8 +7,6 @@
 #include "rtgtargets.h"
 #include "poller.h"
 
-void calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cur_time, unsigned long long cur_counter, int bits, unsigned long long *counter_diff, unsigned *rate);
-
 void TestZeroRateWith32BitsCounter(CuTest *tc)
 {
         time_t cur_time = time(NULL);

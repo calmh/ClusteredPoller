@@ -22,8 +22,6 @@
 
 #define MAXERRORSPERHOST 3
 
-void calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cur_time, unsigned long long cur_counter, int bits, unsigned long long *counter_diff, unsigned *rate);
-
 void *poller_run(void *ptr)
 {
         struct mt_context *thread_context = (struct mt_context *) ptr;
