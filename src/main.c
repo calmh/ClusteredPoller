@@ -107,7 +107,7 @@ int main(int argc, char *const argv[])
                 exit(EXIT_FAILURE);
         }
 
-        cllog(1, "clpoll v%s starting up", VERSION);
+        cllog(0, "clpoll v%s starting up", VERSION);
 
         if (detach)
                 daemonize();
