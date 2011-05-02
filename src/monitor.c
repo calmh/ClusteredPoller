@@ -81,19 +81,24 @@ void end_iteration(curms_t next_iteration, curms_t this_iteration)
 {
         curms_t now = curms();
         curms_t to_sleep_ms = next_iteration - now;
-        if (verbosity > 0) {
-                double elapsed = (statistics.query_threads_finished - this_iteration) / 1000.0;
-                double to_sleep_s = to_sleep_ms / 1000.0;
-                cllog(1, "Iteration #%d complete.", statistics.iterations);
-                cllog(1, " %6.02f seconds elapsed", elapsed);
-                cllog(1, " %6d SNMP queries made (%.01f queries/s)", statistics.snmp_success + statistics.snmp_fail, (statistics.snmp_success + statistics.snmp_fail) / elapsed);
-                cllog(1, " %6d of those queries failed", statistics.snmp_fail);
-                cllog(1, " %6d database inserts queued (%.01f queries/s)", statistics.insert_queries - statistics.dropped_queries, (statistics.insert_queries - statistics.dropped_queries) / elapsed);
-                cllog(1, " %6d inserts were dropped due to lack of buffer space", statistics.dropped_queries);
-                cllog(1, " %6d entries maximum queue size", statistics.max_queue_depth);
-                if (to_sleep_ms > 0)
-                        cllog(1, " %6.02f seconds until next iteration", to_sleep_s);
-        }
+        double elapsed = (statistics.query_threads_finished - this_iteration) / 1000.0;
+        double to_sleep_s = to_sleep_ms / 1000.0;
+        int db_crit = 1;
+        int snmp_crit = 1;
+        if (statistics.dropped_queries > 0)
+                db_crit = 0;
+        if (statistics.snmp_fail > 0)
+                snmp_crit = 0;
+
+        cllog(1, "Iteration #%d complete.", statistics.iterations);
+        cllog(1, " %6.02f seconds elapsed", elapsed);
+        cllog(snmp_crit, " %6d SNMP queries made (%.01f queries/s)", statistics.snmp_success + statistics.snmp_fail, (statistics.snmp_success + statistics.snmp_fail) / elapsed);
+        cllog(snmp_crit, " %6d of those queries failed", statistics.snmp_fail);
+        cllog(db_crit, " %6d database inserts queued (%.01f queries/s)", statistics.insert_queries - statistics.dropped_queries, (statistics.insert_queries - statistics.dropped_queries) / elapsed);
+        cllog(db_crit, " %6d inserts were dropped due to lack of buffer space", statistics.dropped_queries);
+        cllog(1, " %6d entries maximum queue size", statistics.max_queue_depth);
+        if (to_sleep_ms > 0)
+                cllog(1, " %6.02f seconds until next iteration", to_sleep_s);
 
         statistics.insert_rows = 0;
         statistics.insert_queries = 0;
