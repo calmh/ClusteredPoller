@@ -26,15 +26,15 @@
 
 /** @file main.c Main startup @mainpage Clustered Poller */
 
-void help(void);
-void run_threads(struct rtgtargets *targets, struct rtgconf *config);
-struct mt_threads *create_poller_threads(unsigned nthreads, struct rtgtargets *targets);
-struct mt_threads *create_database_threads(unsigned nthreads, struct rtgconf *config);
-struct mt_threads *create_monitor_thread(struct rtgtargets *targets, struct rtgconf *config);
-void free_threads_params(struct mt_threads *threads);
-void sighup_handler(int signum);
-void sigterm_handler(int signum);
-void daemonize(void);
+static void help(void);
+static void run_threads(struct rtgtargets *targets, struct rtgconf *config);
+static struct mt_threads *create_poller_threads(unsigned nthreads, struct rtgtargets *targets);
+static struct mt_threads *create_database_threads(unsigned nthreads, struct rtgconf *config);
+static struct mt_threads *create_monitor_thread(struct rtgtargets *targets, struct rtgconf *config);
+static void free_threads_params(struct mt_threads *threads);
+static void sighup_handler(int signum);
+static void sigterm_handler(int signum);
+static void daemonize(void);
 
 int main(int argc, char *const argv[])
 {
@@ -45,14 +45,14 @@ int main(int argc, char *const argv[])
         int use_rate_column = 1;
         int allow_db_zero = 0;
         unsigned max_db_queue = DEFAULT_QUEUE_LENGTH;
-        int num_dbthreads = DEFAULT_NUM_DBTHREADS;
+        unsigned num_dbthreads = DEFAULT_NUM_DBTHREADS;
         int c;
         char *last_component;
         struct rtgtargets *targets;
 
         if (argc < 2) {
                 help();
-                exit(-1);
+                exit(EXIT_FAILURE);
         }
 
         while ((c = getopt(argc, argv, "c:dt:vzDOOQ:W:")) != -1) {
@@ -79,32 +79,32 @@ int main(int argc, char *const argv[])
                         use_rate_column = 0;
                         break;
                 case 'Q':
-                        max_db_queue = atoi(optarg);
+                        max_db_queue = (unsigned) strtol(optarg, NULL, 10);
                         if (max_db_queue < MIN_QUEUE_LENGTH) {
                                 fprintf(stderr, "Error: minimum queue length is %d.\n", MIN_QUEUE_LENGTH);
                                 help();
-                                exit(-1);
+                                exit(EXIT_FAILURE);
                         }
                         break;
                 case 'W':
-                        num_dbthreads = atoi(optarg);
+                        num_dbthreads = (unsigned) strtol(optarg, NULL, 10);
                         if (num_dbthreads < 1) {
                                 fprintf(stderr, "Error: you need at least one database thread.\n");
                                 help();
-                                exit(-1);
+                                exit(EXIT_FAILURE);
                         }
                         break;
 
                 case '?':
                 default:
                         help();
-                        exit(-1);
+                        exit(EXIT_FAILURE);
                 }
         }
 
         if (argc != optind) {
                 help();
-                exit(-1);
+                exit(EXIT_FAILURE);
         }
 
         cllog(1, "clpoll v%s starting up", VERSION);
@@ -127,7 +127,7 @@ int main(int argc, char *const argv[])
                 struct rtgconf *config = rtgconf_create(rtgconf_file);
                 if (!config || !rtgconf_verify(config)) {
                         cllog(0, "Missing or incorrect configuration file, so nothing to do.");
-                        exit(-1);
+                        exit(EXIT_FAILURE);
                 }
                 /* "Patch" rtgconf with command line values */
                 config->use_db = use_db;
@@ -141,7 +141,7 @@ int main(int argc, char *const argv[])
 
                 if (targets->ntargets == 0) {
                         cllog(0, "No targets, so nothing to do.");
-                        exit(-1);
+                        exit(EXIT_FAILURE);
                 }
 
                 cllog(1, "Polling every %d seconds.", config->interval);

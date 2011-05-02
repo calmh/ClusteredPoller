@@ -17,16 +17,16 @@
 #include <string.h>
 #include <time.h>
 
-struct queryhost *read_host(FILE *fileptr, char *host_name, const struct rtgconf *conf);
-struct queryrow *read_row(FILE *fileptr, char *oid, const struct rtgconf *conf);
-int check_for_duplicate(struct queryhost *host, struct queryrow *row);
-void rtgtargets_push_host(struct rtgtargets *targets, struct queryhost *host);
-struct rtgtargets *read_new_style_targets(const char *filename, const struct rtgconf *conf);
-struct rtgtargets *read_old_style_targets(const char *filename, const struct rtgconf *conf);
-char *strtolower(char *str);
-char *strclean(char *str);
-char *strunc(char *str);
-void queryhost_push_row(struct queryhost *host, struct queryrow *row);
+static struct queryhost *read_host(FILE *fileptr, char *host_name, const struct rtgconf *conf);
+static struct queryrow *read_row(FILE *fileptr, char *oid, const struct rtgconf *conf);
+static int check_for_duplicate(struct queryhost *host, struct queryrow *row);
+static void rtgtargets_push_host(struct rtgtargets *targets, struct queryhost *host);
+static struct rtgtargets *read_new_style_targets(const char *filename, const struct rtgconf *conf);
+static struct rtgtargets *read_old_style_targets(const char *filename, const struct rtgconf *conf);
+static char *strtolower(char *str);
+static char *strclean(char *str);
+static char *strunc(char *str);
+static void queryhost_push_row(struct queryhost *host, struct queryrow *row);
 
 struct rtgtargets *rtgtargets_create(void)
 {

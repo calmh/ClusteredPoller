@@ -23,10 +23,10 @@
 
 #define COMMIT_INTERVAL 100
 
-unsigned process_database_queue(MYSQL *conn, struct rtgconf *config);
-unsigned print_database_queue(struct rtgconf *config);
-MYSQL *connection(struct rtgconf *config);
-char *build_insert_query(struct clinsert *insert, struct rtgconf *config);
+static unsigned process_database_queue(MYSQL *conn, struct rtgconf *config);
+static unsigned print_database_queue(struct rtgconf *config);
+static MYSQL *connection(struct rtgconf *config);
+static char *build_insert_query(struct clinsert *insert, struct rtgconf *config);
 
 void *database_run(void *ptr)
 {

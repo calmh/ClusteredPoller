@@ -16,8 +16,8 @@
 #include "rtgtargets.h"
 #include <unistd.h>
 
-void start_iteration(struct rtgtargets *targets);
-void end_iteration(curms_t interval, curms_t this_iteration);
+static void start_iteration(struct rtgtargets *targets);
+static void end_iteration(curms_t interval, curms_t this_iteration);
 
 void *monitor_run(void *ptr)
 {

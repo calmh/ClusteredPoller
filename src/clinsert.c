@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct clinsert *clinsert_create(char *table);
+static struct clinsert *clinsert_create(char *table);
 
 struct clinsert *clinsert_create(char *table)
 {
