@@ -19,11 +19,21 @@ void TestCurms(CuTest *tc)
         CuAssertIntEquals(tc, time_in_s, time_in_ms / 1000);
 }
 
+void TestNextInterval(CuTest *tc)
+{
+        curms_t now = 13043516141234LL;
+        unsigned polling_interval = 300;
+        curms_t ni = next_interval(now, polling_interval);
+
+        CuAssertIntEquals(tc, 13043516400000LL, ni);
+}
+
 CuSuite *CuGetCltimeSuite(void)
 {
         CuSuite *suite = CuSuiteNew();
 
         SUITE_ADD_TEST(suite, TestCurms);
+        SUITE_ADD_TEST(suite, TestNextInterval);
 
         return suite;
 }
