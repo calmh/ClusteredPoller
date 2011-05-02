@@ -62,7 +62,7 @@ struct rtgtargets *rtgtargets_parse(const char *filename, const struct rtgconf *
                 rtgtargets_free(targets);
                 targets = read_old_style_targets(filename, conf);
         }
-        cllog(0, "Read %d targets in %d hosts.", targets->ntargets, targets->nhosts);
+        cllog(1, "Read %d targets in %d hosts.", targets->ntargets, targets->nhosts);
         return targets;
 }
 
