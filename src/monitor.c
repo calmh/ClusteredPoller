@@ -38,9 +38,10 @@ void *monitor_run(void *ptr)
 
                 now = curms();
                 if (active_threads == 0 && in_iteration) {
+                        curms_t to_sleep_ms = interval - now;
                         if (verbosity > 0) {
                                 double elapsed = (statistics.query_threads_finished - iteration_started) / 1000.0;
-                                double to_sleep = (interval - now) / 1000.0;
+                                double to_sleep_s = to_sleep_ms / 1000.0;
                                 cllog(1, "Iteration #%d complete.", statistics.iterations);
                                 cllog(1, " %6.02f seconds elapsed", elapsed);
                                 cllog(1, " %6d SNMP queries made (%.01f queries/s)", statistics.snmp_success + statistics.snmp_fail, (statistics.snmp_success + statistics.snmp_fail) / elapsed);
@@ -48,7 +49,8 @@ void *monitor_run(void *ptr)
                                 cllog(1, " %6d database inserts queued (%.01f queries/s)", statistics.insert_queries - statistics.dropped_queries, (statistics.insert_queries - statistics.dropped_queries) / elapsed);
                                 cllog(1, " %6d inserts were dropped due to lack of buffer space", statistics.dropped_queries);
                                 cllog(1, " %6d entries maximum queue size (%.01f %% full)", statistics.max_queue_depth, 100.0 * statistics.max_queue_depth / config->max_db_queue);
-                                cllog(1, " %6.02f seconds until next iteration", to_sleep);
+                                if (to_sleep_ms > 0)
+                                        cllog(1, " %6.02f seconds until next iteration", to_sleep_s);
                         }
 
                         statistics.insert_rows = 0;
@@ -59,11 +61,13 @@ void *monitor_run(void *ptr)
                         statistics.max_queue_depth = 0;
                         in_iteration = 0;
 
-                        sleep_spec.tv_sec = (interval - now) / 1000;
-                        sleep_spec.tv_nsec = ((interval - now) % 1000) * 1000000;
-                        pthread_mutex_lock(&global_lock);
-                        pthread_cond_timedwait(&global_cond, &global_lock, &sleep_spec);
-                        pthread_mutex_unlock(&global_lock);
+                        if (to_sleep_ms > 0) {
+                                sleep_spec.tv_sec = (interval - now) / 1000;
+                                sleep_spec.tv_nsec = ((interval - now) % 1000) * 1000000;
+                                pthread_mutex_lock(&global_lock);
+                                pthread_cond_timedwait(&global_cond, &global_lock, &sleep_spec);
+                                pthread_mutex_unlock(&global_lock);
+                        }
                 }
 
                 now = curms();
