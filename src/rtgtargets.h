@@ -121,4 +121,27 @@ struct queryhost *rtgtargets_next(struct rtgtargets *targets);
  */
 void rtgtargets_reset_next(struct rtgtargets *targets);
 
+/**
+ * Find the host with specified name.
+ * @param targets The rtgtargets object in which to look.
+ * @param name The name of the host to look for.
+ * @return A queryhost* pointing to the specified host record, or NULL if not found.
+ */
+struct queryhost *rtgtargets_find_host(struct rtgtargets *targets, char *name);
+
+/**
+ * Find the row with specified OID.
+ * @param host The queryhost object in which to look;
+ * @param oid The OID to look for.
+ * @return A queryrow* pointing to the specified row, or NULL if not found.
+ */
+struct queryrow *rtgtargets_find_row(struct queryhost *host, char *oid);
+
+/**
+ * Copy the cache values from one targets set to another.
+ * @param dest The destination targets;
+ * @param src The source targets;
+ */
+void rtgtargets_copy_cache(struct rtgtargets *dest, struct rtgtargets *src);
+
 #endif /* RTGTARGETS_H */
