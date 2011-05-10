@@ -28,7 +28,9 @@ void *monitor_run(void *ptr)
         struct rtgconf *config = monitor_context->config;
         unsigned poll_interval = config->interval;
 
-        curms_t next_iteration = 0;
+        /* Use the specified next iteration value.
+         * If it is set to zero, we'll run as soon as possible. */
+        curms_t next_iteration = monitor_context->next_iteration;
         curms_t this_iteration = 0;
 
         struct timespec loopdelay = { 0, 250 * 1000 * 1000 };
@@ -56,6 +58,9 @@ void *monitor_run(void *ptr)
                         this_iteration = 0;
                 }
         }
+
+        /* Save next iteration value, so we can reuse it if necessary. */
+        monitor_context->next_iteration = next_iteration;
 
         return NULL;
 }

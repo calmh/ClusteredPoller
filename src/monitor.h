@@ -8,6 +8,8 @@
 #ifndef MONITOR_H
 #define MONITOR_H
 
+#include "cltime.h"
+
 /** @file monitor.h Monitor thread. */
 
 struct rtgtargets;
@@ -17,6 +19,7 @@ struct rtgconf;
 struct monitor_ctx {
         struct rtgtargets *targets;     /**< The targets to process. */
         struct rtgconf *config; /**< The configuration to use. */
+        curms_t next_iteration;
 };
 
 /**

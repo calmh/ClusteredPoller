@@ -30,7 +30,7 @@ static void help(void);
 static void run_threads(struct rtgtargets *targets, struct rtgconf *config);
 static struct mt_threads *create_poller_threads(unsigned nthreads, struct rtgtargets *targets);
 static struct mt_threads *create_database_threads(unsigned nthreads, struct rtgconf *config);
-static struct mt_threads *create_monitor_thread(struct rtgtargets *targets, struct rtgconf *config);
+static struct mt_threads *create_monitor_thread(struct rtgtargets *targets, struct rtgconf *config, curms_t next_iteration);
 static void free_threads_params(struct mt_threads *threads);
 static void sighup_handler(int signum);
 static void sigterm_handler(int signum);
@@ -49,6 +49,7 @@ int main(int argc, char *const argv[])
         int c;
         char *last_component;
         struct rtgtargets *targets;
+        struct rtgtargets *old_targets = NULL;
 
         if (argc < 2) {
                 help();
@@ -144,12 +145,18 @@ int main(int argc, char *const argv[])
                         exit(EXIT_FAILURE);
                 }
 
+                if (old_targets != NULL) {
+                        rtgtargets_copy_cache(targets, old_targets);
+                        rtgtargets_free(old_targets);
+                        old_targets = NULL;
+                }
+
                 cllog(1, "Polling every %d seconds.", config->interval);
 
                 run_threads(targets, config);
 
                 rtgconf_free(config);
-                rtgtargets_free(targets);
+                old_targets = targets;
         }
         return 0;
 }
@@ -176,6 +183,7 @@ void help(void)
 
 void run_threads(struct rtgtargets *targets, struct rtgconf *config)
 {
+        static curms_t next_iteration = 0;
         struct mt_threads *poller_threads;
         struct mt_threads *database_threads;
         struct mt_threads *monitor_thread;
@@ -190,11 +198,13 @@ void run_threads(struct rtgtargets *targets, struct rtgconf *config)
 
         poller_threads = create_poller_threads(config->threads, targets);
         database_threads = create_database_threads(config->num_dbthreads, config);
-        monitor_thread = create_monitor_thread(targets, config);
+        monitor_thread = create_monitor_thread(targets, config, next_iteration);
 
         mt_threads_join(database_threads);
         mt_threads_join(poller_threads);
         mt_threads_join(monitor_thread);
+
+        next_iteration = ((struct monitor_ctx *) monitor_thread->contexts[0].param)->next_iteration;
 
         free_threads_params(poller_threads);
         free_threads_params(database_threads);
@@ -236,7 +246,7 @@ struct mt_threads *create_database_threads(unsigned nthreads, struct rtgconf *co
         return database_threads;
 }
 
-struct mt_threads *create_monitor_thread(struct rtgtargets *targets, struct rtgconf *config)
+struct mt_threads *create_monitor_thread(struct rtgtargets *targets, struct rtgconf *config, curms_t next_iteration)
 {
         struct mt_threads *monitor_threads = mt_threads_create(1);
         struct monitor_ctx *ctx = (struct monitor_ctx *) xmalloc(sizeof(struct monitor_ctx));
@@ -244,6 +254,7 @@ struct mt_threads *create_monitor_thread(struct rtgtargets *targets, struct rtgc
         cllog(1, "Starting monitor thread.");
         ctx->targets = targets;
         ctx->config = config;
+        ctx->next_iteration = next_iteration;
         monitor_threads->contexts[0].param = ctx;
         mt_threads_start(monitor_threads, monitor_run);
 
