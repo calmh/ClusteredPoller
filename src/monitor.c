@@ -109,9 +109,8 @@ void end_iteration(curms_t next_iteration, curms_t this_iteration)
 
         if (to_sleep_ms > 0) {
                 struct timespec sleep_spec;
-                sleep_spec.tv_sec = (next_iteration - now) / 1000;
-                sleep_spec.tv_nsec = ((next_iteration - now) % 1000) * 1000000;
-
+                sleep_spec.tv_sec = next_iteration / 1000;
+                sleep_spec.tv_nsec = 0;
                 pthread_mutex_lock(&global_lock);
                 pthread_cond_timedwait(&global_cond, &global_lock, &sleep_spec);
                 pthread_mutex_unlock(&global_lock);
