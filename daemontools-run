@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Update PATH to reflect where the clpoll binary is located
+export PATH=/opt/rtg/bin:$PATH
+# Set RUNAS to a safe user (not root).
+export RUNAS=rtg
+# Set ARGS to whatever parameters you need for clpoll
+export ARGS="-W 1 -z -c /opt/rtg/etc/rtg.conf -t /opt/rtg/etc/targets.cfg"
+
+exec setuidgid $RUNAS \
+        clpoll -D $ARGS
