@@ -62,6 +62,13 @@ way you would use `rtgpoll`.
 If your database schema doesn't use the `rate` column from RTG 0.8 you need to
 use the `-O` option ("old schema").
 
+Running
+-------
+
+I recommend using djb's [daemontools] (http://cr.yp.to/daemontools.html) for
+managing clpoll. An example run script is present in the file `daemontools-run`
+-- you will need to update the configuration variables in the script.
+
 OS-specific Installation Instructions
 -------------------------------------
 
@@ -141,6 +148,5 @@ i.e. a working GCC and make.
      `gmake`
 
   4. Use the created `clpoll` binary.
-
 
 Jakob Borg <jakob@nym.se>

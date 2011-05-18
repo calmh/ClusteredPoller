@@ -19,4 +19,12 @@ typedef long long curms_t;
  */
 curms_t curms(void);
 
+/**
+ * Calculate the start of the next polling time, give now and the interval length.
+ * @param now The current time, in milliseconds since the epoch.
+ * @param poll_interval The polling interval, in seconds.
+ * @return The start of the next polling interval, in milliseconds.
+ */
+curms_t next_interval(curms_t now, unsigned poll_interval);
+
 #endif /* CLTIME_H */

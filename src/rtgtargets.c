@@ -17,16 +17,16 @@
 #include <string.h>
 #include <time.h>
 
-struct queryhost *read_host(FILE *fileptr, char *host_name, const struct rtgconf *conf);
-struct queryrow *read_row(FILE *fileptr, char *oid, const struct rtgconf *conf);
-int check_for_duplicate(struct queryhost *host, struct queryrow *row);
-void rtgtargets_push_host(struct rtgtargets *targets, struct queryhost *host);
-struct rtgtargets *read_new_style_targets(const char *filename, const struct rtgconf *conf);
-struct rtgtargets *read_old_style_targets(const char *filename, const struct rtgconf *conf);
-char *strtolower(char *str);
-char *strclean(char *str);
-char *strunc(char *str);
-void queryhost_push_row(struct queryhost *host, struct queryrow *row);
+static struct queryhost *read_host(FILE *fileptr, char *host_name, const struct rtgconf *conf);
+static struct queryrow *read_row(FILE *fileptr, char *oid, const struct rtgconf *conf);
+static int check_for_duplicate(struct queryhost *host, struct queryrow *row);
+static void rtgtargets_push_host(struct rtgtargets *targets, struct queryhost *host);
+static struct rtgtargets *read_new_style_targets(const char *filename, const struct rtgconf *conf);
+static struct rtgtargets *read_old_style_targets(const char *filename, const struct rtgconf *conf);
+static char *strtolower(char *str);
+static char *strclean(char *str);
+static char *strunc(char *str);
+static void queryhost_push_row(struct queryhost *host, struct queryrow *row);
 
 struct rtgtargets *rtgtargets_create(void)
 {
@@ -62,7 +62,7 @@ struct rtgtargets *rtgtargets_parse(const char *filename, const struct rtgconf *
                 rtgtargets_free(targets);
                 targets = read_old_style_targets(filename, conf);
         }
-        cllog(0, "Read %d targets in %d hosts.", targets->ntargets, targets->nhosts);
+        cllog(1, "Read %d targets in %d hosts.", targets->ntargets, targets->nhosts);
         return targets;
 }
 
@@ -387,4 +387,45 @@ struct queryhost *rtgtargets_next(struct rtgtargets *targets)
 void rtgtargets_reset_next(struct rtgtargets *targets)
 {
         targets->next_host = 0;
+}
+
+struct queryhost *rtgtargets_find_host(struct rtgtargets *targets, char *name)
+{
+        unsigned i;
+        for (i = 0; i < targets->nhosts; i++) {
+                struct queryhost *h = targets->hosts[i];
+                if (!strcmp(name, h->host))
+                        return h;
+        }
+        return NULL;
+}
+
+struct queryrow *rtgtargets_find_row(struct queryhost *host, char *oid)
+{
+        unsigned i;
+        for (i = 0; i < host->nrows; i++) {
+                struct queryrow *r = host->rows[i];
+                if (!strcmp(oid, r->oid))
+                        return r;
+        }
+        return NULL;
+}
+
+void rtgtargets_copy_cache(struct rtgtargets *dest, struct rtgtargets *src)
+{
+        unsigned hi, ri;
+        for (hi = 0; hi < src->nhosts; hi++) {
+                struct queryhost *src_h = src->hosts[hi];
+                struct queryhost *dest_h = rtgtargets_find_host(dest, src_h->host);
+                if (dest_h != NULL) {
+                        for (ri = 0; ri < src_h->nrows; ri++) {
+                                struct queryrow *src_r = src_h->rows[ri];
+                                struct queryrow *dest_r = rtgtargets_find_row(dest_h, src_r->oid);
+                                if (dest_r != NULL) {
+                                        dest_r->cached_time = src_r->cached_time;
+                                        dest_r->cached_counter = src_r->cached_counter;
+                                }
+                        }
+                }
+        }
 }

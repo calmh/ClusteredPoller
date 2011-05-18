@@ -78,6 +78,60 @@ void TestParseOldStyleTargetsRow(CuTest *tc)
         CuAssertIntEquals(tc, 32u, hosts->hosts[0]->rows[0]->bits);
 }
 
+void TestFindHost(CuTest *tc)
+{
+        struct rtgconf *conf = rtgconf_create("test/example-rtg.conf");
+        struct rtgtargets *hosts = rtgtargets_parse("test/example-targets.cfg", conf);
+        struct queryhost *q;
+
+        q = rtgtargets_find_host(hosts, "172.16.1.2");
+        CuAssertPtrNotNull(tc, q);
+        CuAssertStrEquals(tc, "f00barb4z", q->community);
+
+        q = rtgtargets_find_host(hosts, "172.16.1.1");
+        CuAssertPtrNotNull(tc, q);
+        CuAssertStrEquals(tc, "c0mmun1ty", q->community);
+
+        q = rtgtargets_find_host(hosts, "172.16.1.3");
+        CuAssertPtrEquals(tc, NULL, q);
+}
+
+void TestFindRow(CuTest *tc)
+{
+        struct rtgconf *conf = rtgconf_create("test/example-rtg.conf");
+        struct rtgtargets *hosts = rtgtargets_parse("test/example-targets.cfg", conf);
+        struct queryhost *q;
+        struct queryrow *r;
+
+        q = rtgtargets_find_host(hosts, "172.16.1.2");
+        r = rtgtargets_find_row(q, ".1.3.6.1.2.1.31.1.1.1.10.1");
+        CuAssertPtrNotNull(tc, r);
+        CuAssertStrEquals(tc, "ifOutOctets_276", r->table);
+
+        r = rtgtargets_find_row(q, ".1.3.6.1.2.1.31.1.1.1.6.2");
+        CuAssertPtrEquals(tc, NULL, r);
+}
+
+void TestCopyCache(CuTest *tc)
+{
+        struct rtgconf *conf = rtgconf_create("test/example-rtg.conf");
+        struct rtgtargets *hosts1 = rtgtargets_parse("test/example-targets.cfg", conf);
+        struct rtgtargets *hosts2 = rtgtargets_parse("test/example-targets.cfg", conf);
+        struct queryhost *q;
+        struct queryrow *r;
+
+        q = rtgtargets_find_host(hosts1, "172.16.1.2");
+        r = rtgtargets_find_row(q, ".1.3.6.1.2.1.31.1.1.1.10.1");
+        r->cached_time = 1234;
+        r->cached_counter = 3456;
+        rtgtargets_copy_cache(hosts2, hosts1);
+
+        q = rtgtargets_find_host(hosts2, "172.16.1.2");
+        r = rtgtargets_find_row(q, ".1.3.6.1.2.1.31.1.1.1.10.1");
+        CuAssertIntEquals(tc, 1234, r->cached_time);
+        CuAssertIntEquals(tc, 3456, r->cached_counter);
+}
+
 CuSuite *CuGetRtgTargetsSuite(void)
 {
         CuSuite *suite = CuSuiteNew();
@@ -89,6 +143,9 @@ CuSuite *CuGetRtgTargetsSuite(void)
         SUITE_ADD_TEST(suite, TestParseOldStyleTargetsHost);
         SUITE_ADD_TEST(suite, TestParseNewStyleTargetsRow);
         SUITE_ADD_TEST(suite, TestParseOldStyleTargetsRow);
+        SUITE_ADD_TEST(suite, TestFindHost);
+        SUITE_ADD_TEST(suite, TestFindRow);
+        SUITE_ADD_TEST(suite, TestCopyCache);
 
         return suite;
 }

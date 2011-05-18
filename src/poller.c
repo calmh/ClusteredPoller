@@ -22,7 +22,10 @@
 
 #define MAXERRORSPERHOST 3
 
-void calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cur_time, unsigned long long cur_counter, int bits, unsigned long long *counter_diff, unsigned *rate);
+static void thread_inactive(unsigned id, unsigned iterations);
+static void thread_active(unsigned id);
+static void process_host(unsigned id, struct queryhost *host);
+static void process_queries(unsigned id, struct clinsert **host_queries);
 
 void *poller_run(void *ptr)
 {
@@ -34,86 +37,104 @@ void *poller_run(void *ptr)
         unsigned iterations = 0;
 
         /* Start looping. */
-        curms_t start = 0;
-        curms_t end = 0;
         while (!thread_stop_requested) {
-                unsigned dropped_queries = 0;
-                unsigned queued_queries = 0;
-                unsigned queued_values = 0;
                 struct queryhost *host;
 
-                /* Mark ourself sleeping */
-                if (iterations > 0)
-                        cllog(2, "Thread %d sleeping after %.02f s processing time.", id, (end - start) / 1000.0);
-
                 /* Wait for green light. */
-                pthread_mutex_lock(&global_lock);
-                if (iterations > 0)
-                        active_threads--;
-                if (!active_threads)    /* We are the last one */
-                        statistics.query_threads_finished = curms();
-                pthread_cond_wait(&global_cond, &global_lock);
-                pthread_mutex_unlock(&global_lock);
+                thread_inactive(id, iterations);
 
                 if (thread_stop_requested)
                         break;
 
-                cllog(2, "Thread %d starting.", id);
                 /* Mark ourself active. */
-                pthread_mutex_lock(&global_lock);
-                active_threads++;
-                pthread_mutex_unlock(&global_lock);
+                thread_active(id);
 
-                /* Note our start time, so we know how long an iteration takes. */
-                start = curms();
                 /* Loop over our share of the hosts. */
-                while (!thread_stop_requested && (host = rtgtargets_next(targets))) {
-                        /* Process the host and get back a list of SQL updates to execute. */
-                        struct clinsert **host_queries = get_clinserts(host);
-                        unsigned n_queries = clinsert_count(host_queries);
-
-                        cllog(2, "Thread %d picked host '%s'.", id, host->host);
-
-                        if (n_queries > 0) {
-                                unsigned i;
-                                unsigned qd;
-
-                                cllog(2, "Thread %u queueing %u queries.", id, n_queries);
-
-                                for (i = 0; i < n_queries && clbuf_count_free(queries) > 0; i++) {
-                                        void *result = clbuf_push(queries, host_queries[i]);
-                                        if (result) {
-                                                queued_queries++;
-                                                queued_values += host_queries[i]->nvalues;
-                                        } else {
-                                                break;
-                                        }
-                                }
-
-                                qd = clbuf_count_used(queries);
-                                statistics.max_queue_depth = statistics.max_queue_depth > qd ? statistics.max_queue_depth : qd;
-                                if (i != n_queries) {
-                                        if (!dropped_queries)
-                                                cllog(0, "Thread %d dropped queries due to database queue full.", id);
-                                        dropped_queries += n_queries - i;
-                                }
-                        }
-                        free(host_queries);
-                }
-
-                pthread_mutex_lock(&global_lock);
-                statistics.insert_rows += queued_values;
-                statistics.insert_queries += queued_queries;
-                statistics.dropped_queries += dropped_queries;
-                pthread_mutex_unlock(&global_lock);
-
-                /* Note how long it took. */
-                end = curms();
+                while (!thread_stop_requested && (host = rtgtargets_next(targets)))
+                        process_host(id, host);
 
                 /* Prepare for next iteration. */
                 iterations++;
         }
         return NULL;
+}
+
+void thread_inactive(unsigned id, unsigned iterations)
+{
+        pthread_mutex_lock(&global_lock);
+
+        /* Only decrease thread counter if this is not the first iteration. */
+        if (iterations > 0) {
+                active_threads--;
+                cllog(2, "Thread %u blocking.", id);
+        }
+
+        if (!active_threads)    /* We are the last one */
+                statistics.query_threads_finished = curms();
+
+        /* Wait for monitor to broadcast go signal. */
+        pthread_cond_wait(&global_cond, &global_lock);
+
+        pthread_mutex_unlock(&global_lock);
+}
+
+void thread_active(unsigned id)
+{
+        cllog(2, "Thread %u starting.", id);
+
+        pthread_mutex_lock(&global_lock);
+        active_threads++;
+        pthread_mutex_unlock(&global_lock);
+}
+
+void process_host(unsigned id, struct queryhost *host)
+{
+        struct clinsert **host_queries;
+
+        cllog(2, "Thread %u picked host '%s'.", id, host->host);
+
+        /* Poll the host, get back the list of inserts, and queue them all. */
+        host_queries = get_clinserts(host);
+        process_queries(id, host_queries);
+        free(host_queries);
+}
+
+void process_queries(unsigned id, struct clinsert **host_queries)
+{
+        unsigned n_queries = clinsert_count(host_queries);
+        unsigned dropped_queries;
+        unsigned queued_queries;
+        unsigned queued_values;
+        unsigned processed_inserts;
+        unsigned depth;
+
+        cllog(2, "Thread %u queueing %u queries.", id, n_queries);
+
+        queued_queries = 0;
+        queued_values = 0;
+        for (processed_inserts = 0; processed_inserts < n_queries && clbuf_count_free(queries) > 0; processed_inserts++) {
+                void *result = clbuf_push(queries, host_queries[processed_inserts]);
+                if (result) {
+                        queued_queries++;
+                        queued_values += host_queries[processed_inserts]->nvalues;
+                } else {
+                        break;
+                }
+        }
+
+        depth = clbuf_count_used(queries);
+        dropped_queries = n_queries - processed_inserts;
+
+        if (dropped_queries)
+                cllog(0, "Thread %u dropped %u queries due to database queue full.", id, dropped_queries);
+
+        /* Update statistics. */
+        pthread_mutex_lock(&global_lock);
+        statistics.insert_rows += queued_values;
+        statistics.insert_queries += queued_queries;
+        statistics.dropped_queries += dropped_queries;
+        statistics.max_queue_depth = statistics.max_queue_depth > depth ? statistics.max_queue_depth : depth;
+        pthread_mutex_unlock(&global_lock);
 }
 
 void calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cur_time, unsigned long long cur_counter, int bits, unsigned long long *counter_diff, unsigned *rate)

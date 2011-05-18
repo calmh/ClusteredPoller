@@ -34,4 +34,16 @@ struct clinsert **get_clinserts(struct queryhost *host);
  */
 void *poller_run(void *param);
 
+/**
+ * Calculate the rate between two measurements. Correctly handles wrapping counters.
+ * @param prev_time Time of previous measurement.
+ * @param prev_counter Counter value at previous measurement.
+ * @param cur_time Current time.
+ * @param cur_counter Current counter value;
+ * @param bits Significant number of bits in the counter values (32 or 64).
+ * @param [out] counter_diff The difference between the two counters.
+ * @param [out] rate The rate, adjusted for time difference.
+ */
+void calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cur_time, unsigned long long cur_counter, int bits, unsigned long long *counter_diff, unsigned *rate);
+
 #endif

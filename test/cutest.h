@@ -63,7 +63,7 @@ void CuAssertStrEquals_LineMsg(CuTest* tc,
 	const char* expected, const char* actual);
 void CuAssertIntEquals_LineMsg(CuTest* tc, 
 	const char* file, int line, const char* message, 
-	int expected, int actual);
+	long long expected, long long actual);
 void CuAssertDblEquals_LineMsg(CuTest* tc, 
 	const char* file, int line, const char* message, 
 	double expected, double actual, double delta);

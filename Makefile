@@ -104,6 +104,14 @@ reformat:
 	indent src/*.c src/*.h test/*.c
 	rm */*~
 
+.PHONY: splint
+splint:
+	splint +posixlib $(CFLAGS) src/*.c
+
+.PHONY: cyclo
+cyclo:
+	cat src/*.c | mcstrip | cyclo -c | awk '{print $$2 "\t" $$1}' | sort -rn | head
+
 .PHONY: version
 version:
 	echo "VERSION=\"${VERSION}\"" > version.mk
