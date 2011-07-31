@@ -13,7 +13,6 @@
 #include <pthread.h>
 
 struct clsnmp_session {
-        struct snmp_session session;    /* SNMP library session struct. */
         void *sessp;            /* SNMP library session pointer. */
 };
 
@@ -27,22 +26,23 @@ void clsnmp_global_init(void)
 struct clsnmp_session *clsnmp_session_create(const char *host, const char *community, int snmpver)
 {
         struct clsnmp_session *session;
+        struct snmp_session libsnmp_session;
 
         if (snmpver != 1 && snmpver != 2)
                 return NULL;
 
         pthread_mutex_lock(&clsnmp_lock);
         session = (struct clsnmp_session *) xmalloc(sizeof(struct clsnmp_session));
-        snmp_sess_init(&session->session);
-        session->session.peername = (char *) host;
-        session->session.community = (u_char *) community;
-        session->session.community_len = strlen(community);
+        snmp_sess_init(&libsnmp_session);
+        libsnmp_session.peername = (char *) host;
+        libsnmp_session.community = (u_char *) community;
+        libsnmp_session.community_len = strlen(community);
         if (snmpver == 2)
-                session->session.version = SNMP_VERSION_2c;
+                libsnmp_session.version = SNMP_VERSION_2c;
         else
-                session->session.version = SNMP_VERSION_1;
+                libsnmp_session.version = SNMP_VERSION_1;
 
-        session->sessp = snmp_sess_open(&session->session);
+        session->sessp = snmp_sess_open(&libsnmp_session);
 
         if (!session->sessp) {
                 pthread_mutex_unlock(&clsnmp_lock);
