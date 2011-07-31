@@ -112,13 +112,16 @@ void process_queries(unsigned id, struct clinsert **host_queries)
 
         queued_queries = 0;
         queued_values = 0;
-        for (processed_inserts = 0; processed_inserts < n_queries && clbuf_count_free(queries) > 0; processed_inserts++) {
-                void *result = clbuf_push(queries, host_queries[processed_inserts]);
+        for (processed_inserts = 0; processed_inserts < n_queries; processed_inserts++) {
+                void *result = 0;
+                if (clbuf_count_free(queries) > 0)
+                        result = clbuf_push(queries, host_queries[processed_inserts]);
+
                 if (result) {
                         queued_queries++;
                         queued_values += host_queries[processed_inserts]->nvalues;
                 } else {
-                        break;
+                        clinsert_free(host_queries[processed_inserts]);
                 }
         }
 
