@@ -81,19 +81,9 @@ int main(int argc, char *const argv[])
                         break;
                 case 'Q':
                         max_db_queue = (unsigned) strtol(optarg, NULL, 10);
-                        if (max_db_queue < MIN_QUEUE_LENGTH) {
-                                fprintf(stderr, "Error: minimum queue length is %d.\n", MIN_QUEUE_LENGTH);
-                                help();
-                                exit(EXIT_FAILURE);
-                        }
                         break;
                 case 'W':
                         num_dbthreads = (unsigned) strtol(optarg, NULL, 10);
-                        if (num_dbthreads < 1) {
-                                fprintf(stderr, "Error: you need at least one database thread.\n");
-                                help();
-                                exit(EXIT_FAILURE);
-                        }
                         break;
 
                 case '?':
@@ -108,10 +98,46 @@ int main(int argc, char *const argv[])
                 exit(EXIT_FAILURE);
         }
 
+        if (max_db_queue < MIN_QUEUE_LENGTH) {
+                fprintf(stderr, "Error: minimum queue length is %d.\n", MIN_QUEUE_LENGTH);
+                help();
+                exit(EXIT_FAILURE);
+        }
+
+        if (num_dbthreads < 1) {
+                fprintf(stderr, "Error: you need at least one database thread.\n");
+                help();
+                exit(EXIT_FAILURE);
+        }
+
+        /* Convert given path names to full paths. */
+        rtgconf_file = realpath(rtgconf_file, NULL);
+        targets_file = realpath(targets_file, NULL);
+
         cllog(0, "clpoll v%s starting up", VERSION);
 
-        if (detach)
+        if (detach) {
+                /* Try to parse configuration and target files so we can give error messages before we detach. */
+                struct rtgconf *config_test;
+                struct rtgtargets *targets_test;
+
+                config_test = rtgconf_create(rtgconf_file);
+                if (!config_test || !rtgconf_verify(config_test)) {
+                        cllog(0, "Missing or incorrect configuration file, so nothing to do.");
+                        exit(EXIT_FAILURE);
+                }
+                rtgconf_free(config_test);
+
+                targets_test = rtgtargets_parse(targets_file, config_test);
+                if (targets_test->ntargets == 0) {
+                        cllog(0, "No targets, so nothing to do.");
+                        exit(EXIT_FAILURE);
+                }
+                rtgtargets_free(targets_test);
+
+                /* Move to backgorund. */
                 daemonize();
+        }
 
         last_component = strrchr(argv[0], '/');
         if (last_component)
@@ -130,6 +156,7 @@ int main(int argc, char *const argv[])
                         cllog(0, "Missing or incorrect configuration file, so nothing to do.");
                         exit(EXIT_FAILURE);
                 }
+
                 /* "Patch" rtgconf with command line values */
                 config->use_db = use_db;
                 config->use_rate_column = use_rate_column;
@@ -139,7 +166,6 @@ int main(int argc, char *const argv[])
 
                 /* Read targets.cfg */
                 targets = rtgtargets_parse(targets_file, config);
-
                 if (targets->ntargets == 0) {
                         cllog(0, "No targets, so nothing to do.");
                         exit(EXIT_FAILURE);
@@ -293,7 +319,6 @@ void sigterm_handler(int signum)
 void daemonize(void)
 {
         pid_t pid, sid;
-        FILE *ignored;
 
         if (getppid() == 1)
                 return;
@@ -318,7 +343,7 @@ void daemonize(void)
                 exit(EXIT_FAILURE);
         }
 
-        ignored = freopen("/dev/null", "r", stdin);
-        ignored = freopen("/dev/null", "w", stdout);
-        ignored = freopen("/dev/null", "w", stderr);
+        (void) freopen("/dev/null", "r", stdin);
+        (void) freopen("/dev/null", "w", stdout);
+        (void) freopen("/dev/null", "w", stderr);
 }
