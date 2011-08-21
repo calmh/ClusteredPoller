@@ -16,11 +16,12 @@ struct clsnmp_session {
         void *sessp;            /* SNMP library session pointer. */
 };
 
-static pthread_mutex_t clsnmp_lock = PTHREAD_MUTEX_INITIALIZER;
-
 void clsnmp_global_init(void)
 {
+        struct snmp_session libsnmp_session;
         init_snmp("clpoll");
+        /* This loads and initializes global structures before we start threading. */
+        snmp_sess_init(&libsnmp_session);
 }
 
 struct clsnmp_session *clsnmp_session_create(const char *host, const char *community, int snmpver)
@@ -31,9 +32,9 @@ struct clsnmp_session *clsnmp_session_create(const char *host, const char *commu
         if (snmpver != 1 && snmpver != 2)
                 return NULL;
 
-        pthread_mutex_lock(&clsnmp_lock);
         session = (struct clsnmp_session *) xmalloc(sizeof(struct clsnmp_session));
         snmp_sess_init(&libsnmp_session);
+
         libsnmp_session.peername = (char *) host;
         libsnmp_session.community = (u_char *) community;
         libsnmp_session.community_len = strlen(community);
@@ -45,22 +46,18 @@ struct clsnmp_session *clsnmp_session_create(const char *host, const char *commu
         session->sessp = snmp_sess_open(&libsnmp_session);
 
         if (!session->sessp) {
-                pthread_mutex_unlock(&clsnmp_lock);
                 free(session);
                 return NULL;
         }
 
         snmp_sess_session(session->sessp);
-        pthread_mutex_unlock(&clsnmp_lock);
 
         return session;
 }
 
 void clsnmp_session_free(struct clsnmp_session *session)
 {
-        pthread_mutex_lock(&clsnmp_lock);
         snmp_sess_close(session->sessp);
-        pthread_mutex_unlock(&clsnmp_lock);
         free(session);
 }
 

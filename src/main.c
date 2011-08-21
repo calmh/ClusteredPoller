@@ -7,6 +7,7 @@
 
 #include "clbuf.h"
 #include "cllog.h"
+#include "clsnmp.h"
 #include "database.h"
 #include "globals.h"
 #include "monitor.h"
@@ -148,6 +149,8 @@ int main(int argc, char *const argv[])
 
         signal(SIGHUP, sighup_handler);
         signal(SIGTERM, sigterm_handler);
+
+        clsnmp_global_init();
 
         while (!full_stop_requested) {
                 /* Read rtg.conf */
