@@ -135,7 +135,7 @@ struct queryhost *rtgtargets_find_host(struct rtgtargets *targets, char *name);
  * @param oid The OID to look for.
  * @return A queryrow* pointing to the specified row, or NULL if not found.
  */
-struct queryrow *rtgtargets_find_row(struct queryhost *host, char *oid);
+struct queryrow *rtgtargets_find_row(struct queryhost *host, char *oid_str);
 
 /**
  * Copy the cache values from one targets set to another.
