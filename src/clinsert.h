@@ -16,7 +16,7 @@
  * The maximum amount of different tables we expect for a single host,
  * i.e. ifInOctets, ifOutOctets, ifInUcastPkts, etc.
  */
-#define MAX_TABLES 32
+#define MAX_TABLES 64
 
 struct queryhost;
 

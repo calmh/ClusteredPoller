@@ -10,6 +10,7 @@
 #include "xmalloc.h"
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 static struct clinsert *clinsert_create(char *table);
 
@@ -52,6 +53,7 @@ struct clinsert *clinsert_for_table(struct clinsert **inserts, char *table)
                         return inserts[i];
                 }
         }
+        assert(i != MAX_TABLES);
         inserts[i] = clinsert_create(table);
         return inserts[i];
 }
