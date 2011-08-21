@@ -400,12 +400,12 @@ struct queryhost *rtgtargets_find_host(struct rtgtargets *targets, char *name)
         return NULL;
 }
 
-struct queryrow *rtgtargets_find_row(struct queryhost *host, char *oid)
+struct queryrow *rtgtargets_find_row(struct queryhost *host, char *oid_str)
 {
         unsigned i;
         for (i = 0; i < host->nrows; i++) {
                 struct queryrow *r = host->rows[i];
-                if (!strcmp(oid, r->oid))
+                if (!strcmp(oid_str, r->oid))
                         return r;
         }
         return NULL;

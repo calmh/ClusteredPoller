@@ -7,6 +7,7 @@
 
 #include "clbuf.h"
 #include "cllog.h"
+#include "clsnmp.h"
 #include "database.h"
 #include "globals.h"
 #include "monitor.h"
@@ -148,6 +149,8 @@ int main(int argc, char *const argv[])
 
         signal(SIGHUP, sighup_handler);
         signal(SIGTERM, sigterm_handler);
+
+        clsnmp_global_init();
 
         while (!full_stop_requested) {
                 /* Read rtg.conf */
@@ -318,24 +321,24 @@ void sigterm_handler(int signum)
 
 void daemonize(void)
 {
-        pid_t pid, sid;
+        pid_t p_id, s_id;
 
         if (getppid() == 1)
                 return;
 
-        pid = fork();
-        if (pid < 0) {
+        p_id = fork();
+        if (p_id < 0) {
                 exit(EXIT_FAILURE);
         }
 
-        if (pid > 0) {
+        if (p_id > 0) {
                 exit(EXIT_SUCCESS);
         }
 
         umask(0);
 
-        sid = setsid();
-        if (sid < 0) {
+        s_id = setsid();
+        if (s_id < 0) {
                 exit(EXIT_FAILURE);
         }
 
