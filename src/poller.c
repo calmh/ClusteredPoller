@@ -196,6 +196,8 @@ struct clinsert **get_clinserts(struct queryhost *host)
                                         if (rate < row->speed) {
                                                 struct clinsert *insert = clinsert_for_table(inserts, row->table);
                                                 clinsert_push_value(insert, row->id, counter_diff, rate, dtime);
+                                        } else {
+                                                cllog(1, "Rate %u exceeds speed %llu bps for host %s oid %s", rate, row->speed, host->host, row->oid);
                                         }
                                 }
                                 row->cached_time = dtime;
