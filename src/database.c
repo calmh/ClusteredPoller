@@ -174,7 +174,7 @@ char *build_insert_query(struct clinsert *insert, struct rtgconf *config)
         if (config->use_rate_column)
                 clgstr_append(gs, ", rate");
         if (config->use_currvalue_column)
-                clgstr_append(gs, ", rate");
+                clgstr_append(gs, ", currvalue");
 	clgstr_append(gs, ") VALUES ");
 
         for (i = 0; i < insert->nvalues; i++) {
