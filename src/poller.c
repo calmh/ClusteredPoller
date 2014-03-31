@@ -20,11 +20,9 @@
 #include <string.h>
 #include <time.h>
 
-#define MAXERRORSPERHOST 3
-
 static void thread_inactive(unsigned id, unsigned iterations);
 static void thread_active(unsigned id);
-static void process_host(unsigned id, struct queryhost *host);
+static void process_host(unsigned id, struct queryhost *host, unsigned max_errors_per_host);
 static void process_queries(unsigned id, struct clinsert **host_queries);
 
 void *poller_run(void *ptr)
@@ -51,7 +49,7 @@ void *poller_run(void *ptr)
 
                 /* Loop over our share of the hosts. */
                 while (!thread_stop_requested && (host = rtgtargets_next(targets)))
-                        process_host(id, host);
+                        process_host(id, host, poller_context->max_errors_per_host);
 
                 /* Prepare for next iteration. */
                 iterations++;
@@ -87,14 +85,14 @@ void thread_active(unsigned id)
         pthread_mutex_unlock(&global_lock);
 }
 
-void process_host(unsigned id, struct queryhost *host)
+void process_host(unsigned id, struct queryhost *host, unsigned max_errors_per_host)
 {
         struct clinsert **host_queries;
 
         cllog(2, "Thread %u picked host '%s'.", id, host->host);
 
         /* Poll the host, get back the list of inserts, and queue them all. */
-        host_queries = get_clinserts(host);
+        host_queries = get_clinserts(host, max_errors_per_host);
         process_queries(id, host_queries);
         free(host_queries);
 }
@@ -166,7 +164,7 @@ void calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cu
         }
 }
 
-struct clinsert **get_clinserts(struct queryhost *host)
+struct clinsert **get_clinserts(struct queryhost *host, unsigned max_errors_per_host)
 {
         unsigned snmp_fail = 0;
         unsigned snmp_success = 0;
@@ -213,7 +211,7 @@ struct clinsert **get_clinserts(struct queryhost *host)
                                 errors++;
                                 snmp_fail++;
                         }
-                        if (errors >= MAXERRORSPERHOST) {
+                        if (errors >= max_errors_per_host) {
                                 cllog(0, "Too many errors for host %s, aborted.", host->host);
                                 break;
                         }

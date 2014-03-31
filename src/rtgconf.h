@@ -26,6 +26,7 @@ struct rtgconf {
         int allow_db_zero;      /**< True if we should insert zero rates in the database. */
         unsigned num_dbthreads; /**< The number of database threads. */
         unsigned max_db_queue;  /**< The maximum database queue depth. */
+        unsigned max_errors_per_host;  /**< Maximum number of errors per host before we stop polling that host. */
 };
 
 /**

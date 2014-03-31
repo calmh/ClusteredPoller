@@ -16,7 +16,7 @@ void TestMeasureOneHostsAt10MbpsForTenSeconds(CuTest *tc)
         struct rtgconf *conf = rtgconf_create("test/example-rtg.conf");
         struct rtgtargets *hosts = rtgtargets_parse("test/example-targets.cfg", conf);
 
-        struct clinsert **queries = get_clinserts(hosts->hosts[0]);
+        struct clinsert **queries = get_clinserts(hosts->hosts[0], 3);
         unsigned queries_size;
         for (queries_size = 0; queries[queries_size]; queries_size++) ;
 
@@ -24,7 +24,7 @@ void TestMeasureOneHostsAt10MbpsForTenSeconds(CuTest *tc)
 
         sleep(10);
 
-        queries = get_clinserts(hosts->hosts[0]);
+        queries = get_clinserts(hosts->hosts[0], 3);
         for (queries_size = 0; queries[queries_size]; queries_size++) ;
 
         CuAssertIntEquals(tc, 1, queries_size); /* One insert next iteration */
@@ -38,7 +38,7 @@ void TestMeasureOneHostAt100MbpsForOneInterval(CuTest *tc)
         struct rtgconf *conf = rtgconf_create("test/example-rtg.conf");
         struct rtgtargets *hosts = rtgtargets_parse("test/example-targets.cfg", conf);
 
-        struct clinsert **queries = get_clinserts(hosts->hosts[0]);
+        struct clinsert **queries = get_clinserts(hosts->hosts[0], 3);
         unsigned queries_size;
         for (queries_size = 0; queries[queries_size]; queries_size++) ;
 
@@ -46,7 +46,7 @@ void TestMeasureOneHostAt100MbpsForOneInterval(CuTest *tc)
 
         sleep(conf->interval);
 
-        queries = get_clinserts(hosts->hosts[0]);
+        queries = get_clinserts(hosts->hosts[0], 3);
         for (queries_size = 0; queries[queries_size]; queries_size++) ;
         CuAssertIntEquals(tc, 0, queries_size); /* No inserts next iteration due to too high speed */
 }
