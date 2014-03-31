@@ -30,7 +30,7 @@ void clinsert_free(struct clinsert *insert)
         free(insert);
 }
 
-void clinsert_push_value(struct clinsert *insert, unsigned id, unsigned long long counter, unsigned rate, time_t dtime)
+void clinsert_push_value(struct clinsert *insert, unsigned id, unsigned long long counter, unsigned rate, time_t dtime, unsigned long long currvalue)
 {
         if (insert->nvalues == insert->allocated_space) {
                 unsigned new_size = insert->allocated_space * 1.5;
@@ -42,6 +42,7 @@ void clinsert_push_value(struct clinsert *insert, unsigned id, unsigned long lon
         insert->values[insert->nvalues].counter = counter;
         insert->values[insert->nvalues].rate = rate;
         insert->values[insert->nvalues].dtime = dtime;
+        insert->values[insert->nvalues].currvalue = currvalue;
         insert->nvalues++;
 }
 

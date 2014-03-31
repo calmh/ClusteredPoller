@@ -170,10 +170,12 @@ char *build_insert_query(struct clinsert *insert, struct rtgconf *config)
 
         clgstr_append(gs, "INSERT INTO ");
         clgstr_append(gs, insert->table);
+        clgstr_append(gs, " (id, dtime, counter");
         if (config->use_rate_column)
-                clgstr_append(gs, " (id, dtime, counter, rate) VALUES ");
-        else
-                clgstr_append(gs, " (id, dtime, counter) VALUES ");
+                clgstr_append(gs, ", rate");
+        if (config->use_currvalue_column)
+                clgstr_append(gs, ", currvalue");
+	clgstr_append(gs, ") VALUES ");
 
         for (i = 0; i < insert->nvalues; i++) {
                 if (config->allow_db_zero || insert->values[i].rate) {
@@ -202,6 +204,13 @@ char *build_insert_query(struct clinsert *insert, struct rtgconf *config)
                                 /* Rate */
                                 clgstr_append(gs, ", ");
                                 snprintf(buffer, buffer_length, "%u", insert->values[i].rate);
+                                clgstr_append(gs, buffer);
+                        }
+
+                        if (config->use_currvalue_column) {
+                                /* Rate */
+                                clgstr_append(gs, ", ");
+                                snprintf(buffer, buffer_length, "%u", insert->values[i].currvalue);
                                 clgstr_append(gs, buffer);
                         }
                         /* End series */
