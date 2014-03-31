@@ -44,6 +44,7 @@ int main(int argc, char *const argv[])
         const char *targets_file = DEFAULT_TARGETS_FILE;
         int use_db = 1;
         int use_rate_column = 1;
+        int use_currvalue_column = 0;
         int allow_db_zero = 0;
         unsigned max_db_queue = DEFAULT_QUEUE_LENGTH;
         unsigned num_dbthreads = DEFAULT_NUM_DBTHREADS;
@@ -73,6 +74,9 @@ int main(int argc, char *const argv[])
                         break;
                 case 'z':
                         allow_db_zero = 1;
+                        break;
+                case 'C':
+                        use_currvalue_column = 1;
                         break;
                 case 'D':
                         detach = 0;
@@ -163,6 +167,7 @@ int main(int argc, char *const argv[])
                 /* "Patch" rtgconf with command line values */
                 config->use_db = use_db;
                 config->use_rate_column = use_rate_column;
+                config->use_currvalue_column = use_currvalue_column;
                 config->allow_db_zero = allow_db_zero;
                 config->max_db_queue = max_db_queue;
                 config->num_dbthreads = num_dbthreads;

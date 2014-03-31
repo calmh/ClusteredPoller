@@ -27,9 +27,10 @@ struct queryhost;
  */
 struct clinsert_value {
         unsigned id;            /**< ID value. */
-        unsigned long long counter;     /**< Counter value. */
+        unsigned long long counter;     /**< Counter difference between samples. */
         unsigned rate;          /**< Rate value (calculated form counter and time difference). */
         time_t dtime;           /**< Timestamp value. */
+        time_t currvalue;           /**< Current counter value. */
 };
 
 /**
@@ -66,11 +67,12 @@ void clinsert_free(struct clinsert *insert);
  * Will create a clinsert_value.
  * @param insert The insert to push a new value into.
  * @param id ID value.
- * @param counter Counter value.
+ * @param counter Counter difference between samples
  * @param rate Rate value.
  * @param dtime Timestamp value.
+ * @param currvalue Current counter value
  */
-void clinsert_push_value(struct clinsert *insert, unsigned id, unsigned long long counter, unsigned rate, time_t dtime);
+void clinsert_push_value(struct clinsert *insert, unsigned id, unsigned long long counter, unsigned rate, time_t dtime, unsigned long long currvalue);
 
 /**
  * Count the number of clinserts in the list **inserts.
