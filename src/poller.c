@@ -189,16 +189,21 @@ struct clinsert **get_clinserts(struct queryhost *host)
                         time_t dtime;
                         int success = clsnmp_get(session, row->oid, &counter, &dtime);
                         if (success) {
-                                if (row->bits == 0 || row->cached_time) {
-                                        unsigned long long counter_diff;
-                                        unsigned rate;
-                                        calculate_rate(row->cached_time, row->cached_counter, dtime, counter, row->bits, &counter_diff, &rate);
-                                        if (rate < row->speed) {
-                                                struct clinsert *insert = clinsert_for_table(inserts, row->table);
-                                                clinsert_push_value(insert, row->id, counter_diff, rate, dtime, counter);
-                                        } else {
-                                                cllog(1, "Rate %u exceeds speed %llu bps for host %s oid %s", rate, row->speed, host->host, row->oid);
+                                if(row->cached_counter > 0) {
+                                        if (row->bits == 0 || row->cached_time) {
+                                                unsigned long long counter_diff;
+                                                unsigned rate;
+                                                calculate_rate(row->cached_time, row->cached_counter, dtime, counter, row->bits, &counter_diff, &rate);
+                                                if (rate < row->speed) {
+                                                        struct clinsert *insert = clinsert_for_table(inserts, row->table);
+                                                        clinsert_push_value(insert, row->id, counter_diff, rate, dtime, counter);
+                                                } else {
+                                                        cllog(1, "Rate %u exceeds speed %llu bps for host %s oid %s", rate, row->speed, host->host, row->oid);
+                                                }
                                         }
+                                }
+                                else {
+				        cllog(1, "Unable to determine previous counter value for host %s oid %s. Skipping insert.", host->host, row->oid);
                                 }
                                 row->cached_time = dtime;
                                 row->cached_counter = counter;
