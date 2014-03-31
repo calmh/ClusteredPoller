@@ -30,7 +30,7 @@ struct clinsert_value {
         unsigned long long counter;     /**< Counter difference between samples. */
         unsigned rate;          /**< Rate value (calculated form counter and time difference). */
         time_t dtime;           /**< Timestamp value. */
-        time_t currvalue;           /**< Current counter value. */
+        unsigned long long currvalue;           /**< Current counter value. */
 };
 
 /**
