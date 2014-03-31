@@ -188,7 +188,9 @@ struct clinsert **get_clinserts(struct queryhost *host, unsigned max_errors_per_
                         int success = clsnmp_get(session, row->oid, &counter, &dtime);
                         if (success) {
                                 if (row->bits == 0 || row->cached_time) {
-                        		if(row->cached_counter > 0) {
+					/* Only insert if we have a previous value (or if the interface is stuck at zero,
+ * 						 in which case we'll let allow_db_zero make the decision in build_insert_query() */
+                        		if((row->cached_counter > 0) || ((row->cached_counter == 0) && (counter == 0))) {
                                                 unsigned long long counter_diff;
                                                 unsigned rate;
                                                 calculate_rate(row->cached_time, row->cached_counter, dtime, counter, row->bits, &counter_diff, &rate);
