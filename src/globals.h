@@ -27,6 +27,8 @@
 #define DEFAULT_INTERVAL 300    /* seconds */
 /** Default number of poller threads. */
 #define DEFAULT_THREADS 8
+/**Default maximum number of errors before we stop polling a host **/
+#define DEFAULT_MAX_ERRORS_PER_HOST 3
 
 struct clbuf;
 

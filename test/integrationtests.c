@@ -102,9 +102,9 @@ void TestResultSetForOneHost(CuTest *tc)
         struct rtgconf *conf = rtgconf_create("test/example-rtg.conf");
         struct rtgtargets *hosts = rtgtargets_parse("test/example-targets.cfg", conf);
 
-        struct clinsert **inserts = get_clinserts(hosts->hosts[0]);
+        struct clinsert **inserts = get_clinserts(hosts->hosts[0], 3);
         sleep(1);
-        inserts = get_clinserts(hosts->hosts[0]);
+        inserts = get_clinserts(hosts->hosts[0], 3);
 
         CuAssertTrue(tc, NULL != inserts[0]);   /* One table */
         CuAssertTrue(tc, NULL == inserts[1]);   /* Not two tables */

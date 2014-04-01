@@ -18,6 +18,7 @@ struct queryhost;
 /** Thread context for poller thread. */
 struct poller_ctx {
         struct rtgtargets *targets;     /**< The targets to poll. */
+        unsigned max_errors_per_host; 	/**< Maximum errors per host before we stop polling the host. */
 };
 
 /**
@@ -26,7 +27,7 @@ struct poller_ctx {
  * @param host The host to query.
  * @return A NULL-terminated list of clinserts.
  */
-struct clinsert **get_clinserts(struct queryhost *host);
+struct clinsert **get_clinserts(struct queryhost *host, unsigned max_errors_per_host);
 
 /**
  * Main loop for the poller thread.
