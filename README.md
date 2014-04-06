@@ -147,6 +147,14 @@ i.e. a working GCC and make.
 
      `gmake`
 
-  4. Use the created `clpoll` binary.
+  4. Use the created `clpoll` binary. If you want to use SMF, there is a manifest in smf-manifest.xml.
+
+     1. Copy smf-manifest.xml to /var/svc/manifest/site/clpoll.xml.
+
+     2. If necessary, modify the config_file and target_file properties and the path to the binary.
+
+     3. Run `pfexec svccfg import /var/svc/manifest/site/clpoll.xml`.
+
+     4. Run `pfexec svcadm enable clpoll`.
 
 Jakob Borg <jakob@nym.se>

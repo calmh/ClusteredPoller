@@ -20,11 +20,9 @@
 #include <string.h>
 #include <time.h>
 
-#define MAXERRORSPERHOST 3
-
 static void thread_inactive(unsigned id, unsigned iterations);
 static void thread_active(unsigned id);
-static void process_host(unsigned id, struct queryhost *host);
+static void process_host(unsigned id, struct queryhost *host, unsigned max_errors_per_host);
 static void process_queries(unsigned id, struct clinsert **host_queries);
 
 void *poller_run(void *ptr)
@@ -51,7 +49,7 @@ void *poller_run(void *ptr)
 
                 /* Loop over our share of the hosts. */
                 while (!thread_stop_requested && (host = rtgtargets_next(targets)))
-                        process_host(id, host);
+                        process_host(id, host, poller_context->max_errors_per_host);
 
                 /* Prepare for next iteration. */
                 iterations++;
@@ -87,14 +85,14 @@ void thread_active(unsigned id)
         pthread_mutex_unlock(&global_lock);
 }
 
-void process_host(unsigned id, struct queryhost *host)
+void process_host(unsigned id, struct queryhost *host, unsigned max_errors_per_host)
 {
         struct clinsert **host_queries;
 
         cllog(2, "Thread %u picked host '%s'.", id, host->host);
 
         /* Poll the host, get back the list of inserts, and queue them all. */
-        host_queries = get_clinserts(host);
+        host_queries = get_clinserts(host, max_errors_per_host);
         process_queries(id, host_queries);
         free(host_queries);
 }
@@ -166,7 +164,7 @@ void calculate_rate(time_t prev_time, unsigned long long prev_counter, time_t cu
         }
 }
 
-struct clinsert **get_clinserts(struct queryhost *host)
+struct clinsert **get_clinserts(struct queryhost *host, unsigned max_errors_per_host)
 {
         unsigned snmp_fail = 0;
         unsigned snmp_success = 0;
@@ -190,12 +188,21 @@ struct clinsert **get_clinserts(struct queryhost *host)
                         int success = clsnmp_get(session, row->oid, &counter, &dtime);
                         if (success) {
                                 if (row->bits == 0 || row->cached_time) {
-                                        unsigned long long counter_diff;
-                                        unsigned rate;
-                                        calculate_rate(row->cached_time, row->cached_counter, dtime, counter, row->bits, &counter_diff, &rate);
-                                        if (rate < row->speed) {
-                                                struct clinsert *insert = clinsert_for_table(inserts, row->table);
-                                                clinsert_push_value(insert, row->id, counter_diff, rate, dtime);
+					/* Only insert if we have a previous value (or if the interface is stuck at zero,
+ * 						 in which case we'll let allow_db_zero make the decision in build_insert_query() */
+                        		if((row->cached_counter > 0) || ((row->cached_counter == 0) && (counter == 0))) {
+                                                unsigned long long counter_diff;
+                                                unsigned rate;
+                                                calculate_rate(row->cached_time, row->cached_counter, dtime, counter, row->bits, &counter_diff, &rate);
+                                                if (rate < row->speed) {
+                                                        struct clinsert *insert = clinsert_for_table(inserts, row->table);
+                                                        clinsert_push_value(insert, row->id, counter_diff, rate, dtime, counter);
+                                                } else {
+                                                        cllog(1, "Rate %u exceeds speed %llu bps for host %s oid %s", rate, row->speed, host->host, row->oid);
+                                                }
+                                        }
+                                        else {
+				                cllog(1, "Unable to determine previous counter value for host %s oid %s. Skipping insert.", host->host, row->oid);
                                         }
                                 }
                                 row->cached_time = dtime;
@@ -206,7 +213,7 @@ struct clinsert **get_clinserts(struct queryhost *host)
                                 errors++;
                                 snmp_fail++;
                         }
-                        if (errors >= MAXERRORSPERHOST) {
+                        if (errors >= max_errors_per_host) {
                                 cllog(0, "Too many errors for host %s, aborted.", host->host);
                                 break;
                         }

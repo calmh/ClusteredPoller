@@ -29,7 +29,7 @@
 
 static void help(void);
 static void run_threads(struct rtgtargets *targets, struct rtgconf *config);
-static struct mt_threads *create_poller_threads(unsigned nthreads, struct rtgtargets *targets);
+static struct mt_threads *create_poller_threads(unsigned nthreads, struct rtgtargets *targets, unsigned max_errors_per_host);
 static struct mt_threads *create_database_threads(unsigned nthreads, struct rtgconf *config);
 static struct mt_threads *create_monitor_thread(struct rtgtargets *targets, struct rtgconf *config, curms_t next_iteration);
 static void free_threads_params(struct mt_threads *threads);
@@ -42,8 +42,10 @@ int main(int argc, char *const argv[])
         int detach = 1;
         const char *rtgconf_file = DEFAULT_RTGCONF_FILE;
         const char *targets_file = DEFAULT_TARGETS_FILE;
+        unsigned max_errors_per_host = DEFAULT_MAX_ERRORS_PER_HOST;
         int use_db = 1;
         int use_rate_column = 1;
+        int use_currvalue_column = 0;
         int allow_db_zero = 0;
         unsigned max_db_queue = DEFAULT_QUEUE_LENGTH;
         unsigned num_dbthreads = DEFAULT_NUM_DBTHREADS;
@@ -57,7 +59,7 @@ int main(int argc, char *const argv[])
                 exit(EXIT_FAILURE);
         }
 
-        while ((c = getopt(argc, argv, "c:dt:vzDOOQ:W:")) != -1) {
+        while ((c = getopt(argc, argv, "c:dt:vzCDE:OOQ:W:")) != -1) {
                 switch (c) {
                 case 'c':
                         rtgconf_file = optarg;
@@ -74,8 +76,14 @@ int main(int argc, char *const argv[])
                 case 'z':
                         allow_db_zero = 1;
                         break;
+                case 'C':
+                        use_currvalue_column = 1;
+                        break;
                 case 'D':
                         detach = 0;
+                        break;
+                case 'E':
+                        max_errors_per_host = (unsigned) strtol(optarg, NULL, 10);
                         break;
                 case 'O':
                         use_rate_column = 0;
@@ -163,9 +171,11 @@ int main(int argc, char *const argv[])
                 /* "Patch" rtgconf with command line values */
                 config->use_db = use_db;
                 config->use_rate_column = use_rate_column;
+                config->use_currvalue_column = use_currvalue_column;
                 config->allow_db_zero = allow_db_zero;
                 config->max_db_queue = max_db_queue;
                 config->num_dbthreads = num_dbthreads;
+                config->max_errors_per_host = max_errors_per_host;
 
                 /* Read targets.cfg */
                 targets = rtgtargets_parse(targets_file, config);
@@ -203,7 +213,9 @@ void help(void)
         fprintf(stderr, " -z          Database zero delta inserts\n");
         fprintf(stderr, "\n");
         fprintf(stderr, "Extended options:\n");
+        fprintf(stderr, " -C          Use currvalue column to store current interface counter value\n");
         fprintf(stderr, " -D          Don't detach, run in foreground\n");
+        fprintf(stderr, " -E <num>    Maximum errors before we stop polling a host [%d]\n", DEFAULT_MAX_ERRORS_PER_HOST);
         fprintf(stderr, " -O          Use old database schema, no `rate` column\n");
         fprintf(stderr, " -Q <num>    Maximum database queue length [%d]\n", DEFAULT_QUEUE_LENGTH);
         fprintf(stderr, " -W <num>    Number of database threads [%d]\n", DEFAULT_NUM_DBTHREADS);
@@ -225,7 +237,7 @@ void run_threads(struct rtgtargets *targets, struct rtgconf *config)
 
         queries = clbuf_create(config->max_db_queue);
 
-        poller_threads = create_poller_threads(config->threads, targets);
+        poller_threads = create_poller_threads(config->threads, targets, config->max_errors_per_host);
         database_threads = create_database_threads(config->num_dbthreads, config);
         monitor_thread = create_monitor_thread(targets, config, next_iteration);
 
@@ -243,7 +255,7 @@ void run_threads(struct rtgtargets *targets, struct rtgconf *config)
         queries = 0;
 }
 
-struct mt_threads *create_poller_threads(unsigned nthreads, struct rtgtargets *targets)
+struct mt_threads *create_poller_threads(unsigned nthreads, struct rtgtargets *targets, unsigned max_errors_per_host)
 {
         struct mt_threads *poller_threads = mt_threads_create(nthreads);
         unsigned i;
@@ -252,6 +264,7 @@ struct mt_threads *create_poller_threads(unsigned nthreads, struct rtgtargets *t
         for (i = 0; i < nthreads; i++) {
                 struct poller_ctx *ctx = (struct poller_ctx *) xmalloc(sizeof(struct poller_ctx));
                 ctx->targets = targets;
+                ctx->max_errors_per_host = max_errors_per_host;
                 poller_threads->contexts[i].param = ctx;
         }
         mt_threads_start(poller_threads, poller_run);
